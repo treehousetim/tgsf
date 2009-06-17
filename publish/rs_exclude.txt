@@ -1,0 +1,7 @@
+._*
+.DS_Store
+.svn
+publish
+.htaccess
+min/cache
+minify_groups

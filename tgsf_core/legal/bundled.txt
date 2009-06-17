@@ -1,0 +1,27 @@
+tgsf bundles other open source software with its distribution.
+
+Please visit the urls below for complete information about each separate project.
+
+These are:
+
+jQuery
+http://jquery.com
+Dual licensed under MIT and GPL V2 licenses.
+
+jQuery UI.
+http://jqueryui.com/home
+Dual licensed like the jQuery library.
+
+minify
+http://code.google.com/p/minify/
+Licensed under the new BSD license
+
+YUI Reset CSS
+http://developer.yahoo.com/yui/reset/
+Licensed under the BSD license
+
+
+tgsf also bundles some public domain javascript utility functions and jQuery plugins inside the tgsf_core_assets/js/utility.js file.
+the tgsf project has bundled these code snippets in good faith that they truly reside in the public domain.
+
+Any requests to remove them from this distribution will be taken seriously and will be reviewed and researched completely.

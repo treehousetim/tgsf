@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>tgSimpleFramework - Controllers</title>
+</head>
+<body>
+<h1>Controllers</h1>
+
+<ul>
+	<li<a href="#creating">Creating Controllers</a></li>
+	<li<a href="#default">Default Controllers</a></li>
+</ul>
+
+<div class="docblock">
+	<h2><a name="creating">Creating Controllers</a></h2>
+	<div class="doc_text">
+		<p>Creating controllers is a simple as creating a file.  Like many other MVC frameworks available, tgSimpleFramework utilizes a special folder that contains your controllers.  This folder is named controllers and is located in the application folder.  Simply create a file in that folder "my_page.php" and at which point the url www.example.com/my_page is available.
+		</p>
+	</div>
+</div>
+
+<div class="docblock">
+	<h2><a name="default">Default Controllers</a></h2>
+	<div class="doc_text">
+		<p>For default controllers, tgSF works the same way as most traditional PHP development.  For sake of familiarity and simplicity, tgSF uses index.php - it checks to see if an index.php file exists.  If it does, then that becomes the controller that is loaded. The variable $page still contains the url that is being loaded.
+		</p>
+		<p>
+		So, given the following folder structure:
+<pre>
+application/controllers
+	/users
+		index.php</pre>
+		The url www.example.com/users will load the index.php controller inside the users folder.</p>
+		<p>So what happens when you have a folder with index.php and a controller with the same name as a folder?  Preference is always given to a file over a folder with an index.php file.  This means that you can have a "parent" controller at a level closer to root with the same name as a folder and still have urls go into the folder, but the default controller will not be users/index.php Given the following folder structure:
+<pre>
+/controllers
+	users.php
+	/users
+		index.php
+		profile.php
+		rest_api.php</pre>
+		The url www.example.com/users will load controllers/users.php but the url www.example.com/users/profile will load the /controllers/users/profile.php file.  You can access the index file using www.example.com/users/index but that looks odd and should be avoided in practice.
+	</div>
+</div>
+</body>
+</html>
