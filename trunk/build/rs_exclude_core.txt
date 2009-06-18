@@ -1,0 +1,7 @@
+._*
+.DS_Store
+.svn
+build
+.htaccess
+application
+/index.php
