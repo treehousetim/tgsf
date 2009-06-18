@@ -17,47 +17,5 @@
 #------------------------------------------------------------------------
 #------------------- Core -----------------------------------------------
 #------------------------------------------------------------------------
-
-
-exclude=--exclude-from=rs_exclude_core.txt
-pg="--no-p --no-g"
-rsync_options=-Pav
-rsync_local_path=../
-rsync_local_dest=./tgsf-core
-
-zip_name=tgsf-core.zip
-
-rsync $rsync_options  $exclude $c $pg $rsync_local_path $rsync_local_dest
-
-rm $zip_name
-zip -r9 $zip_name $rsync_local_dest
-
-cd $rsync_local_dest
-rm -Rf *
-rm -Rf .*
-cd ..
-rmdir $rsync_local_dest
-
-
-#------------------------------------------------------------------------
-#--------------------Full------------------------------------------------
-#------------------------------------------------------------------------
-
-exclude=--exclude-from=rs_exclude_full.txt
-pg="--no-p --no-g"
-rsync_options=-Pav
-rsync_local_path=../
-rsync_local_dest=./tgsf
-
-zip_name=tgsf.zip
-
-rsync $rsync_options  $exclude $c $pg $rsync_local_path $rsync_local_dest
-
-rm $zip_name
-zip -r9 $zip_name $rsync_local_dest
-
-cd $rsync_local_dest
-rm -Rf *
-rm -Rf .*
-cd ..
-rmdir $rsync_local_dest
+./version.sh
+echo $version
