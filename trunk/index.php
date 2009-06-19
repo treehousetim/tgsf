@@ -12,9 +12,13 @@ define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 
 // the functions comprising the core of the framework
 // no initializing code is found in this file
-include( CORE_PATH . 'tgSimpleFramework.php' );
+// no additional libraries are loaded in this file.
+include CORE_PATH . 'tgSimpleFramework.php';
+include CORE_PATH . 'core-loader.php';
 
 // application detection goes here
+// which means that the app folder can be set using
+// any means you need - i.e. url inspection, etc.
 define( 'APP_FOLDER', 'application/' );
 
 // this loads app configurations and
@@ -32,4 +36,3 @@ $page = tg_parse_url( $vars );
 require resolve_controller( $page );
 
 end_buffer();
-
