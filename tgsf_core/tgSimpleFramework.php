@@ -24,15 +24,6 @@ define( 'IS_CORE_LIB', true );
 define( 'IS_CORE_CONFIG', true );
 //------------------------------------------------------------------------
 
-//------------------------------------------------------------------------
-// special case - we want database as early as possible.  we can load this here because we
-// already know the root core folder even though we don't know the application root yet.
-// one side effect of this is that we can't extend the database class at the application level.
-// deal with it, or move this from the library to the front controller.
-load_library( 'tgDB', IS_CORE_LIB );
-load_library( 'tgsfUrlDetection', IS_CORE_LIB );
-//load_config( '' )
-//------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
 function path( $folder, $core = false )
