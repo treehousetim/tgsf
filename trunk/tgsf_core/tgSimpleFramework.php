@@ -54,9 +54,16 @@ function can_plugin()
 //------------------------------------------------------------------------
 function load_library( $name, $core = false )
 {
-	$path =  path( 'libraries', $core );
+	$path = path( 'libraries', $core );
 		
 	require_once  $path . $name . PHP;
+}
+//------------------------------------------------------------------------
+function load_model( $name, $core = false )
+{
+	$path = path( 'models', $core );
+	
+	require_once $path . $name . PHP;
 }
 //------------------------------------------------------------------------
 function load_config( $name, $core=false )
@@ -525,7 +532,19 @@ function ends_with( $compare, $snippet )
 	
 	return $out;
 }
-
+//------------------------------------------------------------------------
+function tab( $repeat )
+{
+	return str_repeat( "\t", $repeat );
+}
+//------------------------------------------------------------------------
+function enum( $items )
+{
+	for ( $ix = 0; $ix < count( $items ); $ix++ )
+	{
+		define( $items[$ix], $ix^2 );
+	}
+}
 //------------------------------------------------------------------------
 
 function enable_browser_cache( $file )

@@ -20,7 +20,7 @@ class dbSetup
 	
 	//------------------------------------------------------------------------
 	
-	public function dbSetup( $user, $password, $database, $type = 'mysql', $host = 'localhost', $port = null )
+	public function __construct( $user, $password, $database, $type = 'mysql', $host = 'localhost', $port = null )
 	{
 		$this->_user = $user;
 		$this->_password = $password;
@@ -86,7 +86,7 @@ class dbManager
 	* @param Mixed You can either pass a single setup object or an array of setup objects
 	* @see useSetup
 	*/
-	function dbManager( $setupObject = null )
+	public function __construct( $setupObject = null )
 	{
 		if ( ! is_null( $setupObject ) )
 		{
@@ -100,7 +100,7 @@ class dbManager
 	* Arrays should be associative - ['name'] = object
 	* @param Mixed Setup Object or array of setup objects.  These are used to connect to the database(s)
 	*/
-	function useSetup( $setupObject )
+	public function useSetup( $setupObject )
 	{
 		if ( ! is_array( $setupObject ) )
 		{
@@ -117,7 +117,7 @@ class dbManager
 	* Used to add an additional database setup later on
 	* @see useSetup()
 	*/
-	function addSetup( $name, $setupObject )
+	public function addSetup( $name, $setupObject )
 	{
 		$this->_setup[$name] =& $setupObject;
 	}
@@ -128,10 +128,90 @@ class dbManager
 	* @param String The logical name of the database server to connect to
 	* This is 'default' by ... um... default.
 	*/
-	function connect( $which = 'default' )
+	public function connect( $which = 'default' )
 	{
 		return $this->_setup[$which]->connect();
 	}
+	
+	/**
+	* Alias of connect
+	* @see connect()
+	* @param String The logical name of the database server to connect to
+	* This is 'default' by ... um... default.
+	*/
+	public function getHandle( $which = 'default' )
+	{
+		return $this->connect( $which );
+	}
+}
+//------------------------------------------------------------------------
+class query
+{
+	protected $_table = array();
+	protected $_dbManager;
+	protected $_conn;
+	protected $_where = array( 1 => 1 );
+	
+	public function __construct( $which = 'default' )
+	{
+		$this->_dbManager = config( 'dbm' );
+	}
+	
+	protected function _table()
+	{
+		return implode( ',', $this->_table );
+	}
+	
+	protected function _where()
+	{
+		return implode( ',', $this->_where );
+	}
+	
+	/**
+	* Adds an AND section to the where clause
+	*/
+	public function w_and()
+	{
+		
+	}
+}
+/*
+UPDATE table set field=value WHERE
+SELECT FIELD,FIELD FROM TABLE,TABLE LEFT OUTER JOIN table on ()  WHERE Clause GROUP BY ORDER BY LIMIT
+DELETE FROM TABLE WHERE
+*/
+//------------------------------------------------------------------------
+class update_query extends query
+{
+	private $_fields = array();
+	protected $_dbManager;
+	
+	public function __construct( $dbm, $table = '' )
+	{
+		//$this->
+		$this->_table = $table;
+	}
+	
+	
+	
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	function generate()
+	{
+		$out = 'UPDATE ';
+		$out .= $this->_table[0];
+	}
+}
+//------------------------------------------------------------------------
+class select extends query
+{
+	private $_selects = array();
+	private $_joins = array();
+	private $_wheres = array();
+	private $_orders = array();
+	private $_limit = array();
 	
 	
 }
