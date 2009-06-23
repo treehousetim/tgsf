@@ -8,6 +8,9 @@ for complete licensing information.
 
 // load that db early, LOAD IT! ANTICI
 load_library( 'tgDB', IS_CORE_LIB );
+load_library( 'db/field', IS_CORE_LIB );
+load_library( 'db/table', IS_CORE_LIB );
+
 
 // might want these for detecting the application.
 load_library( 'tgsfUrlDetection', IS_CORE_LIB );

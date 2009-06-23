@@ -69,7 +69,7 @@ function runRsync( $dest, $exclude )
 {
 	$exclude= "--exclude-from=" . $exclude;
 	$pg = "--no-p --no-g";
-	$rsync_options = "-Pav";
+	$rsync_options = "-Pa";
 	$rsync_local_path = "../";
 	$rsync_local_dest = "./" . $dest;
 
