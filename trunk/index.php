@@ -24,7 +24,7 @@ define( 'APP_FOLDER', 'application/' );
 // this loads app configurations and
 // loads app plugins and libraries
 // and core libraries too
-include( CORE_PATH . 'app_loader.php' );
+include( CORE_PATH . 'app-loader.php' );
 
 content_buffer();
 
