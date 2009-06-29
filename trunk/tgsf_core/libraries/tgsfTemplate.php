@@ -7,44 +7,43 @@ for complete licensing information.
 */
 
 
-function js( $filename, $local = true, $group = null )
+function js( $jsFiles, $group = null )
 {
-	$prefix = '';
-	if ( $local )
-	{
-		$prefix = config( 'js_url' );
-		$filePrefix = config( 'js_path' );
-	}
+	$loopFiles = array();
+	$groupFiles = array();
+	$files = array();
 	
-	if ( ! is_array( $filename ) )
-	{
-		$files[] = $filename;
-	}
-	else
-	{
-		$files = $filename;
-	}
+	arrayify( $jsFiles, $loopFiles );
 	
-	if ( is_null( $group ) )
+	foreach ( $loopFiles as $jsFile )
 	{
-		foreach ( $files as $file )
+		if ( ! is_local( $jsFile ) )
 		{
-			echo "\t" . '<script type="text/javascript" src="' . $prefix . $file . '"></script>' . "\n";
+			echo "\t" . '<script type="text/javascript" src="' . $jsfile . '"></script>' . "\n";
+		}
+		else
+		{
+			if ( ! file_exists( $jsFile )  )
+			{
+				throw new tgsfException( 'File Does Not Exist when trying to create a script tag: ' . $jsFile );
+			}
+			$groupFiles[] = "'{$jsFile}'";
 		}
 	}
-	else
+
+	if ( count( $groupFiles ) > 0 )
 	{
-		foreach ( $files as $file )
+		if ( is_null( $group ) )
 		{
-			$arrayContents[] = "'" . $filePrefix . $file . "'";
+			$group = md5( implode( '', $groupFiles ) );
 		}
-		$contents = implode( ",\n", $arrayContents );
-		$content = <<<EOC
-<?php
-		return array( '$group' => array( $contents ) );
-EOC;
-		file_put_contents( path( 'assets', IS_CORE_PATH ) . 'minify_groups/' . $group . '.php', $content );
-		echo "\t" . '<script type="text/javascript" src="' . current_base_url() . 'min/?g=' . $group . '"></script>' . "\n";
+
+		$contents = implode( ",\n", $groupFiles );
+		$content = "<?php return array( 'js_$group' => array( $contents ) );";
+
+		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . 'js_' . $group . PHP, $content );
+		echo "\t" . '<script type="text/javascript" src="' .url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=js_' . $group . '"></script>' . "\n";
+
 	}
 }
 
@@ -63,63 +62,62 @@ function css( $file, $local = true )
 }
 
 //------------------------------------------------------------------------
-
-function css_import( $filename, $local = true, $group = null )
+/**
+* Outputs one or more style tags with an @import rule
+* This function also integrates with the bundled minify to create groups of minified CSS
+* in which case it outputs a single style tag with an @import rule pointing to /tgsf_core/3rd_party/min/?g=example
+* @param Mixed Either a string or an array of css files to include.
+* If the name does not start with http:// or https:// then it is considered local and will be put through minify
+* @param The name of the minify group - files will not be minified unless the group name is provided.
+* and is 
+*/
+function css_import( $cssFiles, $group = null )
 {
-	$prefix = '';
-	$suffix = '';
-	if ( $local )
-	{
-		$prefix = config( 'css_url' );
-		$filePrefix = config( 'css_path' );
-		$suffix = '.css';
-	}
+	$loopFiles = array();
+	$groupFiles = array();
+	$files = array();
 	
-	if ( ! is_array( $filename ) )
-	{
-		$files[] = $filename;
-	}
-	else
-	{
-		$files = $filename;
-	}
+	arrayify( $cssFiles, $loopFiles );
 	
-	if ( is_null( $group ) )
+	foreach ( $loopFiles as $cssFile )
 	{
-		foreach ( $files as $file )
+		if ( ! is_local( $cssFile ) )
 		{
-			echo "\t" . '<style type="text/css">@import url(' . $prefix . $file . $suffix . ');</style>' . "\n";
+			echo "\t" . '<style type="text/css">@import url(' . $cssFile . ');</style>' . "\n";
+		}
+		else
+		{	
+			if ( ! file_exists( $cssFile )  )
+			{
+				throw new tgsfException( 'File Does Not Exist when trying to create an imported CSS tag: ' . $cssFile );
+			}
+			$groupFiles[] = "'{$cssFile}'";
 		}
 	}
-	else
+
+	if ( count( $groupFiles ) > 0 )
 	{
-		foreach ( $files as $file )
+		if ( is_null( $group ) )
 		{
-			$arrayContents[] = "'" . $filePrefix . $file . $suffix . "'";
+			$group = md5( implode( '', $groupFiles ) );
 		}
-		$contents = implode( ",\n", $arrayContents );
-		$content = <<<EOC
-<?php
-		return array( '$group' => array( $contents ) );
-EOC;
-		file_put_contents( path( 'assets', IS_CORE_PATH ) . 'minify_groups/' . $group . '.php', $content );
-		echo "\t" . '<style type="text/css">@import url(' . config( 'base_url' ) . 'min/?g=' . $group . ');</style>' . "\n";
-					
-//		echo "\t" . '<script type="text/javascript" src="' . config( 'base_url' ) . 'min/?g=' . $group . '"></script>' . "\n";
+
+		$contents = implode( ",\n", $groupFiles );
+		$content = "<?php return array( '$group' => array( $contents ) );";
+		//echo path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP;
+		
+		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
+		echo "\t" . '<style type="text/css">@import url(' . url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=' . $group . ');</style>' . "\n";
 	}
 }
-
 //------------------------------------------------------------------------
-
-function css_import_ie( $file, $local = true )
+function css_import_ie( $file, $if = 'if IE' )
 {
-	echo '<!--[if IE]>';
-	css_import( $file, $local );
+	echo '<!--[' . $if . ']>';
+	css_import( $file );
 	echo '<![endif]-->';
 }
-
 //------------------------------------------------------------------------
-
 function output_css_properties( $array )
 {
 	foreach ( $array as $prop => $value )
@@ -127,14 +125,12 @@ function output_css_properties( $array )
 		echo $prop . ': ' . $value . '; ';
 	}
 }
-
+//------------------------------------------------------------------------
 function js_output_url_func()
 {
 	?><script type="text/javascript">function url( url ) { url=url.trim();<?php if ( defined( 'tgTrailingSlash' ) && tgTrailingSlash === true ) { echo "url=url+'/';"; }; ?> if(url=='/'){url=''};return '<?php echo current_base_url(); ?>' + url; };</script><?php 
 }
-
 //------------------------------------------------------------------------
-
 /**
 * This loads the error controller and then exits script execution.
 * @var String The error message to display.
@@ -145,33 +141,26 @@ function show_error( $message )
 	require_once controller( 'error' );
 	exit();
 }
-
 //------------------------------------------------------------------------
 // HTML Output functions
 //------------------------------------------------------------------------
-
 function favicon( $url, $type = 'image/jpeg' )
 {
 	?><link rel="icon" type="<?php echo $type; ?>" href="<?php echo $url; ?>"><?php
 }
-
 //------------------------------------------------------------------------
-
 function html_inline_style( $content )
 {
 	?><style type="text/css"><?php echo $content; ?></style><?php
 }
-
 //------------------------------------------------------------------------
-
 function html_title( $title )
 {
 	?><title><?php echo $title; ?></title><?php
 }
-
 //------------------------------------------------------------------------
-
 function content_type( $type )
 {
 	?><meta http-equiv="Content-Type" content="<?php echo $type; ?>"><?php
 }
+

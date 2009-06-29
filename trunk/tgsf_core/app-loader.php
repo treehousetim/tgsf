@@ -14,6 +14,7 @@ load_config( 'first' );
 
 // load order is important - config first, then get plugins as soon as possible
 load_config( 'config' ); // the main config
+load_config( 'db' );
 
 if ( $config['host_www'] === false )
 {
