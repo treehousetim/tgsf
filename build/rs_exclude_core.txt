@@ -5,3 +5,4 @@ build
 .htaccess
 application
 /index.php
+/db_config
