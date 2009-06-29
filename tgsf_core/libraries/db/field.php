@@ -6,7 +6,7 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 //------------------------------------------------------------------------
-class field
+class field extends tgsfBase
 {
 	public $name = '';
 	public $type = '';
@@ -59,19 +59,25 @@ class field
 		
 		$out[] = str_pad( $this->name, 35 );
 		
-		if ( $this->size !== '' )
+		if ( $this->enum === true )
+		{
+			$out[] = str_pad( strtoupper( $this->type ) . "( '" . implode( "','", $this->enumList ) . "' )",35 );
+		}
+		else if ( ! is_null( $this->size ) )
 		{
 			$out[] = str_pad( strtoupper( $this->type ) . '(' . $this->size . ')', 35 );
 		}
 		else
 		{
-			$out[] = str_pad( strtoupper( $this->type ), 20 );
+			$out[] = str_pad( strtoupper( $this->type ), 35 );
 		}
 		
 		if ( count( $this->options ) > 0 )
 		{
 			$out = array_merge( $out, $this->options );
 		}
+		
+		$out[count($out)-1] = trim($out[count($out)-1]);
 		
 		return implode( ' ', $out );
 	}

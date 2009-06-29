@@ -22,29 +22,68 @@ define( 'GIF', '.gif' );
 define( 'IS_CORE_PATH', true );
 define( 'IS_CORE_LIB', true );
 define( 'IS_CORE_CONFIG', true );
+define( 'IS_CORE', true );
 //------------------------------------------------------------------------
-
-
-//------------------------------------------------------------------------
-function path( $folder, $core = false )
+/**
+* @param String The folder
+* @param Is the folder located in the core (assets is parsed correctly)
+*/
+function relative_path( $folder, $core = false )
 {
 	$folder = trim( $folder, ' /' );
-
-	$root = APP_PATH;
-
+	
+	$root = APP_FOLDER;
+	
 	if ( $core === IS_CORE_PATH )
 	{
-		$root = CORE_PATH;
-		if ( $folder === 'assets' )
+		$root = 'tgsf_core/';
+		if( starts_with( $folder, 'assets' ) )
 		{
-			$root = BASEPATH;
-			$folder = 'tgsf_core_assets';
+			$root = 'tgsf_core_assets/';
+			$folder = trim( substr( $folder, 6 ), ' /' );
 		}
 	}
 	
-
-
-	return $root . $folder . '/';
+	if ( $folder != '' )
+	{
+		$folder .= '/';
+	}
+	
+	return $root . $folder;
+}
+//------------------------------------------------------------------------
+function path( $folder, $core = false )
+{
+	return BASEPATH . relative_path( $folder, $core );
+}
+//------------------------------------------------------------------------
+function asset_path( $folder, $core = false )
+{
+	$folder = trim( 'assets/' . $folder, ' /' );
+	return path( $folder, $core );
+}
+//------------------------------------------------------------------------
+function css_path( $folder = '', $core = false )
+{
+	$folder = trim( 'css/' . $folder, ' /' );
+	return asset_path( $folder, $core );
+}
+//------------------------------------------------------------------------
+function js_path( $folder = '', $core = false )
+{
+	$folder = trim( 'js/' . $folder, ' /' );
+	return asset_path( $folder, $core );
+}
+//------------------------------------------------------------------------
+function jquery_path( $folder = '' )
+{
+	$folder = trim( 'jquery/' . $folder, ' /' );
+	return js_path( $folder, IS_CORE_PATH );
+}
+//------------------------------------------------------------------------
+function url_path( $folder, $core = false )
+{
+	return current_base_url() . relative_path( $folder, $core );
 }
 //------------------------------------------------------------------------
 function can_plugin()
@@ -139,7 +178,7 @@ function force_trailing_slash()
 		
 		$url = current_base_url() . $page . '/' . $extra;
 		
-		if ( plugin_system_ready() )
+		if ( can_plugin() )
 		{
 			$url = do_filter( 'force_trailing_slash_redirect_url', $url );
 			do_action( 'force_trailing_slash_redirect', $url );
@@ -184,15 +223,12 @@ function view( $name, $core = false )
 	return path( 'views', $core ) . $name . PHP;
 }
 //------------------------------------------------------------------------
-function image( $file, $core = false, $path = false )
+function image( $file, $core = false )
 {
-	$loc = config( 'image_url' );
-	if ( $path )
-	{
-		$loc = config( 'image_path' );
-	}
+	$root = path( 'assets', $core );
+	$root .= path( 'images' );
 	
-	return $loc . $file;
+	return $root . $file;
 }
 //------------------------------------------------------------------------
 function image_url( $file, $absolute = false )
@@ -206,23 +242,17 @@ function image_url( $file, $absolute = false )
 	
 	return $loc . $file;
 }
-
 //------------------------------------------------------------------------
-
 function plugin( $file, $core = false )
 {
 	return path( 'plugins', $core ) . $file . PHP;
 }
-
 //------------------------------------------------------------------------
-
 function font( $file, $core = false )
 {
 	return path( 'assets', $core ) . 'fonts/' . $file;
 }
-
 //------------------------------------------------------------------------
-
 function url( $url, $core = false )
 {
 	$url = trim( $url, "\t\n\r /\\" ); // remove leading/trailing whitespace and slashes( back and forward)
@@ -442,109 +472,6 @@ function end_buffer()
 	ob_end_flush();
 }
 
-//------------------------------------------------------------------------
-/**
-* Trims an array - removes empty and null elements
-* @param String The entire string to compare against
-* @param String The snippet to test for at the beginning of $compare
-* @author Tim Gallagher<treehousetim@gmail.com>
-* @Package PHPocketKnife
-* @version 2/28/2006 8:30 PM
-*/
-function trimArray($inArray)
-{
-    foreach ($inArray as $key => $value)
-    {
-        if ( trim($value) !="" )
-        {
-            if ( is_int( $key ) )
-            {
-                $outArray[] = trim( $value );
-            }
-            elseif ( is_string( $key ) )
-            {
-                $outArray[$key] = trim($value);
-            }
-        }
-    }
-    
-    return $outArray;
-}
-
-//------------------------------------------------------------------------
-/**
-* Returns true if the string to compare starts with the snippet
-* @param String The entire string to compare against
-* @param String The snippet to test for at the beginning of $compare
-* @author Tim Gallagher<treehousetim@gmail.com>
-* @Package PHPocketKnife
-* @version 2/28/2006 8:30 PM
-*/
-function starts_with( $compare, $snippet )
-{
-	if ( is_array( $snippet ) )
-	{
-		$out = false;
-		foreach ( $snippet as $value )
-		{
-			if ( $value == substr( $compare, 0, strlen( $value ) ) )
-			{
-				$out = true;
-				break;
-			}
-		}
-	}
-	else
-	{
-		$out = $snippet === substr( $compare, 0, strlen( $snippet ) );
-	}
-	
-	return $out;
-}
-
-//------------------------------------------------------------------------
-/**
-* Returns true if the string to compare ends with the snippet
-* @param String The entire string to compare against
-* @param String The snippet to test for at the end of $compare
-* @author Tim Gallagher<treehousetim@gmail.com>
-* @Package PHPocketKnife
-* @version 2/28/2006 8:30 PM
-*/
-function ends_with( $compare, $snippet )
-{
-	if ( is_array( $snippet ) )
-	{
-		$out = false;
-		foreach ( $snippet as $value )
-		{
-			if ( $value == substr( $compare, -1 * strlen( $value ) ) )
-			{
-				$out = true;
-				break;
-			}
-		}
-	}
-	else
-	{
-		$out = $snippet == substr( $compare, -1 * strlen( $snippet ) );
-	}
-	
-	return $out;
-}
-//------------------------------------------------------------------------
-function tab( $repeat )
-{
-	return str_repeat( "\t", $repeat );
-}
-//------------------------------------------------------------------------
-function enum( $items )
-{
-	for ( $ix = 0; $ix < count( $items ); $ix++ )
-	{
-		define( $items[$ix], $ix^2 );
-	}
-}
 //------------------------------------------------------------------------
 
 function enable_browser_cache( $file )

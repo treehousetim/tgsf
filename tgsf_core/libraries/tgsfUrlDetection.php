@@ -5,7 +5,6 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-
 //------------------------------------------------------------------------
 function current_base_url_path()
 {

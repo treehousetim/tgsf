@@ -6,11 +6,9 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
+// TODO: Make this file obsolete - it may already be and if it is, remove it.
 
 //$config['base_url'] = current_base_url();
-
-
-
 //$config['base_url']	= 'http://' . $host . '/';
 
 //------------------------------------------------------------------------

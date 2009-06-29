@@ -8,7 +8,5 @@ for complete licensing information.
 
 // rename this file to db.php and make your necessary changes to it.
 
-$db = new dbSetup( 'username', 'password', 'example-database' );
-$config['dbm'] = new dbManager( $db );
-
-global $dbh = $config['dbm']
+dbm()->useSetup( new dbSetup( 'username', 'password', 'example-database' ) );
+dbm()->addSetup( new dbSetup( 'username', 'password', 'database-2' ), 'database2' );

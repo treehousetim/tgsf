@@ -5,29 +5,26 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-
-
+//------------------------------------------------------------------------
 class tgPlugin
 {
 	private static $me;
-	private $_actions = array();
-	private $_filters = array();
-	private $_plugins = array();
-	private $_pluginNames = array();
-	
+	private $_actions		= array();
+	private $_filters		= array();
+	private $_plugins		= array();
+	private $_pluginNames	= array();
+	private $_loaded		= array();
 
-	public function tgPlugin()
+	//------------------------------------------------------------------------
+	public function __construct()
 	{
 		self::$me =& $this;
 	}
-	
 	//------------------------------------------------------------------------
-
 	public static function &get_instance()
 	{
 		return self::$me;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Returns true/false if a plugin **name** has been registered before.
@@ -38,7 +35,6 @@ class tgPlugin
 	{
 		return in_array( $name, $this->_pluginNames );
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Registers a plugin into the system - only if the file exists
@@ -47,7 +43,7 @@ class tgPlugin
 	function registerPlugin( $file, $name )
 	{
 		$out = false;
-		if ( file_exists(  $file ) )
+		if ( file_exists(  $file ) && ! in_array( array_keys( $this->_plugins ), $file ) )
 		{
 			$this->_pluginNames[] = $name;
 			$this->_plugins[$file]['name'] = $name;
@@ -57,7 +53,6 @@ class tgPlugin
 		}
 		return $out;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* (possibly as early )
@@ -66,10 +61,29 @@ class tgPlugin
 	{
 		return $this->_plugins;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Marks a plugin as loaded
+	*/
+	function markPluginAsLoaded( $plugin, $name = '' )
+	{
+		$this->_loaded[] = $plugin;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns true/false if a plugin is already loaded.
+	* This relies on having the markPluginAsLoaded method called
+	* @param String The plugin file
+	* @see markPluginAsLoaded
+	*/
+	function pluginAlreadyLoaded( $plugin )
+	{
+		return in_array( $this->_loaded, $plugin );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Processes the specified action
+	* @param String the name
 	*/
 	function doAction( $name, $params )
 	{
