@@ -14,6 +14,11 @@ define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 // no initializing code is found in this file
 // no additional libraries are loaded in this file.
 include CORE_PATH . 'tgSimpleFramework.php';
+
+// contains some important functions that are used in core-loader.php
+include CORE_PATH . 'tgUtilityFunctions.php';
+
+// load the core libraries and whatnot
 include CORE_PATH . 'core-loader.php';
 
 // application detection goes here
