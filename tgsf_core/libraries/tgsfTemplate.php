@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -83,6 +83,11 @@ function css_import( $cssFiles, $group = null )
 	{
 		if ( ! is_local( $cssFile ) )
 		{
+			$atr = array();
+			$atr['type'] = 'text/css';
+			$content = '@import url(' . $cssFile . ');';
+			echo html_tag( 'style', $atr, $content );
+			
 			echo "\t" . '<style type="text/css">@import url(' . $cssFile . ');</style>' . "\n";
 		}
 		else
@@ -104,10 +109,13 @@ function css_import( $cssFiles, $group = null )
 
 		$contents = implode( ",\n", $groupFiles );
 		$content = "<?php return array( '$group' => array( $contents ) );";
-		//echo path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP;
-		
+
 		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
-		echo "\t" . '<style type="text/css">@import url(' . url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=' . $group . ');</style>' . "\n";
+		
+		$atr = array();
+		$atr['type'] = 'text/css';
+		$content = '@import url(' . url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=' . $group . ');';
+		echo html_tag( 'style', $atr, $content ) . "\n";
 	}
 }
 //------------------------------------------------------------------------
@@ -115,6 +123,13 @@ function css_import_ie( $file, $if = 'if IE' )
 {
 	echo '<!--[' . $if . ']>';
 	css_import( $file );
+	echo '<![endif]-->';
+}
+//------------------------------------------------------------------------
+function css_import_ie_x( $file, $version = '6', $local = true )
+{
+	echo "<!--[if IE $version]>";
+	css_import( $file, $local );
 	echo '<![endif]-->';
 }
 //------------------------------------------------------------------------
@@ -128,7 +143,21 @@ function output_css_properties( $array )
 //------------------------------------------------------------------------
 function js_output_url_func()
 {
-	?><script type="text/javascript">function url( url ) { url=url.trim();<?php if ( defined( 'tgTrailingSlash' ) && tgTrailingSlash === true ) { echo "url=url+'/';"; }; ?> if(url=='/'){url=''};return '<?php echo current_base_url(); ?>' + url; };</script><?php 
+	$atr = array();
+	$atr['type']	= 'text/javascript';
+	
+	$content  = 'function url( url )';
+	$content .= '{ url=url.trim();';
+
+	if ( defined( 'tgTrailingSlash' ) && tgTrailingSlash === true )
+	{
+		$content .= "url=url+'/';";
+	}
+	
+	$content .= "if(url=='/'){url=''};";
+	$content .= "return '" . current_base_url() . "' + url;";
+	$content .= '}';
+	echo html_tag( 'script', $atr, $content ) . "\n";
 }
 //------------------------------------------------------------------------
 /**
@@ -142,25 +171,203 @@ function show_error( $message )
 	exit();
 }
 //------------------------------------------------------------------------
-// HTML Output functions
+// HTML Generation functions
 //------------------------------------------------------------------------
 function favicon( $url, $type = 'image/jpeg' )
 {
-	?><link rel="icon" type="<?php echo $type; ?>" href="<?php echo $url; ?>"><?php
+	$atr = array();
+	$atr['rel']		= 'icon';
+	$atr['href']	= $url;
+	$atr['type']	= $type;
+	echo html_tag( 'link', $atr );
 }
 //------------------------------------------------------------------------
 function html_inline_style( $content )
 {
-	?><style type="text/css"><?php echo $content; ?></style><?php
+	if ( $content == '' )
+	{
+		return;
+	}
+	
+	$atr = array();
+	$atr['type']	= 'text/css';
+	echo html_tag( 'style', $atr, $content );
 }
 //------------------------------------------------------------------------
 function html_title( $title )
 {
-	?><title><?php echo $title; ?></title><?php
+	$atr = array();
+	echo html_tag( 'title', $atr, $title );
 }
 //------------------------------------------------------------------------
 function content_type( $type )
 {
-	?><meta http-equiv="Content-Type" content="<?php echo $type; ?>"><?php
+	$atr = array();
+	$atr['content']		= $type;
+	$atr['http-equiv']	= 'Content-Type';
+	echo html_tag( 'meta', $atr );
 }
+//------------------------------------------------------------------------
+function html_attributes( $attributes )
+{
+	$out = (string)$attributes;
+	if ( is_array( $attributes ) )
+	{
+		$out = count($attributes)?' ':'';
+		
+		foreach( $attributes as $atr => $value )
+		{
+			$out .= " $atr=\"$value\"";
+		}
+	}
 
+	return $out;
+}
+//------------------------------------------------------------------------
+function html_tag( $tag, $attributes = '', $content = null )
+{
+	$atr = html_attributes( $attributes );
+	
+	$out = "<{$tag}{$atr}";
+	
+	if ( ! is_null( $content ) )
+	{
+		$out .= ">{$content}</{$tag}>";
+	}
+	else
+	{
+		$out .= '>';
+	}
+
+	return $out;
+}
+//------------------------------------------------------------------------
+function html_form_options( $options, $selecteds )
+{
+	if ( ! is_array( $options ) )
+	{
+		throw new tgsfHtmlException( 'Options for form fields must be in array format.' );
+	}
+	
+	arrayify( $selecteds, $selected );
+	
+	$out = '';
+	$atr = array();
+	
+	foreach ( $options as $optVal => $caption )
+	{
+		if ( is_int( $optVal ) )
+		{
+			$optVal = $caption;
+		}
+				
+		$atr['value'] = $optVal;
+		if ( in_array( $optVal, $selected ) )
+		{
+			$atr['selected'] = 'SELECTED';
+		}
+		else
+		{
+			unset( $atr['selected'] );
+		}
+		$out .= html_tag( 'option', $atr, $caption );
+	}
+	return $out;
+}
+//------------------------------------------------------------------------
+function html_form_dropdown( $attributes, $options, $selectedValues = null )
+{
+	$out = '';
+	$optionHtml = html_form_options( $options, $selectedValues );
+	$out = html_tag( 'select', $attributes, $optionHtml );
+	return $out;
+}
+//------------------------------------------------------------------------
+function html_form_listbox( $attributes, $options, $selectedValues = null )
+{
+	return html_form_dropdown( $attributes, $options, $selectedValues );
+}
+//------------------------------------------------------------------------
+function html_form_text( $attributes )
+{
+	$attributes['type'] = 'text';
+	
+	return html_tag( 'input', $attributes );
+}
+//------------------------------------------------------------------------
+function html_form_textarea( $attributes, $text )
+{
+	return html_tag( 'textarea', $attributes, $text );
+}
+//------------------------------------------------------------------------
+function html_form_checkbox( $attributes, $checked = false )
+{
+	if ( $checked )
+	{
+		$attributes['checked'] = 'CHECKED';
+	}
+	$attributes['type'] = 'checkbox';
+	return html_tag( 'input', $attributes );
+}
+//------------------------------------------------------------------------
+function html_form_radio( $attributes, $selected = false )
+{
+	if ( $selected )
+	{
+		$attributes['checked'] = 'CHECKED';
+	}
+
+	$attributes['type'] = 'radio';
+
+	return html_tag( 'input', $attributes );
+}
+//------------------------------------------------------------------------
+function html_form_hidden( $name, $value )
+{
+	$attributes['type'] = 'hidden';
+	$attributes['name'] = $name;
+	$attributes['value'] = $value;
+	
+	return html_tag( 'input', $attributes );
+}
+//------------------------------------------------------------------------
+function html_form_file( $attributes )
+{
+	$attributes['type'] = 'file';
+	
+	return html_tag( 'input', $attributes );
+	
+}
+//------------------------------------------------------------------------
+function html_form_submit( $attributes )
+{
+	$attributes['type'] = 'submit';
+	
+	return html_tag( 'input', $attributes );
+}
+//------------------------------------------------------------------------
+function html_form_reset( $attributes )
+{
+	$attributes['type'] = 'reset';
+	
+	return html_tag( 'input', $attributes );
+}
+//------------------------------------------------------------------------
+function html_form_button( $attributes, $content = null )
+{
+	$attributes['type'] = 'button';
+	
+	return html_tag( 'button', $attributes, $content );
+}
+//------------------------------------------------------------------------
+function html_form_password( $attributes )
+{
+	if ( isset( $attributes['value'] ) )
+	{
+		unset( $attributes['value'] );
+	}
+	
+	$attributes['type'] = 'password';
+	
+	return html_tag( 'input', $attributes );
+}

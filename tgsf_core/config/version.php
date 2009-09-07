@@ -1,8 +1,8 @@
 <?php
 $major = 0;
 $minor = 0;
-$nano = 2;
+$nano = 1;
 
-$build = 0;
+$build = 1;
 
 $versionString = "{$major}.{$minor}.{$nano}.{$build}";

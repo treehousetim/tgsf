@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -12,7 +12,7 @@ define( 'PHP', '.php' );
 define( 'JS', '.js' );
 define( 'CSS', '.css' );
 define( 'HTML', '.html' );
-define( 'htm', '.htm' );
+define( 'HTM', '.htm' );
 
 define( 'PNG', '.png' );
 define( 'JPG', '.jpg' );
@@ -23,7 +23,13 @@ define( 'IS_CORE_PATH', true );
 define( 'IS_CORE_LIB', true );
 define( 'IS_CORE_CONFIG', true );
 define( 'IS_CORE', true );
+define( 'IS_CORE_TEMPLATE', true );
 //------------------------------------------------------------------------
+define( 'ENUM_USE_VALUE', true );
+//------------------------------------------------------------------------
+define( 'SALT_LENGTH', 40 );
+//------------------------------------------------------------------------
+// 
 /**
 * @param String The folder
 * @param Is the folder located in the core (assets is parsed correctly)
@@ -31,9 +37,7 @@ define( 'IS_CORE', true );
 function relative_path( $folder, $core = false )
 {
 	$folder = trim( $folder, ' /' );
-	
-	$root = APP_FOLDER;
-	
+
 	if ( $core === IS_CORE_PATH )
 	{
 		$root = 'tgsf_core/';
@@ -42,6 +46,10 @@ function relative_path( $folder, $core = false )
 			$root = 'tgsf_core_assets/';
 			$folder = trim( substr( $folder, 6 ), ' /' );
 		}
+	}
+	else
+	{
+		$root = APP_FOLDER;
 	}
 	
 	if ( $folder != '' )
@@ -95,14 +103,64 @@ function load_library( $name, $core = false )
 {
 	$path = path( 'libraries', $core );
 		
-	require_once  $path . $name . PHP;
+	return require_once  $path . $name . PHP;
 }
 //------------------------------------------------------------------------
-function load_model( $name, $core = false )
+/**
+* Loads an instantiated template library.  Just like models, a template library
+* needs to return a new instance of the class just defined.
+* This uses path: libraries/templates and is primarily intended for php class based templates
+* like those used in the form library.
+* Unlike most other load functions, this one is controlled by a global variable
+* that is located 
+* @param String The path and name (minus the extension) of the template library 
+*/
+function &load_template_library( $name )
+{
+	global $useAppFormTemplates;
+	$core = $useAppFormTemplates === false;
+	$path = path( 'libraries/templates', $core );
+	$ret = require_once( $path . $name . PHP );
+	return $ret;
+}
+//------------------------------------------------------------------------
+/**
+* Loads a form - similar to load_model in that it returns an instance of an object
+* Form files are required to return a new instance of the form
+* @param String The path and name (minus the extension) of the form to load)
+* This is prefixed by the current application's forms path
+* @param Bool Is the form located in the core?  This would only be for built in forms
+* like might be used in a core library (like a user lib).
+*/
+function &load_form( $name, $core = false )
+{
+	$path = path( 'forms', $core );
+	$ret = require( $path . $name . PHP );
+	return $ret;
+}
+//------------------------------------------------------------------------
+/**
+* Loads a model.  Returns an instance of a model.  Models are only allowed a single
+* global existence.  Model instances are stored in a static variable in this function
+* so that if a model is already loaded its instance is returned and no further filesystem
+* performance is incurred.
+* Model files are required to return a new instance of the model
+* @param String The path and name of the model.  This is prefixed by the application's
+* models path
+* @param Bool Is the model located in the core?  This would only be used for built in models
+* like might be used in a core library (like a user lib).
+*/
+function &load_model( $name, $core = false )
 {
 	$path = path( 'models', $core );
+	static $loadedModels = array();
 	
-	require_once $path . $name . PHP;
+	if ( ! in_array( $name, array_keys( $loadedModels ) ) )
+	{
+		$loadedModels[$name] = require_once $path . $name . PHP;
+	}
+
+	return $loadedModels[$name];
 }
 //------------------------------------------------------------------------
 function load_config( $name, $core=false )
@@ -159,7 +217,7 @@ function force_www()
 function force_trailing_slash()
 {
 	define( 'tgTrailingSlash', true );
-	if ( strlen( $_SERVER['REDIRECT_QUERY_STRING'] ) == 0 && strlen( $_SERVER['REDIRECT_URL'] ) && substr( $_SERVER['REDIRECT_URL'], -1 ) != '/' )
+	if ( empty( $_SERVER['REDIRECT_QUERY_STRING'] ) && ! empty( $_SERVER['REDIRECT_URL'] ) && strlen( $_SERVER['REDIRECT_URL'] ) && substr( $_SERVER['REDIRECT_URL'], -1 ) != '/' )
 	{
 		$vars = array();
 		$page = tg_parse_url( $vars );
@@ -233,7 +291,7 @@ function image( $file, $core = false )
 //------------------------------------------------------------------------
 function image_url( $file, $absolute = false )
 {
-	$loc = config( 'image_url' );
+	$loc = url_path( 'assets/images' );
 	
 	if ( $absolute )
 	{
@@ -271,22 +329,26 @@ function url( $url, $core = false )
 
 	return current_base_url() . $url;
 }
-
 //------------------------------------------------------------------------
-
 function tg_parse_url( &$vars )
 {
 	global $page, $pageVars;
 
 	$baseUrlPart = current_base_url_path();
-	
-	$page = trim( $_SERVER['REDIRECT_URL'], '/' );
+
+	$page = empty( $_SERVER['REDIRECT_URL'] )?'':trim( $_SERVER['REDIRECT_URL'], '/' );
 	$page = substr( $page, strlen( $baseUrlPart ) );
 
-	list( $page, $varPieces ) = explode( '/_/', $page );
+	$pieces = explode( '/_/', $page );
+	$varPieces = '';
+	if ( count( $pieces ) > 1 )
+	{
+		$page = $pieces[0];
+		$varPieces = $pieces[1];
+		$vars =& parse_url_vars( $varPieces );
+	}
 	$page = trim( $page, ' /' );
 	
-	$vars =& parse_url_vars( $varPieces );
 	$pageVars =& $vars;
 	
 	if ( $page == '' )
@@ -296,9 +358,7 @@ function tg_parse_url( &$vars )
 	
 	return $page;
 }
-
 //------------------------------------------------------------------------
-
 function parse_url_vars( $varPieces )
 {
 	// get our pieces by exploding on the slash
@@ -307,7 +367,6 @@ function parse_url_vars( $varPieces )
 	{
 		$pieces = explode( '/', trim( $varPieces, '/' ) );
 	}
-	
 	// if we have pieces, then loop through them assigning the array [piece1] => piece2
 	// throw an error if we have an odd number of pieces
 	$pieceCnt = count( $pieces );
@@ -349,15 +408,12 @@ function parse_url_vars( $varPieces )
 	}
 	return $vars;
 }
-
 //------------------------------------------------------------------------
-
 function url_array( &$vars )
 {
-	$page = tg_parse_url( &$vars );
+	$page = tg_parse_url( $vars );
 	return explode( '/', $page );
 }
-
 //------------------------------------------------------------------------
 function resolve_controller( $page )
 {
@@ -384,9 +440,7 @@ function resolve_controller( $page )
 	$out = do_filter( 'post_resolve_controller', $out, $page );
 	return $out;
 }
-
 //------------------------------------------------------------------------
-
 function dispatch( $page )
 {
 	do_action( 'dispatch' );
@@ -399,9 +453,7 @@ function dispatch( $page )
 	
 	end_buffer();
 }
-
 //------------------------------------------------------------------------
-
 function is_gz_capable()
 {
 	return false;
@@ -409,25 +461,7 @@ function is_gz_capable()
 	$cnt2 = substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], '*');
 	
 	return $cnt1 > 0 || $cnt2 > 0;
-	/*
-		
-    $ua = $_SERVER['HTTP_USER_AGENT'];
-    // quick escape for non-IEs
-    if (0 !== strpos($ua, 'MSIE')
-        || false !== strpos($ua, 'Opera')) {
-        return false;
-    }
-
-    // no regex = faaast
-    $version = (float)substr($ua, 30);
-
-    return (
-        $version < 6
-        || ($version == 6  && false === strpos($ua, 'SV1'))
-    );
-*/
 }
-
 //------------------------------------------------------------------------
 /**
 * Selectively buffers content.  This function is plugin enabled so you can hook the filter: 'cancel_content_buffer' to turn off buffering entirely.
@@ -457,9 +491,7 @@ function content_buffer()
 	    ob_start();
 	}
 }
-
 //------------------------------------------------------------------------
-
 function end_buffer()
 {
 	global $no_content_buffer;
@@ -467,13 +499,10 @@ function end_buffer()
 	{
 		return;
 	}
-	
 
 	ob_end_flush();
 }
-
 //------------------------------------------------------------------------
-
 function enable_browser_cache( $file )
 {
 	$last_modified_time = filemtime( $file );
@@ -493,12 +522,12 @@ function enable_browser_cache( $file )
 	    exit();
 	}
 }
-
 //------------------------------------------------------------------------
-
+/**
+* A permanent redirect
+*/
 function location_301( $url, $local = true )
 {
-	//header()
 	header( "HTTP/1.1 301 Moved Permanently" );
 	if ( $local )
 	{
@@ -509,9 +538,7 @@ function location_301( $url, $local = true )
 		header( 'Location: ' . $url );
 	}
 }
-
 //------------------------------------------------------------------------
-
 // 303 is a standard redirect - i.e. not permanent
 function redirect( $url, $local = true ) { location_303( $url, $local ); } // redirect is an alias of location_302
 function location( $url, $local = true ) { location_303( $url, $local ); } // location is an alias of location_302
@@ -527,5 +554,24 @@ function location_303( $url, $local = true )
 		header( 'Location: ' . $url );
 	}
 }
-
 //------------------------------------------------------------------------
+/**
+* Generates an extremely secure password hash (one way) using a salt
+* to prevent dictionary attacks against a comprimised database
+* @param String The clear text password
+* @param String The salt (actually a password string produced by this function)
+*/
+function hashPassword( $clearText, $salt = null )
+{
+    if ( is_null( $salt ) )
+    {
+        $salt = substr( sha1( uniqid( rand(), true ) ), 0, SALT_LENGTH) ;
+    }
+    else
+    {
+        $salt = substr( $salt, 0, SALT_LENGTH );
+    }
+    $hashed = $salt . sha1($salt . $clearText);
+
+    return $hashed;
+}

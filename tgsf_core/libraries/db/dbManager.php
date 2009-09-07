@@ -1,13 +1,13 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
-http://tgWebSolutions.com/opensource/tgsf/license.txt
+http://tgWebSolutions.com/opensource/tgsf/license/
 for complete licensing information.
 */
 //------------------------------------------------------------------------
 /**
-* API function call to return the singelton instance of the dbManager class
+* API function call to return the singleton instance of the dbManager class
 */
 function &dbm()
 {
@@ -18,20 +18,37 @@ function &dbm()
 class dbManager extends tgsfBase
 {
 	private $_setup = array();
-	private static $instance = null; // the singelton instance.
+	private static $instance = null; // the singleton instance.
 	
 	//------------------------------------------------------------------------
 	/**
 	* The constructor - private to prevent direct instantiation.
 	*/
-	private function __construct()
+	private function __construct(){}
+	
+	//------------------------------------------------------------------------
+	/**
+	* Static function that returns the singleton instance of this class.
+	*/
+	public static function &get_instance()
 	{
+		if ( self::$instance === null )
+		{
+			$c = __CLASS__;
+			self::$instance = new $c;
+		}
+		
+		return self::$instance;
 	}
-	// Prevent users to clone the instance
+	
+	/**
+	* Prevent cloning the instance
+	*/
 	public function __clone()
 	{
-	trigger_error('Clone is not allowed.', E_USER_ERROR);
+		throw new tgsfDbException( 'Cloning a singleton (datamanager) is not allowed.  Use the dbm() function to get its instance.' );
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* This function makes sure that if there is an existing setup object with the given name
@@ -42,6 +59,11 @@ class dbManager extends tgsfBase
 	*/
 	private function _setSetupObject( &$object, $which )
 	{
+		if ( ! $object instanceof dbSetup )
+		{
+			throw new tgsfDbException( 'Wrong type when calling _setSetupObject in the Database manager.' );
+		}
+		
 		if ( $this->setupExists( $which ) )
 		{
 			$this->_setup[$which]->disconnect();
@@ -69,21 +91,6 @@ class dbManager extends tgsfBase
 	
 	//------------------------------------------------------------------------
 	/**
-	* Static function that returns the singelton instance of this class.
-	*/
-	public static function &get_instance()
-	{
-		if ( self::$instance === null )
-		{
-			$c = __CLASS__;
-			self::$instance = new $c;
-		}
-		
-		return self::$instance;
-	}
-	
-	//------------------------------------------------------------------------
-	/**
 	* Use a setup object (or array of setup objects) for connecting with
 	* Arrays should be associative - ['name'] = object
 	* @param Mixed Setup Object or array of setup objects.  These are used to connect to the database(s)
@@ -92,15 +99,18 @@ class dbManager extends tgsfBase
 	*/
 	public function useSetup( $setupObject )
 	{
-		if ( ! is_array( $setupObject ) )
+		if ( is_object( $setupObject ) )
 		{
 			$this->_setSetupObject( $setupObject, 'default' );
 		}
 		else
 		{
+			// disconnects any connections to the database that might exist.
 			$this->_unsetSetup();
-			unset( $this->_setup ); // this should 
-			$this->_setup = $setupObject;
+			foreach ( $setupObject as $which => &$obj )
+			{
+				$this->addSetup( $obj, $which );
+			}
 		}
 	}
 	
@@ -130,7 +140,7 @@ class dbManager extends tgsfBase
 		if ( isset( $this->_setup[$which] ) )
 		{
 			$ob =& $this->_setup[$which];
-			$result = is_object( $ob ) && get_class( $ob ) == 'dbSetup';
+			$result = is_object( $ob ) && $ob instanceof dbSetup;
 		}
 		return $result;
 	}
@@ -141,15 +151,18 @@ class dbManager extends tgsfBase
 	* Returns false if the connection is unavailable
 	* @param String The logical name of the database server to connect to
 	* This is 'default' by ... um... default.
+	* @return dbSetup Object 
 	*/
-	public function connect( $which = 'default' )
+	public function &connect( $which = 'default' )
 	{
 		if ( $this->setupExists( $which ) === false )
 		{
-			show_error( 'The Logical database Connection named "' . $which . '" has not been defined.' );
+			throw new tgsfDbException( 'The Logical database Connection named "' . $which . '" has not been defined.' );
 		}
 		
-		return $this->_setup[$which]->connect();
+		$this->_setup[$which]->connect();
+				
+		return $this->_setup[$which];
 	}
 	//------------------------------------------------------------------------
 	/**

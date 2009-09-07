@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -111,22 +111,32 @@ function tab( $repeat )
 * Attempts to replicate the C language enum construct by creating defines
 * for the array items passed in.
 * @param String The name of the group/prefix for the enum'd values. eg. qt or QUERY_TYPE_
-* @param Array The array of items to define values for.  If an array key is non-numeric
-* then that becomes the define name.
+* @param Array The array of items to define values for.  If an array key is non-numeric  then that becomes the define name.
+* @param bool Should enum use the value for the defined value or use the given array key 
 * example: $arrayExample['DEF'] = 'value'; enum( 'example', $arrayExample ); creates this define:
 * define( 'exampleDEF', 'value' );
 */
-function enum( $prefix, $items )
+function enum( $prefix, $items, $useValueForDefine = false )
 {
-	foreach ( $items as $key => $value )
+	if ( $useValueForDefine )
 	{
-		if ( is_numeric( $key ) )
+		foreach ( $items as $key => $value )
 		{
-			define( $prefix . $value, $key );
+			define( $prefix . $value, $value );
 		}
-		else
+	}
+	else
+	{
+		foreach ( $items as $key => $value )
 		{
-			define( $prefix . $key, $value );
+			if ( is_numeric( $key ) )
+			{
+				define( $prefix . $value, $key );
+			}
+			else
+			{
+				define( $prefix . $key, $value );
+			}
 		}
 	}
 }

@@ -6,3 +6,6 @@ build
 application
 /index.php
 /db_config
+/tgsf_core_assets/minify_groups/*
+/rs_sync_exclude.txt
+/sync-core.php

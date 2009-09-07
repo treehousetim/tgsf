@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -6,13 +6,33 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 //------------------------------------------------------------------------
-// TODO: Add error handling to this class
-//------------------------------------------------------------------------
 /**
-* An empty base class for future use - all core classes extend this.
+* The base class.  This prevents objects from setting or getting undeclared variables.
+* To avoid exceptions from being thrown, you need to override these functions in your extending class, or
+* declare all variables you'll be using in the class definition.
 */
 class tgsfBase
 {
+	public function __get( $name )
+	{
+		if ( isset( $this->{'_ro_' . $name} ) )
+		{
+			return $this->{'_ro_' . $name};
+		}
+		else
+		{
+			throw new tgsfException( 'GET: Undeclared class variable ' . $name . "\nYou must declare all variables you'll be using in the class definition." );
+		}
+	}
+	
+	public function __set( $name, $value )
+	{
+		ob_start();
+		var_dump( $value );
+		$vd = ob_get_contents();
+		ob_end_clean();
+		throw new tgsfException( 'SET: Undeclared class variable ' . $name . ' : value: ' . $vd . "\nYou must declare all variables you'll be using in the class definition." );
+	}
 }
 //------------------------------------------------------------------------
 // see tgsf_core/legal/phpmanual.txt for why this is included here
@@ -57,12 +77,22 @@ abstract class CustomException extends Exception implements IException
 	//------------------------------------------------------------------------
 	public function __toString()
 	{
-		return get_class( $this ) . " '{$this->message}' in {$this->file}({$this->line})\n"
-			. "{$this->getTraceAsString()}";
+		return "<pre class=\"error\">\n\n" . get_class( $this ) . ":\n{$this->message}\n\nin {$this->file}({$this->line})\n"
+			. "{$this->getTraceAsString()}</pre>";
 	}
 }
 //------------------------------------------------------------------------
+set_error_handler( create_function( '$a, $b, $c, $d', 'throw new ErrorException( $b, 0, $a, $c, $d );' ), E_ALL );
+//------------------------------------------------------------------------
 // end phpmanual code
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+// The custom class types for different errors.
 //------------------------------------------------------------------------
 class tgsfException extends CustomException { }
 class tgsfDbException extends tgsfException { }
+class tgsfHtmlException extends tgsfException { }
+class tgsfFormException extends tgsfException { }
+class tgsfValidationException extends tgsfException { }
+class appException extends tgsfException{ }

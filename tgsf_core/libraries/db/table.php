@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -22,39 +22,65 @@ then we could auto-generate DDL ALTER statements
 //------------------------------------------------------------------------
 class table extends tgsfBase
 {
-	private $_name;
-	private $_fields = array();
-	private $_primaryKey = array();
-	private $_foreignKey = array();
+	protected $_name			= '';
+	protected $_logicalDb	 	= '';
+	protected $_engine			= '';
+
+	/**
+	* The datasource
+	*/
+	protected $_ds;
+	
+	private $_fields		= array();
+	protected $_primaryKey	= array();
+	private $_foreignKey	= array();
+	private $_fieldsByName	= array();
+	private $_idxDefs		= array();
+	private $_fieldValues	= array();
 	
 	//------------------------------------------------------------------------
 	/**
-	* A constructor - might someday be used.
+	* A constructor - Takes the table name and logical connection name (defaults to default)
+	* @param String The name of the table
+	* @param String The logical database connection
 	*/
 	public function __construct( $name, $which = 'default' )
 	{
 		$this->_name = $name;
-		/*
-		
-		$this->s = new selectQuery( $which );
-		$this->i = new insertQuery( $which );
-		$this->u = new updateQuery( $which );
-		$this->d = new deleteQuery( $which );
-		
-		$this->s->table =& $this;
-		$this->i->table =& $this;
-		$this->u->table =& $this;
-		$this->d->table =& $this;
-		*/
+		$this->_logicalDb = $which;
+		$this->_ds = new dbDataSource();
 	}
 	
+	/**
+	* Used for getting field values
+	*/
+	public function __get( $name )
+	{
+		$retVal = null;
+		
+		if ( isset( $this->_fieldValues[$name] ) )
+		{
+			$retVal = $this->_fieldValues[$name];
+		}
+		
+		return $retVal;
+	}
 	
+	//------------------------------------------------------------------------
+	/**
+	* Used for setting field values
+	*/
+	public function __set( $name, $val )
+	{
+		$this->_fieldValues[$name] = $val;
+	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a field object to the list of primary key fields
 	* @param Object The field that is part of the primary key
 	*/
-	public function primaryKey( &$field )
+	private function _primaryKey( &$field )
 	{
 		if ( $field->primaryKey == false )
 		{
@@ -62,42 +88,41 @@ class table extends tgsfBase
 			$field->primaryKey = true;
 		}
 	}
-
-	//------------------------------------------------------------------------
-
-
+	
 	//------------------------------------------------------------------------
 	/**
-	* finds and returns a field
-	* @param inFieldName is the name of the field being searched for
+	* Adds a simple index to this table
+	* @param String The field name
+	* @param Int The width to index
 	*/
-	private function _fieldsByName( $inFieldName )
+	function &idx( $field, $width = null )
 	{
-		foreach( $this->_fields as $field )
-		{
-			if ( $field->name == $inFieldName )
-			{
-				//php manual says not to return by ref. to increase performance.  correct in this case?
-				return $field;
-
-				//or should I
-				//return &$field;
-			}
-		}
+		$idx = new dbIndex( $this->_name, $field );
+		$this->_idxDefs[] =& $idx;
+		
+		return $idx;
+	}
+	
+	//------------------------------------------------------------------------
+	/**
+	* Adds an index object to the table
+	* @param Object The index object to add
+	*/
+	function addIdx( &$idx )
+	{
+		$this->_idxDefs[] = &$idx;
 	}
 
 	//------------------------------------------------------------------------
-
 	/**
 	* Adds a foreign key object to the list of foreign key fields
-	* @param String  he field on the local table that will be joined with a foreign key
+	* @param String The field on the local table that will be joined with a foreign key
 	* @param String The foreign table name
 	* @param String The field name on the foreign table
 	* @param String Optional - the relationship name.  One is created automatically if not supplied.
 	*/
 	public function fk( $localField , $foreignTable , $foreignField, $relName = null )
 	{
-
 		if( is_null( $relName ) )
 		{
 			$relName = $this->_name . '_' . $localField . '_fk';
@@ -111,22 +136,16 @@ class table extends tgsfBase
 	* Adds a new field to this table
 	* @param String The name of the field
 	* @param String The type of the field
-	* @param String The size of the field (can be x,y for decimal fields) - Omit the enclosing parenthesis
+	* @param Mixed(String or Int) The size of the field (can be x,y for decimal fields) - Omit the enclosing parenthesis.  If the field has no size, use FIELD_NO_SIZE
 	*/
-	public function &field( $name, $type, $size = null )
+	public function &field( $name, $type, $size = FIELD_NO_SIZE )
 	{
 		$args = func_get_args();
-		if ( is_null( $size ) )
-		{
-			$args = array_slice( $args, 2 );
-		}
-		else
-		{
-			$args = array_slice( $args, 3 );
-		}
-		
+		$args = array_slice( $args, 3 );
+
 		$field =& new field( $name, $type, $size );
 		$this->_fields[] =& $field;
+		$this->_fieldsByName[$name] =& $field;
 		
 		$options = array();
 
@@ -140,7 +159,7 @@ class table extends tgsfBase
 				
 			case FIELD_AUTO_INC:
 				$options['AUTO_INCREMENT'] = '';;
-				$this->primaryKey( $field );
+				$this->_primaryKey( $field );
 				break;
 			
 			case FIELD_PRIMARY_KEY:
@@ -160,7 +179,7 @@ class table extends tgsfBase
 	
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Creates an auto inc field using the table name_id as the field name.
 	*/
 	function autoInc()
 	{
@@ -169,12 +188,12 @@ class table extends tgsfBase
 	
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Generates the DDL for the entire table - create table, alter table add foreign key, and create index
 	*/
 	function generateDDL()
 	{
 		$out[] = 'CREATE TABLE ' . $this->_name;
-		$out[] = '{';
+		$out[] = '(';
 		foreach ( $this->_fields as &$field )
 		{
 			$int[] = tab(1) . $field->generateDDL();
@@ -190,16 +209,43 @@ class table extends tgsfBase
 		}
 		
 		$out[] = implode( ",\n", $int );
-		$out[] = '}';
+	
+		if ( $this->_engine != '' )
+		{
+			$out[] = ") ENGINE={$this->_engine};\n";
+		}
+		else
+		{
+			$out[] = ");\n";
+		}
 		
-		return implode( "\n", $out );
+		$tableDDL = implode( "\n", $out );
+		
+		$out = array(); // recycle this variable now that we're done with it
+		
+		foreach ( $this->_foreignKey as &$fk )
+		{
+			$out[] = $fk->generateDDL();
+		}
+		$tableDDL .= implode( "\n", $out ) . "\n";
+		
+		$out = array();
+		foreach ( $this->_idxDefs as &$idx )
+		{
+			$out[] = $idx->generateDDL();
+		}
+		
+		$tableDDL .= implode( "\n", $out ) . "\n";
+		
+		return $tableDDL;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
 	function insert()
 	{
-		$query = new insertQuery();
+		$query = new query();
 	}
 }
