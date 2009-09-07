@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -14,7 +14,13 @@ load_config( 'first' );
 
 // load order is important - config first, then get plugins as soon as possible
 load_config( 'config' ); // the main config
-load_config( 'db' );
+
+// only if we use application database configurations do we load this file
+if ( $useAppDbConfig )
+{
+	load_config( 'db' );
+}
+
 
 if ( $config['host_www'] === false )
 {

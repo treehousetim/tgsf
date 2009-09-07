@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -8,16 +8,19 @@ for complete licensing information.
 //------------------------------------------------------------------------
 class field extends tgsfBase
 {
-	public $name = '';
-	public $type = '';
-	public $size = '';
-	public $quoted = false;
-	public $enum = false;
-	public $enumList = array();
-	public $blob = false;
-	public $value = null;
-	public $options = array();
-	public $primaryKey = false;
+	public $name		= '';
+	public $type		= '';
+	public $size		= '';
+	public $quoted		= false;
+	public $enum		= false;
+	public $enumList	= array();
+	public $blob		= false;
+	public $options		= array();
+	public $primaryKey	= false;
+	public $comment		= '';
+	
+	// Used for inserts/updates
+	public $value		= null;
 	
 	public function __construct( $name, $type, $size = '' )
 	{
@@ -80,5 +83,14 @@ class field extends tgsfBase
 		$out[count($out)-1] = trim($out[count($out)-1]);
 		
 		return implode( ' ', $out );
+	}
+	
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	function getWhereParamString()
+	{
+		return $this->name . '=:' . $this->name;
 	}
 }

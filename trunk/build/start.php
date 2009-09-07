@@ -31,42 +31,47 @@ $out .= '$versionString = "{$major}.{$minor}.{$nano}.{$build}";';
 file_put_contents( $versionFile, $out );
 include $versionFile;
 
-file_put_contents( 'version.sh', "set version='{$versionString}'" );
-
-chmod( 'build.sh', 0755 );
-chmod( 'version.sh', 0755 );
-
 $coreFolder = 'tgsf-core-' . $versionString;
 $fullFolder = 'tgsf-' . $versionString;
 
 runRsync( $coreFolder, 'rs_exclude_core.txt' );
 createZip( $coreFolder, $coreFolder );
-remove_dir( $coreFolder );
+//remove_dir( $coreFolder );
 
 runRsync( $fullFolder, 'rs_exclude_full.txt' );
 createZip( $fullFolder, $fullFolder );
-remove_dir( $fullFolder );
+//remove_dir( $fullFolder );
 
-echo 'Uploading to Google Code';
+echo "\n" . 'Uploading to Google Code';
 
 uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass );
-uploadToGoogleCode( 'GZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.tar.gz', $gcUser, $gcPass );
+uploadToGoogleCode( 'GZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
 
 uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass );
-uploadToGoogleCode( 'GZIP - Full Framework', 'tgsf', $fullFolder . '.tar.gz', $gcUser, $gcPass );
+uploadToGoogleCode( 'GZIP - Full Framework', 'tgsf', $fullFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
 
 
 //------------------------------------------------------------------------
 // utility functions below
 //------------------------------------------------------------------------
-function uploadToGoogleCode( $summary, $project, $file, $user, $pass )
+function uploadToGoogleCode( $summary, $project, $file, $user, $pass, $labels = '' )
 {
-	$cmd = './gc_upload.py --summary="' . $summary . '"' . " --project=tgsf --user={$user} --password={$pass} \"{$file}\"";
+	if ( $labels != '' )
+	{
+		$labels = '--labels="' . $labels . '" ';
+	}
+	
+	echo "\n";
+	
+	$cmd = './gc_upload.py --summary="' . $summary . '"' . " --project=tgsf --user={$user} --password={$pass} {$labels }\"{$file}\"";
+	$ecmd = './gc_upload.py --summary="' . $summary . '"' . " --project=tgsf --user={$user} --password=xxx {$labels }\"{$file}\"";
+	echo $ecmd . "\n";
 	system( $cmd );
 }
 //------------------------------------------------------------------------
 function runRsync( $dest, $exclude )
 {
+	echo "Running RSync\n";
 	$exclude= "--exclude-from=" . $exclude;
 	$pg = "--no-p --no-g";
 	$rsync_options = "-Pa";
@@ -74,15 +79,16 @@ function runRsync( $dest, $exclude )
 	$rsync_local_dest = "./" . $dest;
 
 	$cmd = "rsync $rsync_options  $exclude $c $pg $rsync_local_path $rsync_local_dest";
-	system( $cmd );	
+	exec( $cmd );	
 }
 //------------------------------------------------------------------------
 function createZip( $zipName, $folderToZip )
 {
-	unlink( $zipName . '.zip' );
-	unlink( $zipName . '.tar.gz' );
-	system( "zip -r9 {$zipName}.zip {$folderToZip}" );
-	system( "tar -pvczf {$zipName}.tar.gz {$folderToZip}" );
+	echo "Creating Zip and Tar\n";
+	@unlink( $zipName . '.zip' );
+	@unlink( $zipName . '.tar.gz' );
+	system( "zip -r9 -q {$zipName}.zip {$folderToZip}" );
+	system( "tar -pczf {$zipName}.tar.gz {$folderToZip}" );
 }
 //------------------------------------------------------------------------
 // this function comes from the PHP manual notes
@@ -95,6 +101,9 @@ function createZip( $zipName, $folderToZip )
 // 3RD PARTY LICENSE: Creative Commons Attribution 3.0 License
 function remove_dir( $path )
 {
+	// this function is toxic since it has great power.
+	// i'm not using it right now and instead manually removing the folders after running this process.
+	return;
 	if ( ! file_exists( $path ) )
 	{
 		return;

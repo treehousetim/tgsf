@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -14,6 +14,30 @@ class tgPlugin
 	private $_plugins		= array();
 	private $_pluginNames	= array();
 	private $_loaded		= array();
+	
+	protected function &_getFilterGroup( $name )
+	{
+		$retVal = false;
+		
+		if ( isset( $this->_filters[$name] ) && is_array( $this->_filters[$name] ) )
+		{
+			$retVal =& $this->_filters[$name];
+		}
+		
+		return $retVal;
+	}
+	//------------------------------------------------------------------------
+	protected function &_getActionGroup( $name )
+	{
+		$retVal = false;
+		
+		if ( isset( $this->_actions[$name] ) && is_array( $this->_actions[$name] ) )
+		{
+			$retVal =& $this->_actions[$name];
+		}
+		
+		return $retVal;
+	}
 
 	//------------------------------------------------------------------------
 	public function __construct()
@@ -87,19 +111,19 @@ class tgPlugin
 	*/
 	function doAction( $name, $params )
 	{
-		if ( is_array( $this->_actions[$name] ) )
+		$retVal = array();
+		if ( $actionGroup =& $this->_getActionGroup( $name ) !== false )
 		{
-			$group =& $this->_actions[$name];
-			foreach( $group as $level => $items )
+			foreach( $actionGroup as $level => $items )
 			{
 				foreach ( $items as $action )
 				{
-					$result[] = call_user_func( $action, $params );
+					$retVal[] = call_user_func( $action, $params );
 				}
 			}
 		}
 		
-		return $result;
+		return $retVal;
 	}
 
 	//------------------------------------------------------------------------
@@ -108,21 +132,18 @@ class tgPlugin
 	*/
 	function doFilter( $name, $content, $params )
 	{
-		if ( is_array( $this->_filters ) )
+		if ( $filterGroup =& $this->_getFilterGroup( $name ) !== false )
 		{
-			if ( is_array( $this->_filters[$name] ) )
+			foreach( $group as $level => $items )
 			{
-				$group =& $this->_filters[$name];
-				foreach( $group as $level => $items )
+				foreach ( $items as $action )
 				{
-					foreach ( $items as $action )
-					{
-						$content = call_user_func( $action, $content, $params );
-					}
+					$content = call_user_func( $action, $content, $params );
 				}
-				return $content;
 			}
+			return $content;
 		}
+
 		return $content;
 	}
 	

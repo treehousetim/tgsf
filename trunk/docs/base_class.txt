@@ -1,0 +1,56 @@
+The Base Class
+--------------
+
+tgsf utilizes a base class that underpins all internal oop logic.
+You can use this same class if you'd like for your libraries, etc.
+Further, if you create forms and models, you will be extending this base
+class due to it being used by the base model and form classes.
+
+
+Name:
+tgsfBase
+
+Location:
+/tgsf_core/libraries/tgsfBase.php
+
+Important things to know
+------------------------
+
+tgsfBase implements default __get and __set.  These provide some small level
+of protection against un-initialized variable usage.  Furthermore they provide
+the ability to mark a protected or private member variable as a read-only var.
+
+Consider the following snippet:
+
+<?php
+
+class test extends tgsfBase
+{
+	protected $_ro_name;
+	
+	function newName( $name )
+	{
+		if ( strlen( $name ) < 10 )
+		{
+			$this->_ro_name = $name;
+		}
+	}
+}
+
+$t = new test();
+$t->newName( 'Tim' );
+echo $t->name;
+?>
+
+As you can see, _ro_ is a special indicator that a variable should be allowed
+read-only access (hence the ro).
+
+If there does not exist an _ro_ variable, and no public variable has been declared
+in the class declaration through the use of public $name; then an exception will
+be thrown.
+
+If you attempt to set a read only variable you will get an exception thrown
+from the __set function in tgsfBase.
+
+It's easy to read the code that is there so you are encouraged to read through
+tgsfBase.php

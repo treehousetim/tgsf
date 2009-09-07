@@ -6,6 +6,10 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
+// this file should be used only if you need per-application database configurations
+// if you don't, please use the $useRootDbConfig variable in the /index.php front controller
+// please see /db_config/db-config.sample.php
+
 // rename this file to db.php and make your necessary changes to it.
 
 dbm()->useSetup( new dbSetup( 'username', 'password', 'example-database' ) );

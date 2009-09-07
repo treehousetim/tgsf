@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -9,14 +9,20 @@ for complete licensing information.
 function current_base_url_path()
 {
 	list( $base_url_path ) = explode( '/index.php', $_SERVER['SCRIPT_NAME'] );
-	return trim( $base_url_path, '/' ) . '/';
+	$out = trim( $base_url_path, '/' ) . '/';
+	
+	if ( $out == '/' )
+	{
+		$out = '';
+	}
+	return $out;
 }
 //------------------------------------------------------------------------
 function current_protocol()
 {
 	$protocol = 'http';
 	
-	if ( $_SERVER['https'] === 'on' )
+	if ( ! empty( $_SERVER['https'] ) && $_SERVER['https'] === 'on' )
 	{
 		$protocol = 'https';
 	}
@@ -83,6 +89,6 @@ function current_base_url()
 	$url .= current_host();
 	$url .= current_port() . '/';
 	$url .= current_base_url_path();
+
 	return $url;
 }
-//------------------------------------------------------------------------

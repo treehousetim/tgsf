@@ -11,34 +11,28 @@ echo config( 'doctype' );
 echo '<head>';
 content_type( config( 'content-type' ) );
 html_title( $windowTitle . ' - ' . config( 'siteName' ) );
-		
-css_import( array(
-	'system/yuiZero',
-	'site/site',
-	'site/topnav',
-	'site/forms'
-	), true, 'core-css' );
 
-css_import( url( 'css_grid' ), false );
-css_import_ie( 'site/ie' );
+css_import(
+	array(
+		css_path( '/', IS_CORE_PATH ) . 'yuiZero.css',
+		css_path() . 'site.css'
+	), 'core' );
+
+css_import_ie( css_path( '' ) . 'ie.css' );
 
 if ( isset( $extraCss ) && is_array( $extraCss ) )
 {
-	foreach ( $extraCss as $cssFile )
-	{
-		$importArray[] = 'site/' . $cssFile;
-	}
-	css_import( $importArray, true, 'css_' . $page );
+	css_import( $importArray, $page );
 }
 
-js( array(
-	'jquery.js',
-	'jquery-ui.js',
-	'site.js',
-	'newsticker.js',
-	'tppajax.js',
-	'utility.js'
-	), true, 'core' );
+js(
+	array(
+		jquery_path()				. 'jquery.js',
+		jquery_path()				. 'jquery-ui.js',
+		//js_path()					. 'site.js',
+		jquery_path()				. 'newsticker.js',
+		js_path( '', IS_CORE_PATH )	. 'utility.js'
+	), 'core' );
 
 favicon( image( 'favicon.png', 'image/png' ) );
 html_inline_style( $style );

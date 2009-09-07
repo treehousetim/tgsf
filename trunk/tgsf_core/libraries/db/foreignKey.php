@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -9,7 +9,6 @@ for complete licensing information.
 //------------------------------------------------------------------------
 class foreignKey extends tgsfBase
 {
-
 	public $localTable;
 	public $relName;
 	public $localField;
@@ -19,9 +18,18 @@ class foreignKey extends tgsfBase
 	public function __construct( $localTable, $localField, $foreignTable, $foreignField, $relName )
 	{
 		$this->localTable		= $localTable;
-		$this->localfield		= $localField;
+		$this->localField		= $localField;
 		$this->foreignTable		= $foreignTable;
 		$this->foreignField		= $foreignField;
 		$this->relName			= $relName;
+	}
+	
+	//------------------------------------------------------------------------
+	/**
+	* Create the ALTER TABLE DDL statement to add this foreign key to the database
+	*/
+	function generateDDL()
+	{
+		return "ALTER TABLE {$this->localTable} ADD FOREIGN KEY {$this->relName}({$this->localField}) REFERENCES {$this->foreignTable}({$this->foreignField});";
 	}
 }
