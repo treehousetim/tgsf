@@ -20,6 +20,7 @@ class tgsfFormField extends tgsfBase
 	protected	$_name			= '';
 	protected	$_atr			= array();
 	protected	$_value			= '';
+	protected	$_group			= '';
 	//------------------------------------------------------------------------
 
 	public function __construct( $type )
@@ -86,6 +87,12 @@ class tgsfFormField extends tgsfBase
 	public function &caption( $caption )
 	{
 		$this->_caption = $caption;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &useGroup( $group )
+	{
+		$this->_group = $group;
 		return $this;
 	}
 	//------------------------------------------------------------------------

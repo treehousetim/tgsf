@@ -10,8 +10,8 @@
 
 ./prepare.sh
 
-dryrun=--dry-run
-#dryrun=
+#dryrun=--dry-run
+dryrun=
 c=--compress
 exclude=--exclude-from=rs_exclude.txt
 pg="--no-p --no-g"
@@ -19,7 +19,7 @@ pg="--no-p --no-g"
 delete=
 rsync_options=-Pav
 rsync_local_path=../
-rsync_server_string=user@example.com
-rsync_server_path="~/public_html/"
+rsync_server_string=progchat@progchat.com
+rsync_server_path="~/public_html/tgwebsolutions/mm/"
 
 rsync $rsync_options $dryrun $delete $exclude $c $pg $rsync_local_path $rsync_server_string:$rsync_server_path

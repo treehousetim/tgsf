@@ -56,12 +56,13 @@ interface IException
 //------------------------------------------------------------------------
 abstract class CustomException extends Exception implements IException
 {
-	protected $message = 'Unknown exception';     // Exception message
-	private   $string;                            // Unknown
-	protected $code    = 0;                       // User-defined exception code
-	protected $file;                              // Source filename of exception
-	protected $line;                              // Source line of exception
-	private   $trace;                             // Unknown
+	protected $message = 'Unknown exception';		// Exception message
+	private   $string;								// Unknown
+	protected $code    = 0;							// User-defined exception code
+	protected $file;								// Source filename of exception
+	protected $line;								// Source line of exception
+	private   $trace;								// Unknown
+	protected $errno;								// error number aka error level - integer
 
 	//------------------------------------------------------------------------
 	public function __construct( $message = null, $code = 0 )
@@ -82,7 +83,32 @@ abstract class CustomException extends Exception implements IException
 	}
 }
 //------------------------------------------------------------------------
-set_error_handler( create_function( '$a, $b, $c, $d', 'throw new ErrorException( $b, 0, $a, $c, $d );' ), E_ALL );
+function fatalErrorBacktrace()
+{
+	$t = debug_backtrace();
+	foreach ( $t as $lineInfo )
+	{
+		echo $lineInfo['file'] . ':' . $lineInfo['line'] . ':' . $lineInfo['function'];
+		if ( isset( $lineInfo['args'] ) )
+		{
+			foreach ( $lineInfo['args'] as $argName => $argValue )
+			{
+				$value = $argValue;
+				
+				if ( is_object( $argValue ) )
+				{
+					ob_start();
+					var_dump( $argValue );
+					$value = ob_get_clean();
+				}
+				echo $argName . ' = ' . $value . '<br>';
+			}
+		}
+		echo '<hr>';
+	}
+}
+//------------------------------------------------------------------------
+set_error_handler( create_function( '$a, $b, $c, $d', 'if ( $a==2) { fatalErrorBacktrace(); }; throw new ErrorException( $b, 0, $a, $c, $d ); return false;' ), E_ALL );
 //------------------------------------------------------------------------
 // end phpmanual code
 //------------------------------------------------------------------------

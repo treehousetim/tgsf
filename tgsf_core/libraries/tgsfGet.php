@@ -5,15 +5,15 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-function &POST()
+function &GET()
 {
-	return tgsfPost::get_instance();
+	return tgsfGet::get_instance();
 }
 //------------------------------------------------------------------------
-class tgsfPost extends tgsfDataSource
+class tgsfGet extends tgsfDataSource
 {
-	private static	$_instance	= null;
-	protected		$_ro_posted	= false;
+	private static	$_instance			= null;
+	protected		$_ro_dataPresent	= false;
 	
 	//------------------------------------------------------------------------
 	/**
@@ -25,10 +25,10 @@ class tgsfPost extends tgsfDataSource
 	{
 		parent::__construct( dsTypePOST );
 		
-		if ( isset( $_POST ) && count( $_POST ) > 0 )
+		if ( isset( $_GET ) && count( $_GET ) > 0 )
 		{
-			$this->_ro_posted = true;
-			$this->set( $_POST );
+			$this->_ro_dataPresent = true;
+			$this->set( $_GET );
 		}
 	}
 	
@@ -53,6 +53,6 @@ class tgsfPost extends tgsfDataSource
 	*/
 	public function __clone()
 	{
-		throw new tgsfException( 'Cloning a singleton (tgsfPost) is not allowed. Use the POST() function to get its instance.' );
+		throw new tgsfException( 'Cloning a singleton (tgsfGet) is not allowed. Use the GET() function to get its instance.' );
 	}
 }

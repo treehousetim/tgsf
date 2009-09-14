@@ -27,7 +27,12 @@ enum( 'vt_',
 		'date',
 		'match_field',
 		'match_value',
-		'db_unique'
+		'db_unique',
+		'db_exists',
+		'usa_phone',
+		'usa_state',
+		'usa_zipcode',
+		'custom'
 		), ENUM_USE_VALUE
 	);
 

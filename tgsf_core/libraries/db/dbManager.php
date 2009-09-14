@@ -175,4 +175,41 @@ class dbManager extends tgsfBase
 	{
 		return $this->connect( $which );
 	}
+	//------------------------------------------------------------------------
+	/**
+	* Begins a transaction on the given named logical database connection
+	*/
+	public function beginTransaction( $which = 'default' )
+	{
+		$this->getHandle( $which )->beginTransaction();
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Commits a transaction on the given named logical database connection
+	*/
+	public function commit( $which = 'default' )
+	{
+		$this->getHandle( $which )->commit();
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Rolls back a transaction on the given named logical database connection
+	*/
+	public function rollBack( $which = 'default' )
+	{
+		$this->getHandle( $which )->rollBack();
+	}
+	//------------------------------------------------------------------------
+	public function lastInsertId( $name = '', $which = 'default' )
+	{
+		if ( empty( $name ) )
+		{
+			return $this->getHandle( $which )->lastInsertId();
+		}
+		else
+		{
+			return $this->getHandle( $which )->lastInsertId( $name );
+		}
+		
+	}
 }

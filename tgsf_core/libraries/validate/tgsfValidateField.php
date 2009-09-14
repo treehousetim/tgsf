@@ -9,7 +9,7 @@ class tgsfValidateField extends tgsfBase
 {
 	protected	$_ds;
 	protected	$_rules = array();
-	protected	$_ro_valid	= false;
+	protected	$_ro_valid	= true;
 	//------------------------------------------------------------------------
 	public		$fieldName;
 	//------------------------------------------------------------------------
@@ -25,6 +25,25 @@ class tgsfValidateField extends tgsfBase
 		$rule = new $className( $field );
 		$this->_rules[] =& $rule;
 		return $rule;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets an error message on the last rule that was set up.  Must be called immediately after creating a new rule to apply the message to that rule.
+	* @param String The message to use.
+	*/
+	public function &error_message( $msg )
+	{
+		$idx = count( $this->_rules ) -1;
+		
+		if ( $idx >= 0 && ! empty( $this->_rules[$idx] ) )
+		{
+			$this->_rules[$idx]->error_message( $msg );
+		}
+		else
+		{
+			throw new tgsfValidationException( 'Trying to set validation RULE message when no rule has been defined.' );
+		}
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	public function execute( &$ds, &$errors )
@@ -127,11 +146,12 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function &match_field( $field, $fieldCaption )
+	public function &match_field( $field, $fieldCaption, $errorMessage = '' )
 	{
 		$rule =& $this->_( vt_match_field );
 		$rule->field = $field;
 		$rule->fieldCaption = $fieldCaption;
+		$rule->overrideError = $errorMessage;
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -147,6 +167,39 @@ class tgsfValidateField extends tgsfBase
 		$rule =& $this->_( vt_db_unique );
 		$rule->table = $table;
 		$rule->whereField = $whereField;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &db_exists( $table, $whereField )
+	{
+		$rule =& $this->_( vt_db_exists );
+		$rule->table = $table;
+		$rule->whereField = $whereField;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &usa_phone()
+	{
+		$this->_( vt_usa_phone );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &usa_state()
+	{
+		$this->_( vt_usa_state );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &usa_zipcode()
+	{
+		$this->_( vt_usa_zipcode );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &custom( $callBack )
+	{
+		$rule =& $this->_( vt_custom );
+		$rule->callBack = $callBack;
 		return $this;
 	}
 }

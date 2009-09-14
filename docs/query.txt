@@ -1,0 +1,42 @@
+Defines (/tgsf_core/libraries/db/enum.php)
+
+param types:
+ptBOOL
+ptNULL
+ptINT
+ptSTR
+ptLOB
+ptDECIMAL
+ptFLOAT
+ptDEC
+ptFLT
+
+
+methods:
+paramType is from list above
+pt( paramType )
+	sets the param type for future calls to set (for updates) or insert_fields (for inserts)
+	returns the query object for method chaining.
+
+
+examples:
+
+$q = new query();
+$q->insert_into( 'user' );
+$q->pt( ptSTR )->insert_fields( array( 'user_email', 'user_first_name' ) );
+$q->
+
+
+counting rows as t/f result
+<?php
+
+function recExists( $id )
+{
+	// count is a shortcut to ->select( count('*') ) and count may be passed a string to use in place of '*'
+	$q = new query();
+	$q->count()->from( 'table' )->where( 'table_id=:table_id' );
+	$q->bindValue( 'table_id', $id, ptINT ); // see above for param types
+	return $q->exec()->fetchColumn(0) > 0;
+}
+
+?>

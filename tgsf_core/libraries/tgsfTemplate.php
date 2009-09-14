@@ -73,6 +73,7 @@ function css( $file, $local = true )
 */
 function css_import( $cssFiles, $group = null )
 {
+	$group = str_replace( '/', '_', $group );
 	$loopFiles = array();
 	$groupFiles = array();
 	$files = array();
@@ -370,4 +371,13 @@ function html_form_password( $attributes )
 	$attributes['type'] = 'password';
 	
 	return html_tag( 'input', $attributes );
+}
+//------------------------------------------------------------------------
+function brNotEmpty( $var )
+{
+	echo $var;
+	if ( ! empty( $var ) )
+	{
+		echo '<br>';
+	}
 }

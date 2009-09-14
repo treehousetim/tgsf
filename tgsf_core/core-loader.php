@@ -34,6 +34,7 @@ load_library( 'tgsfUrlDetection',	IS_CORE_LIB );
 //------------------------------------------------------------------------
 load_library( 'tgsfDataSource',		IS_CORE_LIB );
 load_library( 'tgsfPost',			IS_CORE_LIB );
+load_library( 'tgsfGet',			IS_CORE_LIB );
 
 //------------------------------------------------------------------------
 // only load the database libraries and config if we're actually using it
