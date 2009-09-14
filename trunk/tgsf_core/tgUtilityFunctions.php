@@ -179,3 +179,36 @@ function must_end_with( &$subject, $ending )
 		$subject .= $ending;
 	}
 }
+//------------------------------------------------------------------------
+/*
+// from php manual notes
+function fast_in_array($elem, $array)
+{
+	$array = sort( $array ); // my addition
+	$top = sizeof($array) -1;
+	$bot = 0;
+
+	while($top >= $bot)
+	{
+		$p = floor(($top + $bot) / 2);
+		if ($array[$p] < $elem )
+		{
+			$bot = $p + 1;
+		}
+		elseif ( $array[$p] > $elem )
+		{
+			$top = $p - 1;
+		}
+		else
+		{
+			return TRUE;
+		}
+   }
+    
+   return FALSE;
+}*/
+//------------------------------------------------------------------------
+function clean_text( $subject, $replace = '_' )
+{
+	return preg_replace( '/[^a-z0-9]+/sim', $replace, $subject );
+}

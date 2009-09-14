@@ -47,6 +47,7 @@ class field extends tgsfBase
 	//------------------------------------------------------------------------
 	public function enum( $list )
 	{
+		enum( $this->name . '_', $list, ENUM_USE_VALUE );
 		$this->enumList = $list;
 		$this->enum = true;
 	}

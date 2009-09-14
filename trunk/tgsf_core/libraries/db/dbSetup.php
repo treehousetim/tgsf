@@ -14,7 +14,7 @@ class dbSetup extends tgsfBase
 	private $_port;
 	private $_database;
 	private $_type;
-	private $_handle = false;
+	private $_ro_handle = false;
 	//------------------------------------------------------------------------
 	public $connected = false;
 	//------------------------------------------------------------------------
@@ -42,7 +42,7 @@ class dbSetup extends tgsfBase
 	*/
 	public function __destruct()
 	{
-		$this->_handle = null;
+		$this->_ro_handle = null;
 	}
 	
 	//------------------------------------------------------------------------
@@ -145,11 +145,11 @@ class dbSetup extends tgsfBase
 	/**
 	* Connects to the database server
 	*/
-	public function connect()
+	public function &connect()
 	{
 		if ( $this->connected === true )
 		{
-			return $this->_handle;
+			return $this->_ro_handle;
 		}
 		
 		$dsn = $this->_makeDSN();
@@ -161,25 +161,53 @@ class dbSetup extends tgsfBase
 		
 		try
 		{
-			$this->_handle = new PDO( $dsn, $this->_user, $this->_password );
+			$this->_ro_handle = new PDO( $dsn, $this->_user, $this->_password );
 			$this->connected = true;
-			return $this->_handle;
+			return $this->_ro_handle;
 		}
 		catch (PDOException $e )
 		{
 			$this->connected = false;
-			$this->_handle = false;
+			$this->_ro_handle = false;
 			throw new tgsfDbException( $e->getMessage() );
 		}
 	}
-	
+	//------------------------------------------------------------------------
+	/**
+	* Starts a transaction
+	*/
+	public function beginTransaction()
+	{
+		$this->handle()->beginTransaction();
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Commits a transaction
+	*/
+	public function commit()
+	{
+		$this->handle()->commit();
+	}
+	//------------------------------------------------------------------------
+	/**
+	* rolls back a transaction
+	*/
+	public function rollBack()
+	{
+		$this->handle()->rollBack();
+	}
+	//------------------------------------------------------------------------
+	public function lastInsertId()
+	{
+		return $this->handle()->lastInsertId();
+	}
 	//------------------------------------------------------------------------
 	/**
 	* An alias for connect.  This improves code readability
 	* example: $conn = dbm()->connect( 'default' );
 	* $conn->handle;
 	*/
-	function handle()
+	function &handle()
 	{
 		return $this->connect();
 	}
@@ -187,6 +215,6 @@ class dbSetup extends tgsfBase
 	//------------------------------------------------------------------------	
 	public function disconnect()
 	{
-		$this->_handle = null;
+		$this->_ro_handle = null;
 	}
 }

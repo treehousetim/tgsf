@@ -21,18 +21,60 @@ class formTop extends tgsfFormTemplate
 		return $atr;
 	}
 	//------------------------------------------------------------------------
+	protected function _wrapField( &$field, $content )
+	{
+		$atr['class'] = $field->name . '_field';
+		return html_tag( 'dd', $atr, $content );
+	}
+	//------------------------------------------------------------------------
 	protected function _caption( &$field )
 	{
+		$captionExtra = '';
+		if ( is_array( $field->error ) )
+		{
+			$labelAtr['class'] = 'errorCaption';
+			$captionExtra = implode( ' and ', $field->error );
+		}
+		//echo implode( '<br>',$field->error );
 		$labelAtr['for'] = $field->name;
-		return "\n" . html_tag( 'dt', '', html_tag( 'label', $labelAtr, $field->caption ) ) . "\n";
+		return "\n" . html_tag( 'dt', array( 'class' => $field->name . '_caption' ), html_tag( 'label', $labelAtr, $field->caption . $captionExtra ) ) . "\n";
+	}
+	//------------------------------------------------------------------------
+	public function formTag( $atr, &$form )
+	{
+		return html_tag( 'form', $atr );
+	}
+	//------------------------------------------------------------------------
+	public function closeForm( &$form )
+	{
+		return '</form>';
+	}
+	//------------------------------------------------------------------------
+	public function beforeFields( &$form, $group = '' )
+	{
+		$cls = trim( strtolower( clean_text( $group ) ), ' _' );
+		
+		$out = "<fieldset class=\"{$cls}\">";
+		
+		if ( ! starts_with( $group, '_' ) )
+		{
+			$out .= "<legend>{$group}</legend>";
+		}
+		
+		$out .= "<dl class=\"{$cls}\">";
+		
+		return $out;
+	}
+	//------------------------------------------------------------------------
+	public function afterFields( &$form )
+	{
+		return '</dl></fieldset>';
 	}
 	//------------------------------------------------------------------------
 	public function dropdown( &$field )
 	{
 		$atr = $this->_standardAtr( $field );
-		return $this->_caption( $field ) .
-		html_tag( 'dd', '',
-		html_form_dropdown( $atr, $field->list, $field->selected ) );
+		return $this->_caption( $field ) . $this->_wrapField( $field, html_form_dropdown( $atr, $field->list, $field->selected ) );
 	}
 	//------------------------------------------------------------------------
 	public function file( &$field )
@@ -46,9 +88,7 @@ class formTop extends tgsfFormTemplate
 	public function text( &$field )
 	{
 		$atr = $this->_standardAtr( $field );
-		return $this->_caption( $field ) .
-		html_tag( 'dd', '',
-		html_form_text( $atr ) );
+		return $this->_caption( $field ) . $this->_wrapField( $field, html_form_text( $atr ) );
 	}
 	//------------------------------------------------------------------------
 	public function textArea( &$field )
@@ -61,16 +101,14 @@ class formTop extends tgsfFormTemplate
 			unset( $atr['value'] );
 		}
 		
-		return $this->_caption( $field ) .
-		html_tag( 'dd', '',
-		html_form_textarea( $atr, $text ) );
+		return $this->_caption( $field ) . $this->_wrapField( $field, html_form_textarea( $atr, $text ) );
 	}
 	//------------------------------------------------------------------------
 	public function radio( &$field )
 	{
 		$atr = $this->_standardAtr( $field );
 		$out = $this->_caption( $field );
-		
+
 		foreach ( $field->optionList as $value => $caption )
 		{
 			$atr['value'] = $value;
@@ -78,7 +116,8 @@ class formTop extends tgsfFormTemplate
 			$atr['id'] = $id;
 			$out .= html_tag( 'dd', '', html_form_radio( $atr ) . ' ' . html_tag( 'label', array('for'=>$id), $caption ) );
 		}
-		return html_tag( 'dd', '', $out );
+
+		return $this->_wrapField( $field, $out );
 	}
 	//------------------------------------------------------------------------
 	public function checkbox( &$field )
@@ -96,9 +135,7 @@ class formTop extends tgsfFormTemplate
 			$atr['checked'] = 'checked';
 		}
 		
-		return $this->_caption( $field ) .
-		html_tag( 'dd', '',
-		html_form_checkbox( $atr ) );	
+		return $this->_caption( $field ) . $this->_wrapField( $field, html_form_checkbox( $atr ) );
 	}
 	//------------------------------------------------------------------------
 	public function image( &$field )
@@ -131,7 +168,7 @@ class formTop extends tgsfFormTemplate
 		$atr = $this->_standardAtr( $field );
 		return $this->_caption( $field ) .
 		html_tag( 'dd', '',
-		html_form_text( $atr ) );
+		html_form_password( $atr ) );
 	}
 	//------------------------------------------------------------------------
 	public function other( &$field )

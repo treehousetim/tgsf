@@ -143,7 +143,7 @@ class table extends tgsfBase
 		$args = func_get_args();
 		$args = array_slice( $args, 3 );
 
-		$field =& new field( $name, $type, $size );
+		$field = new field( $name, $type, $size );
 		$this->_fields[] =& $field;
 		$this->_fieldsByName[$name] =& $field;
 		

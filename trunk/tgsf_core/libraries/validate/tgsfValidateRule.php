@@ -49,6 +49,11 @@ abstract class tgsfValidateRule extends tgsfBase
 		$this->errorMessage = $msg;
 		return $this;
 	}
+	//------------------------------------------------------------------------
+	public function &error_message( $msg )
+	{
+		return $this->errorMessage( $msg );
+	}
 }
 //------------------------------------------------------------------------
 class tvr_alpha extends tgsfValidateRule
@@ -86,7 +91,7 @@ class tvr_min_len extends tgsfValidateRule
 {
 	public function execute( $fieldName, $ds )
 	{
-		$this->errorMessage = ' must be at least ' . $this->min . ' letters long';
+		$this->errorMessage = ' must be at least ' . $this->minLen . ' letters long';
 		$this->valid = strlen( $ds->_( $fieldName ) ) >= $this->minLen;
 		return $this->valid;
 	}
@@ -107,7 +112,13 @@ class tvr_int extends tgsfValidateRule
 	public $errorMessage = ' must be an integer (no decimal point)';
 	public function execute( $fieldName, $ds )
 	{
-		$this->valid = preg_match( '/^[0-9]+$/i', $ds->_( $fieldName ) );
+		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = true;
+		}
+		
+		$this->valid = preg_match( '/^[0-9]+$/i', $value );
 		return $this->valid;
 	}
 }
@@ -117,7 +128,13 @@ class tvr_clean extends tgsfValidateRule
 	public $errorMessage = ' must only contain letters, spaces, numbers, dashes, underscores and periods';
 	public function execute( $fieldName, $ds )
 	{
-		$this->valid = preg_match( '/^[0-9a-z._\- ]+$/i', $ds->_( $fieldName ) );
+		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = true;
+		}
+		
+		$this->valid = preg_match( '/^[0-9a-z._\- ]+$/i', $value );
 		return $this->valid;
 	}
 }
@@ -129,6 +146,11 @@ class tvr_gt extends tgsfValidateRule
 		$this->errorMessage = ' must be greater than ' . $this->value;
 		
 		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = false;
+		}
+
 		$this->valid = int($value) > (int)$this->value || (float)$value > (float)$this->value;
 		return $this->valid;
 	}
@@ -139,8 +161,12 @@ class tvr_gte extends tgsfValidateRule
 	public function execute( $fieldName, $ds )
 	{
 		$this->errorMessage = ' must be greater than or equal to ' . $this->value;
-		
 		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = false;
+		}
+
 		$this->valid = int($value) >= (int)$this->value || (float)$value >= (float)$this->value;
 		return $this->valid;
 	}
@@ -151,8 +177,13 @@ class tvr_lt extends tgsfValidateRule
 	public function execute( $fieldName, $ds )
 	{
 		$this->errorMessage = ' must be less than ' . $this->value;
-		
+
 		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = false;
+		}
+
 		$this->valid = int($value) < (int)$this->value || (float)$value < (float)$this->value;
 		return $this->valid;
 	}
@@ -163,8 +194,13 @@ class tvr_lte extends tgsfValidateRule
 	public function execute( $fieldName, $ds )
 	{
 		$this->errorMessage = ' must be less than or equal to ' . $this->value;
-		
+
 		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = false;
+		}
+
 		$this->valid = int($value) <= (int)$this->value || (float)$value <= (float)$this->value;
 		return $this->valid;
 	}
@@ -186,6 +222,13 @@ class tvr_date extends tgsfValidateRule
 	public $errorMessage = ' must be a valid date';
 	public function execute( $fieldName, $ds )
 	{
+		// we don't require dates, just non-empty values must be valid dates.
+		if ( $ds->_( $fieldName ) == '' )
+		{
+			$this->valid = true;
+			return true;
+		}
+		
 		$pieces = preg_split( '%[-/.]%i', $ds->_( $fieldName ) );
 
 		if ( count( $pieces ) != 3 )
@@ -195,7 +238,7 @@ class tvr_date extends tgsfValidateRule
 		elseif ( strlen( $pieces[0] ) == 4 )
 		{
 			// yyyy-mm-dd
-			$year	- (int)$pieces[0];
+			$year	= (int)$pieces[0];
 			$month	= (int)$pieces[1];
 			$day	= (int)$pieces[2];
 			$this->valid = checkdate( $month, $day, $year );
@@ -205,7 +248,7 @@ class tvr_date extends tgsfValidateRule
 			// mm-dd-yyyy
 			$month	= (int)$pieces[0];
 			$day	= (int)$pieces[1];
-			$year	- (int)$pieces[2];
+			$year	= (int)$pieces[2];
 			$this->valid = checkdate( $month, $day, $year );
 		}
 		
@@ -217,7 +260,14 @@ class tvr_match_field extends tgsfValidateRule
 {
 	public function execute( $fieldName, $ds )
 	{
-		$this->errorMessage = ' must match ' . $this->fieldCaption;
+		if ( $this->overrideError !== '' )
+		{
+			$this->errorMessage = $this->overrideError;
+		}
+		else
+		{
+			$this->errorMessage = ' must match ' . $this->fieldCaption;
+		}
 		$this->valid = $ds->_( $fieldName ) == $ds->_( $this->field );
 		return $this->valid;
 	}
@@ -227,9 +277,8 @@ class tvr_match_value extends tgsfValidateRule
 {
 	public function execute( $fieldName, $ds )
 	{
-		$this->errorMessage = ' must be ' . $this->valid ;
-		$this->valid = $ds->_( $fieldName ) == $this->value;
-		return $this->valid;
+		$this->errorMessage = ' must be ' . $this->value ;
+		return $this->valid = $ds->_( $fieldName ) == $this->value;
 	}
 }
 //------------------------------------------------------------------------
@@ -241,6 +290,71 @@ class tvr_db_unique extends tgsfValidateRule
 		$q = new query();
 		$q->select( 'count(*)' )->from( $this->table )->where( $this->whereField . '=:dbuwp' )->bindValue( 'dbuwp', $ds->_( $fieldName ), ptSTR );
 		$cnt = $q->exec()->fetchColumn();
-		$this->valid = $cnt == 0;
+		return $this->valid = $cnt == 0;
+	}
+}
+//------------------------------------------------------------------------
+class tvr_db_exists extends tgsfValidateRule
+{
+	public $errorMessage = ' doesn\'t exist';
+	public function execute( $fieldName, $ds )
+	{
+		$q = new query();
+		$q->select( 'count(*)' )->from( $this->table )->where( $this->whereField . '=:dbuwp' )->bindValue( 'dbuwp', $ds->_( $fieldName ), ptSTR );
+		$cnt = $q->exec()->fetchColumn();
+		return $this->valid = $cnt > 0;
+	}
+}
+//------------------------------------------------------------------------
+class tvr_usa_phone extends tgsfValidateRule
+{
+	public $errorMessage = ' must be a valid US phone number example: 123-456-7890 - no extensions allowed';
+	public function execute( $fieldName, $ds )
+	{
+		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = true;
+		}
+		return $this->valid = preg_match('/^\\s*\\(?\\s*[0-9]{3}\\s*\\)?[-. ]?[0-9]{3}[-. ]?[0-9]{4}/', $ds->_( $fieldName ) );
+	}
+}
+//------------------------------------------------------------------------
+class tvr_usa_state extends tgsfValidateRule
+{
+	public $errorMessage = ' must be a valid US state';
+	public function execute( $fieldName, $ds )
+	{
+		load_config( 'us_states', IS_CORE_CONFIG );
+		$stateList = config( 'us_states' );
+		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = true;
+		}
+		return $this->valid = in_array( strtoupper( $value ), $stateList );
+	}
+}
+//------------------------------------------------------------------------
+class tvr_usa_zipcode extends tgsfValidateRule
+{
+	public $errorMessage = ' must be a valid zip code';
+	public function execute( $fieldName, $ds )
+	{
+		$value = $ds->_( $fieldName );
+		if ( empty( $value ) )
+		{
+			return $this->valid = true;
+		}
+		return $this->valid = preg_match( '/^[0-9]{5}(?:-[0-9]{4})?$/', $value );
+	}
+}
+//------------------------------------------------------------------------
+class tvr_custom extends tgsfValidateRule
+{
+	public $errorMessage = ' YOU MUST MANUALLY SET YOUR ERRORS IN A CUSTOM VALIDATION RULE';
+	public function execute( $fieldName, $ds )
+	{
+		return $this->valid = call_user_func( $this->callBack, $ds, $this );
 	}
 }

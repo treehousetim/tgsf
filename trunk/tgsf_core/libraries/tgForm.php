@@ -50,7 +50,8 @@ abstract class tgsfForm extends tgsfBase
 	protected	$_ds		= null;
 	protected	$_processor	= '';
 	protected	$_id		= '';
-	protected	$_ro_valid = true;
+	protected	$_ro_valid	= true;
+	protected	$_groupName	= '_main';
 	//------------------------------------------------------------------------
 	public		$errors		= array();
 	/**
@@ -127,8 +128,17 @@ abstract class tgsfForm extends tgsfBase
 	{
 		$field = new tgsfFormField( $type );
 		$field->useTemplate( $this->_template );
+		$field->useGroup( $this->_groupName );
 		$this->_fields[] =& $field;
 		return $field;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Keeps track of the current group - template renderers can make choices based on groups
+	*/
+	public function startGroup( $name )
+	{
+		$this->_groupName = $name;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -139,19 +149,30 @@ abstract class tgsfForm extends tgsfBase
 		$this->_processor = $url;
 	}
 	//------------------------------------------------------------------------
-	public function render( $returnOnly = false )
+	public function render( $returnOnly = true )
 	{
 		$atr['method']	= 'POST';
 		$atr['action']	= $this->_processor;
+
 		if ( ! empty( $this->_id ) )
 		{
 			$atr['id']		= $this->_id;
 		}
 		
-		$out = html_tag( 'form', $atr );
+		$curGroup = $this->_fields[0]->group;
+
+		$out  = $this->_template->formTag( $atr, $this );
+		$out .= $this->_template->beforeFields( $this, $curGroup );
 
 		foreach ( $this->_fields as &$field )
 		{
+			if ( $field->group != $curGroup )
+			{
+				$out .= $this->_template->afterFields( $this );
+				$out .= $this->_template->beforeFields( $this, $field->group );
+			}
+			
+			$curGroup = $field->group;
 			if ( ! is_null( $this->_ds ) )
 			{
 				$field->setValue( $this->_ds );
@@ -159,10 +180,11 @@ abstract class tgsfForm extends tgsfBase
 			$field->setError( $this->errors );
 			$out .= $field->render();
 		}
-		
+		$out .= $this->_template->afterFields( $this );
+		$out .= $this->_template->closeForm( $this );
 		$out .= '</form>';
 
-		if ( $returnOnly === true )
+		if ( $returnOnly === false )
 		{
 			echo $out;
 		}
@@ -198,22 +220,27 @@ abstract class tgsfFormTemplate extends tgsfBase
 	protected $_field;
 	//------------------------------------------------------------------------
 
-	protected function hidden( &$field )
+	public function hidden( &$field )
 	{
-		return html_form_hidden( $data['name'], $data['value'] );
+		return html_form_hidden( $field->name, $field->value );
 	}
-
-	abstract protected function dropdown( &$field );
-	//abstract protected function optionList( &$field, $atr );
-	abstract protected function file( &$field  );
-	abstract protected function text( &$field );
-	abstract protected function textArea( &$field );
-	abstract protected function radio( &$field );
-	abstract protected function checkbox( &$field );
-	abstract protected function image( &$field );
-	abstract protected function button( &$field );
-	abstract protected function submit( &$field );
-	abstract protected function reset( &$field );
-	abstract protected function password( &$field );
-	abstract protected function other( &$field );
+	
+	abstract public function formTag( $atr, &$form );
+	abstract public function closeForm( &$form );
+	abstract public function beforeFields(  &$form, $group = '' );
+	abstract public function afterFields( &$form );
+	
+	abstract public function dropdown( &$field );
+	//abstract public function optionList( &$field, $atr );
+	abstract public function file( &$field  );
+	abstract public function text( &$field );
+	abstract public function textArea( &$field );
+	abstract public function radio( &$field );
+	abstract public function checkbox( &$field );
+	abstract public function image( &$field );
+	abstract public function button( &$field );
+	abstract public function submit( &$field );
+	abstract public function reset( &$field );
+	abstract public function password( &$field );
+	abstract public function other( &$field );
 }

@@ -107,60 +107,80 @@ function load_library( $name, $core = false )
 }
 //------------------------------------------------------------------------
 /**
-* Loads an instantiated template library.  Just like models, a template library
-* needs to return a new instance of the class just defined.
-* This uses path: libraries/templates and is primarily intended for php class based templates
-* like those used in the form library.
+* Loads an instantiated template library.  Works just like models.
 * Unlike most other load functions, this one is controlled by a global variable
-* that is located 
+* that is located in the front controller index.php
 * @param String The path and name (minus the extension) of the template library 
+* @see load_cloned_object
 */
 function &load_template_library( $name )
 {
 	global $useAppFormTemplates;
 	$core = $useAppFormTemplates === false;
-	$path = path( 'libraries/templates', $core );
-	$ret = require_once( $path . $name . PHP );
-	return $ret;
+	return load_cloned_object( path( 'libraries/templates', $core ), $name );
 }
 //------------------------------------------------------------------------
 /**
-* Loads a form - similar to load_model in that it returns an instance of an object
-* Form files are required to return a new instance of the form
+* Loads a form.  Works just like models.
 * @param String The path and name (minus the extension) of the form to load)
 * This is prefixed by the current application's forms path
 * @param Bool Is the form located in the core?  This would only be for built in forms
 * like might be used in a core library (like a user lib).
+* @see load_cloned_object
 */
 function &load_form( $name, $core = false )
 {
-	$path = path( 'forms', $core );
-	$ret = require( $path . $name . PHP );
-	return $ret;
+	return load_cloned_object( path( 'forms', $core ), $name );
 }
 //------------------------------------------------------------------------
 /**
-* Loads a model.  Returns an instance of a model.  Models are only allowed a single
-* global existence.  Model instances are stored in a static variable in this function
-* so that if a model is already loaded its instance is returned and no further filesystem
-* performance is incurred.
+* The first time a model is loaded, this function will require_once on the model file.
+* It will take the return value from that required file and use it as an internal instance
+* of that model.
+* All return values from this function will be performed using object cloning.
+* if a model has already loaded, a new instance is returned and no further filesystem
+* access occurs.
 * Model files are required to return a new instance of the model
+* Models should not require constructor parameters as this loader will know nothing about that.
 * @param String The path and name of the model.  This is prefixed by the application's
 * models path
 * @param Bool Is the model located in the core?  This would only be used for built in models
 * like might be used in a core library (like a user lib).
+* @see load_cloned_object
 */
 function &load_model( $name, $core = false )
 {
-	$path = path( 'models', $core );
-	static $loadedModels = array();
+	return load_cloned_object( path( 'models', $core ), $name );
+}
+//------------------------------------------------------------------------
+/**
+* Requires a file based on path and name.  Stores the return value from that included file
+* in a static array.  Assumes return values are object instances.
+* Returns a clone of that return value.  If a file has already been included, we skip the require_once
+* and simply return a clone of the original that has been stored in the static array.
+* @param String The path to the file.
+* @param String The name of the file - without the php extension
+*/
+function &load_cloned_object( $path, $name )
+{
+	static $masterObjects = array();
 	
-	if ( ! in_array( $name, array_keys( $loadedModels ) ) )
+	$file = $path . $name . PHP;
+
+	if ( ! in_array( $file, array_keys( $masterObjects ) ) )
 	{
-		$loadedModels[$name] = require_once $path . $name . PHP;
+		$obj = require_once( $file );
+		
+		if ( ! is_object( $obj ) )
+		{
+			throw new tgsfException( "You must return an object instance when loading {$file}" );
+		}
+		
+		$masterObjects[$file] =& $obj;
 	}
 
-	return $loadedModels[$name];
+	$returnObj = clone $masterObjects[$file];
+	return $returnObj;
 }
 //------------------------------------------------------------------------
 function load_config( $name, $core=false )
@@ -279,6 +299,15 @@ function controller( $name, $core = false )
 function view( $name, $core = false )
 {
 	return path( 'views', $core ) . $name . PHP;
+}
+//------------------------------------------------------------------------
+function get_view_content( $name, $vars = array(), $core = false )
+{
+	extract( $vars );
+	ob_start();
+	include view( $name, $core );
+	$out = ob_get_clean();
+	return $out;
 }
 //------------------------------------------------------------------------
 function image( $file, $core = false )
@@ -561,7 +590,7 @@ function location_303( $url, $local = true )
 * @param String The clear text password
 * @param String The salt (actually a password string produced by this function)
 */
-function hashPassword( $clearText, $salt = null )
+function hash_password( $clearText, $salt = null )
 {
     if ( is_null( $salt ) )
     {
@@ -574,4 +603,34 @@ function hashPassword( $clearText, $salt = null )
     $hashed = $salt . sha1($salt . $clearText);
 
     return $hashed;
+}
+//------------------------------------------------------------------------
+function randomHash( $length = 12 )
+{
+	return strtoupper( substr( sha1( uniqid( rand(), true ) ), 0, $length ) );
+}
+//------------------------------------------------------------------------
+function log_exception( $e )
+{
+	$file = path( 'logs', IS_CORE_PATH ) . 'exception_log.txt';
+	
+	$out = PHP_EOL . '------------------------------------------------------------------------' . PHP_EOL;
+	$out .= date( 'Y/m/d H:i:s' ) . PHP_EOL;
+	$out .= '----------------------' . PHP_EOL;
+	$out .= $e->getMessage() . PHP_EOL;
+	$out .= 'File: ' . $e->getFile() . PHP_EOL;
+	$out .= 'Line: ' . $e->getLine() . PHP_EOL;
+	$out .= $e->getTraceAsString();
+	file_put_contents( $file, $out, FILE_APPEND );
+}
+//------------------------------------------------------------------------
+function log_query_error( $query )
+{
+	$file = path( 'logs', IS_CORE_PATH ) . 'query_error_log.txt';
+	
+	$out = PHP_EOL . '------------------------------------------------------------------------' . PHP_EOL;
+	$out .= date( 'Y/m/d H:i:s' ) . PHP_EOL;
+	$out .= '----------------------' . PHP_EOL;
+	$out .= $query . PHP_EOL;
+	file_put_contents( $file, $out, FILE_APPEND );
 }

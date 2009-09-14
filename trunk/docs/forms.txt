@@ -1,0 +1,5 @@
+$this->startGroup( 'Just a Caption' );
+
+groups create (when using the built in top template) fieldsets with legends.
+css classes are created from the captions, lowercase with underscores replacing spaces and other non standard characters.
+to create fieldsets without a legend, prefix your caption with an underscore _

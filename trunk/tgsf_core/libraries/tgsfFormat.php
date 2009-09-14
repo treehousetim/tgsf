@@ -5,31 +5,22 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-function &POST()
+function &FORMAT()
 {
-	return tgsfPost::get_instance();
+	return tgsfFormat::get_instance();
 }
 //------------------------------------------------------------------------
-class tgsfPost extends tgsfDataSource
+class tgsfFormat extends tgsfBase
 {
-	private static	$_instance	= null;
-	protected		$_ro_posted	= false;
-	
+	private static	$_instance			= null;
+
 	//------------------------------------------------------------------------
 	/**
-	* The constructor sets the type and detects if a POST has occurred
-	* if it has, it add all the POST variables into this datasource (itself).
-	* it is also protected as we will be using the get_instance method to instantiate
+	* protected to make a singleton instance
 	*/
 	protected function __construct()
 	{
-		parent::__construct( dsTypePOST );
-		
-		if ( isset( $_POST ) && count( $_POST ) > 0 )
-		{
-			$this->_ro_posted = true;
-			$this->set( $_POST );
-		}
+		// do nothing
 	}
 	
 	//------------------------------------------------------------------------
@@ -53,6 +44,21 @@ class tgsfPost extends tgsfDataSource
 	*/
 	public function __clone()
 	{
-		throw new tgsfException( 'Cloning a singleton (tgsfPost) is not allowed. Use the POST() function to get its instance.' );
+		throw new tgsfException( 'Cloning a singleton (tgsfGet) is not allowed. Use the FORMAT() function to get its instance.' );
 	}
+
+	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	
+	public function usa_phone( $text, $formatWithParens = false )
+	{
+		$pattern = '\\1-\\2-\\3';
+		if ( $formatWithParens )
+		{
+			$pattern = '(\\1) \\2-\\3';
+		}
+		return trim( preg_replace('/\\(?([0-9]{3})\\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})/', $pattern, $text ) );
+	}
+	
 }
