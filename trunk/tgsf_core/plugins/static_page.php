@@ -5,28 +5,40 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-
-
-add_filter( 'controller_404', 'static_page_filter' );
-add_action( 'plugin_config', static_page_config )
-
-function static_page_filter( $controller, $params )
+add_action( 'register_plugin_static_page', 'static_page_setup' );
+function static_page_setup( $file )
 {
-	list( $page ) = $params;
-	$pageFile = config( 'page_path' ) . $page . EXT;
-	
-	if ( file_exists( $pageFile ) )
+	$class = new staticPage();
+	add_action( 'pre_404', 'sp_h' array( &$class, 'pre404' ) );
+}
+
+
+class staticPage
+{
+	function __construct()
 	{
-		$controller = controller( 'static_page' );
+		$this->model = load_cloned_object( 'plugins/static_page/model' );
 	}
-	
-	return $controller;
+	function pre404( $page )
+	{
+		$row = $this->model->getPage( $page );
+		
+		if ( $row === false )
+		{
+			// we have no page for this url, return and let the core handle the 404
+			return;
+		}
+		
+		if ( $row->page_template == '' || file_exists( view( $row->page_template ) ) === false )
+		{
+			include view( 'static_page' );
+			exit();
+		}
+		else
+		{
+			include view( $row->page_template );
+			exit();
+		}
+	}
 }
 
-//------------------------------------------------------------------------
-
-function static_page_config()
-{
-	global $config;
-	$config['page_path'] = $config['view_path'] . 'pages/';
-}
