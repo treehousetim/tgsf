@@ -13,7 +13,8 @@ class tgsfFormField extends tgsfBase
 {
 	protected	$_optionList	= array();
 	protected	$_caption		= '';
-	protected	$_error			= '';
+	protected	$_desc			= '';
+	protected	$_error			= array();
 	protected	$_type			= fftText;
 	protected	$_selected		= array();
 	protected	$_template		= null;
@@ -21,6 +22,12 @@ class tgsfFormField extends tgsfBase
 	protected	$_atr			= array();
 	protected	$_value			= '';
 	protected	$_group			= '';
+	protected	$_rawHTML		= '';
+	protected	$_ro_tag		= null;
+	protected	$_ro_label		= null;
+	protected	$_ro_valueSet	= false;
+	//------------------------------------------------------------------------
+	public		$form			= null;
 	//------------------------------------------------------------------------
 
 	public function __construct( $type )
@@ -38,6 +45,11 @@ class tgsfFormField extends tgsfBase
 		{
 			return $this->{'_'.$name};
 		}
+		
+		if ( isset( $this->{'_ro_'.$name} ) )
+		{
+			return $this->{'_ro_'.$name};
+		}
 	
 		throw new tgsfFormException( 'No field variable named "' . $name . '"' );
 
@@ -52,17 +64,26 @@ class tgsfFormField extends tgsfBase
 	{
 		if ( isset( $error[$this->_name] ) )
 		{
-			$this->_error = $error[$this->_name];
+			$this->_error = (array)$error[$this->_name];
 		}
 	}
 	
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Sets the value for this field using the form's datasource
 	*/
-	public function setValue( $ds )
+	public function setValue()
 	{
-		$this->_value = $ds->_( $this->_name );
+		if ( $this->_ro_valueSet === false && $this->form->ds !== null )
+		{
+			$this->_ro_valueSet = true;
+			
+			$this->_value = $this->form->ds->_( $this->_name );
+			if ( $this->_type === fftDropDown )
+			{
+				$this->_selected[] = $this->_value;
+			}
+		}
 	}
 
 	//------------------------------------------------------------------------
@@ -81,12 +102,19 @@ class tgsfFormField extends tgsfBase
 	public function &name( $name )
 	{
 		$this->_name = $name;
+		$this->form->_addByName( $this );
 		return $this;
 	}
 	//------------------------------------------------------------------------
 	public function &caption( $caption )
 	{
 		$this->_caption = $caption;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &desc( $desc )
+	{
+		$this->_desc = $desc;
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -109,7 +137,6 @@ class tgsfFormField extends tgsfBase
 		
 		return $this;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Sets the list for a listbox or dropdown or radio group
@@ -119,9 +146,7 @@ class tgsfFormField extends tgsfBase
 		$this->_optionList = $list;
 		return $this;
 	}
-
 	//------------------------------------------------------------------------
-
 	public function &selected( $value )
 	{
 		$values = array();
@@ -129,16 +154,142 @@ class tgsfFormField extends tgsfBase
 		$this->_selected = array_merge( $this->_selected, $values );
 		return $this;
 	}
-
 	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function rawHTML( $rawHTML )
+	{
+		$this->_rawHTML = $rawHTML;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* creates and returns $this->label
+	*/
+	public function getLabelTag()
+	{
+		$this->setValue();
+		if ( $this->_ro_label === null )
+		{
+			$label = new tgsfHtmlTag( 'label' );
+			$this->_ro_label =& $label;
+			
+			$label->_('')->content( $this->caption );
+			$label->addAttribute( 'for', $this->_name );
 
-	public function render()
+			if ( ! empty( $this->_error ) )
+			{
+				$label->css_class( 'errorCaption' );
+				$label->_( 'span' )->css_class( "error_message" )->content( implode( ' and ', $this->_error ) );
+			}
+			$this->form->onLabel( $this->_ro_label );
+		}
+		return $this->_ro_label;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns and sets $this->tag (read only) as a new tgsfHtmlTag object
+	*/
+	public function getFieldTag()
+	{
+		$this->setValue();
+		
+		if ( $this->_ro_tag === null )
+		{
+			$tag = new tgsfHtmlTag( 'input' );
+			$this->_ro_tag =& $tag;
+			
+			$tag->addAttribute( 'name', $this->_name, SINGLE_ATTR_ONLY );
+			$tag->id( $this->_name );
+			$tag->value( $this->value );
+		
+			switch ( $this->_type )
+			{
+			case fftText:
+				$tag->addAttribute( 'type', 'text', SINGLE_ATTR_ONLY );
+				break;
+			
+			case fftHidden:
+				$tag->addAttribute( 'type', 'hidden', SINGLE_ATTR_ONLY );
+				break;
+
+			case fftCheck:
+				$tag->addAttribute( 'type', 'checkbox', SINGLE_ATTR_ONLY );
+				$tag->value( 1 );
+				if ( $this->value != 0 && $this->value != '' )
+				{
+					$tag->addAttribute( 'checked', 'checked', SINGLE_ATTR_ONLY );
+				}
+				break;
+
+			case fftRadio:
+				$tag->addAttribute( 'type', 'radio', SINGLE_ATTR_ONLY );
+				$tag->addAttribute( 'name', $this->_group, SINGLE_ATTR_ONLY );
+				break;
+
+			case fftSubmit:
+				$tag->addAttribute( 'type', 'submit', SINGLE_ATTR_ONLY );
+				$tag->value( $this->caption );
+				break;
+
+			case fftReset:
+				$tag->addAttribute( 'type', 'reset', SINGLE_ATTR_ONLY );
+				break;
+
+			case fftPassword:
+				$tag->addAttribute( 'type', 'password', SINGLE_ATTR_ONLY );
+				break;
+
+			case fftImage:
+				$tag->addAttribute( 'type', 'image', SINGLE_ATTR_ONLY );
+				break;
+
+			case fftFile:
+				$tag->addAttribute( 'type', 'file', SINGLE_ATTR_ONLY );
+				break;
+
+			case fftTextArea:
+				$tag->changeTag( 'textarea' );
+				$tag->removeAttribute( 'value' );
+				$tag->_( NON_TAG_CONTENT )->content( $this->_value ); // create a child for content only.
+				break;
+
+			case fftDropDown:
+			case fftList:
+				$tag->changeTag( 'select' );
+				
+				foreach ( $this->_optionList as $optVal => $caption )
+				{
+					$option = $tag->_( 'option' );
+					$option->content( $caption );
+					$option->addAttribute( 'value', $optVal );
+					if ( in_array( $optVal, $this->_selected ) )
+					{
+						$option->addAttribute( 'selected', 'selected' );
+					}
+					unset( $option );
+				}
+				break;
+			
+			case fftButton:
+				$tag->changeTag( 'button' );
+				$tag->content( $this->_caption );
+			}
+			$this->form->onField( $this->_ro_tag );
+		}
+		return $this->_ro_tag;
+	}
+	//------------------------------------------------------------------------
+	public function render( &$container )
 	{
 		if ( is_null( $this->_template ) )
 		{
 			throw new tgsfFormException( 'No rendering template has been set.' );
 		}
 
-		return $this->_template->{$this->_type}( $this );
+		$this->getLabelTag();
+		$this->getFieldTag();
+
+		$this->_template->{$this->_type}( $this, $container );
 	}
 }

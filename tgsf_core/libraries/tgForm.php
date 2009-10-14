@@ -5,7 +5,7 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-//$this->dropdown( 'name' )->
+
 //------------------------------------------------------------------------
 // form enums
 
@@ -28,61 +28,56 @@ enum( 'fft',
 		'OtherTag'	=> 'other',
 		)
 	);
-
-enum( 'ffTpl',
-	array(
-		'Top',
-		'Left',
-		'Right'
-		)
-	);
-//------------------------------------------------------------------------
-
+load_library( 'html/tgsfHtmlTag', IS_CORE_LIB );
 //------------------------------------------------------------------------
 /**
 * form class
 */
-abstract class tgsfForm extends tgsfBase
+abstract class tgsfForm extends tgsfHtmlTag
 {
-	protected	$_fields	= array();
-	protected	$_template	= null;
-	protected	$_validator	= null;
-	protected	$_ds		= null;
-	protected	$_processor	= '';
-	protected	$_id		= '';
-	protected	$_ro_valid	= true;
-	protected	$_groupName	= '_main';
+	protected	$_fields		= array();
+	protected	$_fieldsByName	= array();
+	protected	$_template		= null;
+	protected	$_validator		= null;
+	protected	$_ro_ds			= null;
+	protected	$_processor		= '';
+	protected	$_ro_valid		= true;
+	protected	$_groupName		= '_main';
+	protected	$_ro_setup		= false;
 	//------------------------------------------------------------------------
-	public		$errors		= array();
+	public		$errors			= array();
 	/**
 	* not used yet - why do we need to reuse a form object?
-	* also, _setup is called from the constructor.
 	*/
  	private function _reset()
 	{
 		throw new tgsfFormException( 'Form resetting not allowed.' );
 		/*
-		$this->_fields		= array();
-		$this->_template	= null;
-		$this->_validator	= null;
-		$this->_errors		= array();
-		$this->_ds			= null;
-		$this->_id			= '';
-		$this->_processor	= '';
+		$this->_fields			= array();
+		$this->_fieldsByName	= array()
+		$this->_template		= null;
+		$this->_validator		= null;
+		$this->_errors			= array();
+		$this->_ro_ds			= null;
+		$this->_id				= '';
+		$this->_processor		= '';
+		$this->_ro_setup		= false;
 		*/
 	}
 	//------------------------------------------------------------------------
 	abstract protected function _setup();
 	abstract protected function _setupValidate( &$v );
+	/* abstract */ public function onLabel( &$label ){}
+	/* abstract */ public function onField( &$field ){}
+	/* abstract */ public function onSelectOption( $field ){}
 	//------------------------------------------------------------------------
 
 	public function __construct()
 	{
-		$this->_setup();
+		parent::__construct( 'form' );
+		$this->addAttribute( 'method', 'POST', SINGLE_ATTR_ONLY );
 	}
-
 	//------------------------------------------------------------------------
-
 	protected function useTemplate( $template )
 	{
 		if ( is_object( $template ) )
@@ -94,34 +89,29 @@ abstract class tgsfForm extends tgsfBase
 			$this->_template = load_template_library( 'form/' . $template );
 		}
 	}
-
 	//------------------------------------------------------------------------
-
 	protected function &_getValidator()
 	{
-		load_library( 'validate/tgsfValidate',			IS_CORE_LIB );
-		load_library( 'validate/tgsfValidateField',		IS_CORE_LIB );
-		load_library( 'validate/tgsfValidateRule',		IS_CORE_LIB );
-		
 		if ( $this->_validator === null )
 		{
+			load_library( 'validate/tgsfValidate',			IS_CORE_LIB );
+			load_library( 'validate/tgsfValidateField',		IS_CORE_LIB );
+			load_library( 'validate/tgsfValidateRule',		IS_CORE_LIB );
 			$this->_validator = new tgsfValidate();
 		}
 
 		return $this->_validator;
 	}
-
 	//------------------------------------------------------------------------
-	//------------------------------------------------------------------------
-	
 	//------------------------------------------------------------------------
 	/**
 	* Sets a datasource for this form.
 	* @param a datasource object - either a db datasource or an http post datasource
 	*/
-	public function ds( &$ds )
+	public function &ds( &$ds )
 	{
-		$this->_ds =& $ds;
+		$this->_ro_ds =& $ds;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	public function &_( $type )
@@ -129,12 +119,37 @@ abstract class tgsfForm extends tgsfBase
 		$field = new tgsfFormField( $type );
 		$field->useTemplate( $this->_template );
 		$field->useGroup( $this->_groupName );
+		$field->form =& $this;
 		$this->_fields[] =& $field;
 		return $field;
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Not a public API, only to be used by the field object to link itself back when its name has been set
+	*/
+	public function _addByName( &$field )
+	{
+		$this->_fieldsByName[$field->name] =& $field;
+		return false; // trickery
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns a field object for the given name
+	* @param String The name of the field.  Using $this->_( fftText )->name( 'fieldName' ); is required.
+	* in other words, you must name a field for it to be available to this function.
+	* Using this allows you to output a form one field at a time.
+	* Example: $form = load_form( 'example' );
+	* echo $form->fieldByName( 'example_field' )->getLabelTag()->render();
+	* echo $form->fieldByName( 'example_field' )->getFieldTag()->render();
+	*/
+	public function &fieldByName( $name )
+	{
+		return $this->_fieldsByName[$name];
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Keeps track of the current group - template renderers can make choices based on groups
+	* @param String The name of a group
 	*/
 	public function startGroup( $name )
 	{
@@ -142,105 +157,117 @@ abstract class tgsfForm extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Sets the processing URL
+	* @param String The url of the form's processor
 	*/
 	public function processor( $url )
 	{
-		$this->_processor = $url;
+		$this->addAttribute( 'action', $url, SINGLE_ATTR_ONLY );
 	}
 	//------------------------------------------------------------------------
-	public function render( $returnOnly = true )
+	/*
+	* Renders a form
+	*@param Bool True = only return html
+	*/
+	public function render()
 	{
-		$atr['method']	= 'POST';
-		$atr['action']	= $this->_processor;
-
-		if ( ! empty( $this->_id ) )
+		if ( $this->_ro_setup === false )
 		{
-			$atr['id']		= $this->_id;
+			$this->_setup();
+			$this->_ro_setup = true;
 		}
 		
-		$curGroup = $this->_fields[0]->group;
+		if ( empty($this->_fields) )
+		{
+			throw new tgsfFormException( 'The form has no fields.' );
+		}
 
-		$out  = $this->_template->formTag( $atr, $this );
-		$out .= $this->_template->beforeFields( $this, $curGroup );
+
+		$curGroup = $this->_fields[0]->group;
+		$container = $this->_template->fieldContainer( $this, $curGroup );
 
 		foreach ( $this->_fields as &$field )
 		{
 			if ( $field->group != $curGroup )
 			{
-				$out .= $this->_template->afterFields( $this );
-				$out .= $this->_template->beforeFields( $this, $field->group );
+				$container = $this->_template->fieldContainer( $this, $field->group );
 			}
-			
 			$curGroup = $field->group;
-			if ( ! is_null( $this->_ds ) )
-			{
-				$field->setValue( $this->_ds );
-			}
+			
 			$field->setError( $this->errors );
-			$out .= $field->render();
-		}
-		$out .= $this->_template->afterFields( $this );
-		$out .= $this->_template->closeForm( $this );
-		$out .= '</form>';
-
-		if ( $returnOnly === false )
-		{
-			echo $out;
+			$field->render( $container );
 		}
 
-		return $out;
+	 	return parent::render();
 	}
-
 	//------------------------------------------------------------------------
-
+	/**
+	* Forces a valid/invalid condition on the form.
+	* @param Bool - Use defines from validate/tgsfValidate.php  FORCE_VALID, FORCE_INVALID
+	*/
+	protected function _forceValid( $value )
+	{
+		$this->_ro_valid = $value;
+	}
+	//------------------------------------------------------------------------
 	public function validate()
 	{
-		if ( is_null( $this->_ds ) )
+		if ( $this->_ro_setup === false )
+		{
+			$this->_setup();
+			$this->_ro_setup = true;
+		}
+		
+		if ( $this->_ro_ds === null )
 		{
 			throw new tgsfFormException( 'The form has no datasource to validate with.' );
 		}
 		
 		$v = $this->_getValidator();
 		$this->_setupValidate( $v );
-		if ( $this->_validator->execute( $this->_ds ) === false )
+
+		if ( $this->_validator->execute( $this->_ro_ds ) === false )
 		{
 			$this->errors = $this->_validator->errors;
 			$this->_ro_valid = false;
 		}
+		
+		$this->validateForm( $this->_ro_ds, $v );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Overwrite this function in extending classes to do a form-level validation
+	*/
+	public function validateForm( &$ds, &$v )
+	{
+		// empty
 	}
 }
-
 //------------------------------------------------------------------------
 // Abstract form template class defines the methods a form template class must implement
 //------------------------------------------------------------------------
-
 abstract class tgsfFormTemplate extends tgsfBase
 {
 	protected $_field;
 	//------------------------------------------------------------------------
 
-	public function hidden( &$field )
+	public function hidden( &$field, &$container )
 	{
 		return html_form_hidden( $field->name, $field->value );
 	}
 	
-	abstract public function formTag( $atr, &$form );
-	abstract public function closeForm( &$form );
-	abstract public function beforeFields(  &$form, $group = '' );
-	abstract public function afterFields( &$form );
-	
-	abstract public function dropdown( &$field );
-	//abstract public function optionList( &$field, $atr );
-	abstract public function file( &$field  );
-	abstract public function text( &$field );
-	abstract public function textArea( &$field );
-	abstract public function radio( &$field );
-	abstract public function checkbox( &$field );
-	abstract public function image( &$field );
-	abstract public function button( &$field );
-	abstract public function submit( &$field );
-	abstract public function reset( &$field );
-	abstract public function password( &$field );
-	abstract public function other( &$field );
+	abstract public function fieldContainer(  &$form, $group = '' );
+
+	abstract public function dropdown(	&$field, &$container );
+	abstract public function file(		&$field, &$container );
+	abstract public function text(		&$field, &$container );
+	abstract public function textArea(	&$field, &$container );
+	abstract public function radio(		&$field, &$container );
+	abstract public function checkbox(	&$field, &$container );
+	abstract public function image(		&$field, &$container );
+	abstract public function button(	&$field, &$container );
+	abstract public function submit(	&$field, &$container );
+	abstract public function reset(		&$field, &$container );
+	abstract public function password(	&$field, &$container );
+	abstract public function other(		&$field, &$container );
 }
