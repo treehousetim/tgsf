@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -18,12 +18,12 @@ css_import(
 		css_path() . 'site.css'
 	), 'core' );
 
-css_import_ie( css_path( '' ) . 'ie.css' );
-
 if ( isset( $extraCss ) && is_array( $extraCss ) )
 {
-	css_import( $importArray, $page );
+	css_import( $extraCss, $page );
 }
+
+css_import_ie( css_path( '' ) . 'ie.css' );
 
 js(
 	array(
@@ -35,7 +35,11 @@ js(
 	), 'core' );
 
 favicon( image( 'favicon.png', 'image/png' ) );
-html_inline_style( $style );
+if ( ! empty( $style ) )
+{
+	html_inline_style( $style );
+}
+
 js_output_url_func();
 do_action( 'html_header' );
 echo '</head>';
