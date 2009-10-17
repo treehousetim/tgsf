@@ -28,6 +28,7 @@ class formTop extends tgsfFormTemplate
 	{
 		$caption = $container->_( 'dt' );
 		$caption->css_class( $field->name . '_caption' );
+		$caption->css_class( $field->type );
 		$caption->addTag( $field->label );
 	}
 	//------------------------------------------------------------------------
@@ -45,6 +46,12 @@ class formTop extends tgsfFormTemplate
 		$dl = $fs->_( 'dl' )->css_class( $cls );
 
 		return $dl;
+	}
+	//------------------------------------------------------------------------
+	public function statictext( &$field, &$container )
+	{
+		$this->_caption( $field, $container );
+		$this->_wrapField( $field, $container );
 	}
 	//------------------------------------------------------------------------
 	public function dropdown( &$field, &$container )
