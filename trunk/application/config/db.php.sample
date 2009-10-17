@@ -6,11 +6,19 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-// this file should be used only if you need per-application database configurations
-// if you don't, please use the $useRootDbConfig variable in the /index.php front controller
-// please see /db_config/db-config.sample.php
-
 // rename this file to db.php and make your necessary changes to it.
 
-dbm()->useSetup( new dbSetup( 'username', 'password', 'example-database' ) );
-dbm()->addSetup( new dbSetup( 'username', 'password', 'database-2' ), 'database2' );
+load_database_libraries();
+
+// example of how to use different databases depending on host
+// if ( current_host() == 'example.com' )
+// {
+// 	dbm()->useSetup( new dbSetup( 'user', 'password', 'database' ) );
+// }
+// else
+// {
+// 	dbm()->useSetup( new dbSetup( 'root', 'password2', 'different-database' ) );
+// }
+
+//dbm()->useSetup( new dbSetup( 'username', 'password', 'example-database' ) );
+//dbm()->addSetup( new dbSetup( 'username', 'password', 'database-2' ), 'database2' );
