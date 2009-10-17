@@ -22,7 +22,7 @@ then we could auto-generate DDL ALTER statements
 //------------------------------------------------------------------------
 class table extends tgsfBase
 {
-	protected $_name			= '';
+	protected $_ro_tableName	= '';
 	protected $_logicalDb	 	= '';
 	protected $_engine			= '';
 
@@ -46,26 +46,22 @@ class table extends tgsfBase
 	*/
 	public function __construct( $name, $which = 'default' )
 	{
-		$this->_name = $name;
+		$this->_ro_tableName = $name;
 		$this->_logicalDb = $which;
-		$this->_ds = new dbDataSource();
 	}
-	
+	//------------------------------------------------------------------------
 	/**
 	* Used for getting field values
 	*/
 	public function __get( $name )
 	{
-		$retVal = null;
-		
-		if ( isset( $this->_fieldValues[$name] ) )
+		if ( array_key_exists( $name, $this->_fieldValues ) )
 		{
-			$retVal = $this->_fieldValues[$name];
+			return $this->_fieldValues[$name];
 		}
-		
-		return $retVal;
+
+		return parent::__get( $name );
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Used for setting field values
@@ -74,7 +70,6 @@ class table extends tgsfBase
 	{
 		$this->_fieldValues[$name] = $val;
 	}
-
 	//------------------------------------------------------------------------
 	/**
 	* Adds a field object to the list of primary key fields
@@ -88,7 +83,6 @@ class table extends tgsfBase
 			$field->primaryKey = true;
 		}
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Adds a simple index to this table
@@ -97,12 +91,11 @@ class table extends tgsfBase
 	*/
 	function &idx( $field, $width = null )
 	{
-		$idx = new dbIndex( $this->_name, $field );
+		$idx = new dbIndex( $this->_ro_tableName, $field );
 		$this->_idxDefs[] =& $idx;
 		
 		return $idx;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Adds an index object to the table
@@ -112,7 +105,6 @@ class table extends tgsfBase
 	{
 		$this->_idxDefs[] = &$idx;
 	}
-
 	//------------------------------------------------------------------------
 	/**
 	* Adds a foreign key object to the list of foreign key fields
@@ -125,12 +117,11 @@ class table extends tgsfBase
 	{
 		if( is_null( $relName ) )
 		{
-			$relName = $this->_name . '_' . $localField . '_fk';
+			$relName = $this->_ro_tableName . '_' . $localField . '_fk';
 		}	
 
-		$this->_foreignKey[] = new foreignKey( $this->_name, $localField, $foreignTable, $foreignField, $relName );
+		$this->_foreignKey[] = new foreignKey( $this->_ro_tableName, $localField, $foreignTable, $foreignField, $relName );
 	}
-
 	//------------------------------------------------------------------------
 	/**
 	* Adds a new field to this table
@@ -176,23 +167,21 @@ class table extends tgsfBase
 
 		return $field;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Creates an auto inc field using the table name_id as the field name.
 	*/
 	function autoInc()
 	{
-		$this->field( $this->_name . '_id', 'BIGINT', FIELD_NO_SIZE, FIELD_NOT_NULL, FIELD_AUTO_INC, FIELD_UNSIGNED );
+		$this->field( $this->_ro_tableName . '_id', 'BIGINT', FIELD_NO_SIZE, FIELD_NOT_NULL, FIELD_AUTO_INC, FIELD_UNSIGNED );
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Generates the DDL for the entire table - create table, alter table add foreign key, and create index
 	*/
 	function generateDDL()
 	{
-		$out[] = 'CREATE TABLE ' . $this->_name;
+		$out[] = 'CREATE TABLE ' . $this->_ro_tableName;
 		$out[] = '(';
 		foreach ( $this->_fields as &$field )
 		{
@@ -239,13 +228,12 @@ class table extends tgsfBase
 		
 		return $tableDDL;
 	}
-
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
 	function insert()
 	{
-		$query = new query();
+		throw new tgsfDbException( 'Not Implemented' );
 	}
 }

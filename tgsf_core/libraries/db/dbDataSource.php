@@ -8,10 +8,6 @@ for complete licensing information.
 //------------------------------------------------------------------------
 class dbDataSource extends tgsfDataSource
 {
-	protected $_rows	= false;
-	//------------------------------------------------------------------------
-	public $isMulti		= false;
-	
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -19,34 +15,5 @@ class dbDataSource extends tgsfDataSource
 	public function __construct()
 	{
 		parent::__construct( dsTypeDB );
-	}
-	
-	//------------------------------------------------------------------------
-	/**
-	*
-	*/
-	public function setRows( $rows )
-	{
-		$this->isMulti	= true;
-		$this->_rows	= $rows;
-	}
-	
-	//------------------------------------------------------------------------
-	public function each()
-	{
-		list( $key, $item ) = each( $this->_rows );
-		
-		if ( $item === false )
-		{
-			return false;
-		}
-		
-		$this->set( $item );
-		return true;
-	}
-	//------------------------------------------------------------------------
-	public function reset()
-	{
-		reset( $this->_rows );
 	}
 }

@@ -8,15 +8,17 @@ for complete licensing information.
 //------------------------------------------------------------------------
 class dbSetup extends tgsfBase
 {
-	private $_user;
-	private $_password;
-	private $_host;
-	private $_port;
-	private $_database;
-	private $_type;
-	private $_ro_handle = false;
+	private		$_user;
+	private		$_password;
+	private		$_host;
+	private		$_port;
+	private		$_database;
+	private		$_type;
+	private		$_ro_handle = false;
+	protected	$_transactionLevel = 0;
 	//------------------------------------------------------------------------
-	public $connected = false;
+	public		$connected = false;
+	public		$allowNestedTransactions = false;
 	//------------------------------------------------------------------------
 	/**
 	* Creates a new dbSetup object
@@ -174,11 +176,30 @@ class dbSetup extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* returns the string with the savepoint
+	*/
+	protected function _savepoint()
+	{
+		return 'SAVEPOINT tgsfTL' . $this->_transactionLevel;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Starts a transaction
 	*/
 	public function beginTransaction()
 	{
-		$this->handle()->beginTransaction();
+		if ( $this->allowNestedTransactions === false )
+		{
+			if ( $this->_transactionLevel == 0 )
+			{
+				$this->handle()->beginTransaction();
+			}
+		}
+		else
+		{
+			$this->handle()->exec( $this->_savepoint() );
+		}
+		$this->_transactionLevel++;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -186,15 +207,54 @@ class dbSetup extends tgsfBase
 	*/
 	public function commit()
 	{
-		$this->handle()->commit();
+		if ( $this->_transactionLevel < 1 )
+		{
+			throw new tgsfDbException( 'Unable to commit - no active transaction' );
+		}
+
+		$this->_transactionLevel--;
+
+		if ( $this->allowNestedTransactions === false )
+		{
+			if ( $this->_transactionLevel == 0 )
+			{
+				$this->handle()->commit();
+			}
+		}
+		else
+		{
+			$this->handle()->exec( 'RELEASE ' . $this->_savepoint() );
+		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	* rolls back a transaction
+	* @param Object::exception The exception that caused the rollback.
 	*/
-	public function rollBack()
+	public function rollBack( $exception = null )
 	{
-		$this->handle()->rollBack();
+		if ( $this->_transactionLevel < 1 )
+		{
+			throw new tgsfDbException( 'Unable to rollback - no active transaction' );
+		}
+		
+		$this->_transactionLevel--;
+
+		if ( $this->allowNestedTransactions === false )
+		{
+			if ( $this->_transactionLevel == 0 )
+			{
+				$this->handle()->rollBack();
+			}
+			else
+			{
+				throw $exception === null ? new tgsfDbException( 'Unable to rollback nested transactions.' ) : $exception;
+			}
+		}
+		else
+		{
+			$this->handle()->exec( 'ROLLBACK TO ' . $this->_savepoint() );
+		}
 	}
 	//------------------------------------------------------------------------
 	public function lastInsertId()

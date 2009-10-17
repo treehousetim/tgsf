@@ -33,6 +33,7 @@ class query extends tgsfBase
 	protected $_updateTable			= '';
 	protected $_whereList			= array( "1=1" );
 	protected $_type				= qtNONE;
+	protected $_limit				= '';
 
 	protected $_selectList			= array();
 	protected $_orderByList			= array();
@@ -88,7 +89,7 @@ class query extends tgsfBase
 		{
 			$out[] = $join->generate();
 		}
-		return ' ' . implode( ',', $out ) . ' ';
+		return ' ' . implode( ' ', $out ) . ' ';
 	}
 	
 	//------------------------------------------------------------------------
@@ -108,6 +109,19 @@ class query extends tgsfBase
 		if ( count( $this->_orderByList ) )
 		{
 			return 'ORDER BY ' . implode( ',', $this->_orderByList ) . ' ';
+		}
+		
+		return '';
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Generates the limit option for select, update, and delete queries
+	*/
+	public function _limit()
+	{
+		if ( $this->_limit )
+		{
+			return "LIMIT {$this->_limit} ";
 		}
 		
 		return '';
@@ -204,6 +218,7 @@ class query extends tgsfBase
 		$this->_updateTable			= '';
 		$this->_whereList			= array( "1=1" );
 		$this->_type				= qtNONE;
+		$this->_limit				= '';
 
 		$this->_selectList			= array();
 		$this->_orderByList			= array();
@@ -343,12 +358,11 @@ class query extends tgsfBase
 	*/
 	public function &insert_fields( $fields, $dupCheck = false )
 	{
-		$loopFields = array();
-		arrayify( $fields, $loopFields );
-		
+		$fields = (array)$fields;
+
 		if ( $dupCheck === false )
 		{
-			foreach ( $loopFields as $field )
+			foreach ( $fields as $field )
 			{
 				$fieldName = (string)$field;
 				$this->_insertList[] = $fieldName;
@@ -357,7 +371,7 @@ class query extends tgsfBase
 		}
 		else
 		{
-			foreach( $loopFields as $field )
+			foreach( $fields as $field )
 			{
 				$field = (string)$field;
 				if ( ! in_array( $field, $this->_insertList ) )
@@ -427,9 +441,19 @@ class query extends tgsfBase
 	/**
 	*
 	*/
-	public function order_by( $clause )
+	public function &order_by( $clause )
 	{
 		$this->_orderByList[] = $clause;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets a limit on a query - mysql specific
+	*/
+	public function &limit( $limit )
+	{
+		$this->_limit = (string)$limit;
+		return $this;
 	}
 	// end of public select methods
 	//------------------------------------------------------------------------
@@ -461,8 +485,7 @@ class query extends tgsfBase
 	*/
 	public function &set( $fields, $dupCheck = false )
 	{
-		$loopFields = array();
-		arrayify( $fields, $loopFields );
+		$loopFields = (array)$fields;
 		
 		if ( $dupCheck === false )
 		{
@@ -528,7 +551,7 @@ class query extends tgsfBase
 		switch ( $this->_type )
 		{
 		case qtSELECT:
-			$out = $this->_select() . $this->_from() . $this->_join() . $this->_where() . $this->_orderBy();
+			$out = $this->_select() . $this->_from() . $this->_join() . $this->_where() . $this->_orderBy() . $this->_limit();
 			break;
 
 		case qtUPDATE:
@@ -537,7 +560,7 @@ class query extends tgsfBase
 				throw new tgsfDbException( "Can't Update when no field values have been set." );
 			}
 
-			$out = $this->_update() . $this->_set() . $this->_where();
+			$out = $this->_update() . $this->_set() . $this->_where() . $this->_limit();
 			break;
 			
 		case qtINSERT:
@@ -550,7 +573,7 @@ class query extends tgsfBase
 			break;
 			
 		case qtDELETE:
-			$out = 'DELETE ' . $this->_from() . $this->_where();
+			$out = 'DELETE ' . $this->_from() . $this->_where() . $this->_limit();
 			break;
 		
 		default:
@@ -585,7 +608,7 @@ class query extends tgsfBase
 
 		if ( $success === false )
 		{
-			log_query_error( $this->generate() );
+			log_query_error( $this->_stmHandle->errorInfo() . PHP_EOL . $this->generate() );
 			throw new tgsfDbException( 'Error executing query - error is: ' . implode( "\n", $this->_stmHandle->errorInfo() ) );
 		}
 		$this->_executed = true;
@@ -625,7 +648,12 @@ class query extends tgsfBase
 	public function &fetch_ds( $cursor_orientation = PDO::FETCH_ORI_NEXT, $offset = 0 )
 	{
 		$ds = new dbDataSource();
-		$ds->set( $this->fetch( PDO::FETCH_ASSOC, $cursor_orientation, $offset ) );
+		$result = $this->fetch( PDO::FETCH_ASSOC, $cursor_orientation, $offset );
+		if ( $result === false )
+		{
+			return $result;
+		}
+		$ds->set( $result );
 		return $ds;
 	}
 	
