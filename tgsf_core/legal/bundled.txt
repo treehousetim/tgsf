@@ -25,3 +25,17 @@ tgsf also bundles some public domain javascript utility functions and jQuery plu
 the tgsf project has bundled these code snippets in good faith that they truly reside in the public domain.
 
 Any requests to remove them from this distribution will be taken seriously and will be reviewed and researched completely.
+
+//------------------------------------------------------------------------
+
+Security questions bundled with tgsf are from
+http://www.goodsecurityquestions.com/
+They are included here based on the license given on this page:
+http://www.goodsecurityquestions.com/dislaimer.htm
+
+Copied here for reference
+"This website and content within is licensed under a Creative Commons Attribution 3.0 United States License. The following conditions apply:
+
+   1. Security Questions and User Instructions: You may freely use, modify, and distribute the security questions and the user instructions without giving credit to this website.
+   2. Website Content: the website content may be copied and distributed if the website URL is included.
+   3. Website: the website in entirety, may not be copied or reproduced in any form."
