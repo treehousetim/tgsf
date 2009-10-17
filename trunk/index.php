@@ -1,8 +1,7 @@
 <?php
-
-if ( file_exists( 'sync-core.php' ) )
+if ( get_magic_quotes_gpc() == 1 )
 {
-	include( 'sync-core.php' );
+	die( 'You must turn magic quotes off.<br>http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc' );
 }
 
 /*
@@ -19,93 +18,41 @@ define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 // zend framework support
 ini_set('include_path', ini_get( 'include_path' ) . PATH_SEPARATOR . CORE_PATH . '3rd_party' );
 
-// the functions comprising the core of the framework
-// no initializing code is found in this file
-// no additional libraries are loaded in this file.
-include CORE_PATH . 'tgSimpleFramework.php';
+//------------------------------------------------------------------------
+// a base class that is used in all core classes
+include  CORE_PATH . 'libraries/tgsfBase.php';
 
-// contains some important functions that are used in core-loader.php
-include CORE_PATH . 'tgUtilityFunctions.php';
-
-// this variable controls whether or not we load a database config file in /db_config
-// this is useful for getting the database connected as early as possible and
-// is the recommended way of configuring a database.
-// true = load /db_config/db-config.php
-// false = do nothing
-$useRootDbConfig = true;
-
-// this variable controls whether or not we load the database config file
-// that is located in the applications /config folder - typically just /application/config/db.php
-// true = load application/config/db.php
-// false = do nothing
-$useAppDbConfig = false;
-
-// if both root and app db config variables are set to false, database functionality is disabled entirely
-// and will make it so that the database libraries aren't loaded at all (saving load time)
-
-// useForms will load the form library if it's set to true
-$useForms = true;
-
-// you should copy the template libraries from
-// tgsf_core/libraries/templates/form/ to your application/libraries/templates/form folder
-// and then set this variable to true.  This way, future core updates won't change the design
-// of your forms.
-$useAppFormTemplates = false;
-
-// load the core libraries and whatnot
-include CORE_PATH . 'core-loader.php';
-
-// if you want to support multiple apps, use the following include file so as to not have this
-// front controller overwritten during upgrades
-//include BASE_PATH . 'multi-app.php';
-
-// application detection goes here
-// which means that the app folder can be set using
-// any means you need - i.e. url inspection, etc.
-define( 'APP_FOLDER', 'application/' );
-
-// this loads app configurations and
-// loads app plugins and libraries
-// and core libraries too
-include( CORE_PATH . 'app-loader.php' );
-
-// try was moved earlier in the bootstrapping process to catch exceptions in the core loading.
 try
 {
+	// the functions comprising the core of the framework
+	// no initializing code is found in this file
+	// no additional libraries are loaded in this file.
+	include CORE_PATH . 'tgSimpleFramework.php';
+
+	// load the url detection library so we can detect app before loading core.
+	load_library( 'tgsfUrlDetection',	IS_CORE_LIB );
+
+	// the file that determines which application we're loading - not modified for updates.
+	require BASEPATH . 'app_detector.php';
+
+	// load the core libraries and whatnot
+	include CORE_PATH . 'core-loader.php';
+
 	content_buffer();
 
-	// vars is passed back through a callback from the tg_parse_url function
-	// we capture this in order to make it available to the controller that is included below
-	$vars = array();
-	$page = tg_parse_url( $vars );
+	// page is a global variable that is used in other places.
+	$page = tgsf_parse_url();
 	
 	require resolve_controller( $page );
+
+	if ( config( 'debug_mode' ) )
+	{
+		memory_stats();
+	}
 
 	end_buffer();
 }
 catch ( Exception $e )
 {
-	log_exception( $e );
-	show_error( $e->getMessage() . "<br>\n" . nl2br( $e->getTraceAsString() ) );
+	show_error( 'An error occurred when trying to view the page.  A site administrator has been notified of the problem.', $e );
 }
-/*
-
-catch ( tgsfException $e )
-{
-	show_error( (string)$e );
-}
-catch( ErrorException $e )
-{
-	show_error( $e->getMessage() . "<br>\n" . nl2br( $e->getTraceAsString() ) );
-}
-
-
-catch( tgsfErrorException $e )
-{
-	show_error( $e->getMessage() . "<br>\n" . nl2br( $e->getTraceAsString() ) );
-}
-catch( ErrorException $e )
-{
-	show_error( $e->getMessage() . "<br>\n" . nl2br( $e->getTraceAsString() ) );
-}
-*/
