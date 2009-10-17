@@ -1,0 +1,35 @@
+# This is a good thing to have but it is entirely optional.
+# Feel Free to delete it.
+FileETag MTime Size
+
+php_flag magic_quotes_gpc off
+php_flag display_errors on
+
+Options -Indexes
+RewriteEngine on
+
+<IfModule mod_rewrite.c>
+	# RewriteRule ^tgsf_core/ /mm/404 [L]
+	RewriteRule ^application/config/		- [F]
+	RewriteRule ^application/controllers/	- [F]
+	RewriteRule ^application/forms/			- [F]
+	RewriteRule ^application/grids/			- [F]
+	RewriteRule ^application/libraries/		- [F]
+	RewriteRule ^application/models/		- [F]
+	RewriteRule ^application/plugins/		- [F]
+	RewriteRule ^application/views/			- [F]
+	
+	RewriteRule ^tgsf_core/config/			- [F]
+	RewriteRule ^tgsf_core/libraries/		- [F]
+	RewriteRule ^tgsf_core/logs/			- [F]
+	RewriteRule ^tgsf_core/plugins/			- [F]
+	
+	RewriteRule ^tgsf_core/tgSimpleFramework.php	- [F]
+	RewriteRule ^tgsf_core_assets/minify_groups/	- [F]
+	RewriteRule ^tgsf_core_assets/minify_groups/	- [F]
+	
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+
+	RewriteRule . index.php [L]
+</IfModule>
