@@ -5,10 +5,13 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
+
 // enum for sort type
+// stSTR, strDATE, strMONEY
 enum ( 'st', array( 'STR', 'DATE', 'MONEY' ) );
-define( 'HEADER_ROW', true );
-define( 'NON_HEADER_ROW', false );
+
+// ROW_HEADER, ROW_NORMAL, ROW_FOOTER
+enum ( 'ROW_', array( 'ALL', 'HEADER', 'NORMAL', 'FOOTER' ) );
 
 load_library( 'html/tgsfHtmlTag', IS_CORE_LIB );
 
@@ -19,8 +22,10 @@ class tgsfGridCol extends tgsfHtmlTag
 	protected $_ro_caption		= '';
 	protected $_ro_fieldName	= '';
 	protected $_ro_headerCell	= null;
+	protected $_ro_footerCell	= null;
 	
 	protected $_renderFunc		= null;
+
 	//------------------------------------------------------------------------
 	public function __construct( $name )
 	{
@@ -51,21 +56,44 @@ class tgsfGridCol extends tgsfHtmlTag
 	/**
 	*
 	*/
-	public function &renderFunc( $callBack )
+	public function &renderFunc( $callBack, $cellType = ROW_ALL )
 	{
-		$this->_renderFunc = $callBack;
+		if ( !is_array($callBack) )
+		{
+			throw new tgsfGridException( 'Callback must be an array.' );
+		}
+
+		$this->_renderFunc[$cellType] = $callBack;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Assign a callback to a column
+	* @param String The name of the callback method
+	* @param Object The object to call the method on
+	* @param String [ROW_NORMAL] The cell type to execute the callback on (null, ROW_HEADER, ROW_NORMAL, ROW_FOOTER)
+	* @return Object $this
+	*/
+	public function &onRender( $callBack, &$obj, $cellType = ROW_NORMAL )
+	{
+		$this->_renderFunc[$cellType] = array( $obj, $callBack );
 		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
-	public function renderCell( &$row, $tr, $header = false )
+	public function renderCell( &$row, $tr, $cellType = ROW_NORMAL )
 	{
-		if ( $header === true )
+		if ( $cellType == ROW_HEADER )
 		{
 			$cell = $tr->_( 'th' );
 			$this->_ro_headerCell =& $cell;
+		}
+		elseif ( $cellType == ROW_FOOTER )
+		{
+			$cell = $tr->_( 'td' );
+			$this->_ro_footerCell =& $cell;
 		}
 		else
 		{
@@ -73,31 +101,45 @@ class tgsfGridCol extends tgsfHtmlTag
 		}
 		
 		$cell->setAttributes( $this->attributes );
-
-		if ( $this->_renderFunc !== null )
+		
+		if ( $cellType == ROW_HEADER )
 		{
-			call_user_func( $this->_renderFunc, $this, $cell, $row );
+		    $cell->content( $this->_ro_caption );
 		}
 		else
 		{
-			if ( $header === true )
+		    if ( $row === null )
+		    {
+		    	throw new tgsfGridException( 'Grid Row may not be null for non-header rows.' );
+		    }
+		    
+		    $fields = (array)$row;
+			
+			if ( isset($fields[$this->_ro_fieldName]) )		    
 			{
-				$cell->content( $this->_ro_caption );
+		    	$cell->content( $row->{$this->_ro_fieldName} );
+		    }
+		}
+
+		if ( $this->_renderFunc !== null )
+		{
+			if ( isset($this->_renderFunc[ROW_ALL]) )
+			{
+				call_user_func( $this->_renderFunc[ROW_ALL], $this, $cell, $row, $cellType );
 			}
-			else
+		
+			if ( isset($this->_renderFunc[$cellType]) )
 			{
-				if ( $row === null )
-				{
-					throw new tgsfGridException( 'Grid Row may not be null for non-header rows.' );
-				}
-				$cell->content( $row->{$this->_ro_fieldName} );
+				call_user_func( $this->_renderFunc[$cellType], $this, $cell, $row, $cellType );
 			}
 		}
 		
-		if ( ! $cell->content && !empty($this->empty_message) )
+		if ( ! $cell->content && !empty($this->empty_message) && $cellType == ROW_NORMAL )
 		{
-			$cell->content( $this->empty_message );
+			$cell->content( $this->empty_message, false );
 		}
+		
+		return $cell;
 	}
 }
 //------------------------------------------------------------------------
@@ -146,6 +188,26 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	public function cellType( &$cell )
+	{
+		foreach( $this->_cols as $col )
+		{
+			if ( $cell == $col->headerCell ) return ROW_HEADER;
+			if ( $cell == $col->footerCell ) return ROW_FOOTER;
+		}
+		
+		return ROW_NORMAL;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* sets the rows to use when rendering.
+	*/
+	public function &setFooter( $data )
+	{
+		$this->_footer = (object)$data;
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	/**
 	*
 	*/
@@ -156,7 +218,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 
 		foreach( $this->_cols as $col )
 		{
-			$col->renderCell( $row, $tr, HEADER_ROW );
+			$col->renderCell( $row, $tr, ROW_HEADER );
 		}
 		
 		$this->_onRow( $tr, $row );
@@ -167,7 +229,18 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	*/
 	public function renderFooter()
 	{
-		//$table->
+		if ( !is_null($this->_footer) || !empty($this->_footer) )
+		{	
+			$tr = $this->_( 'tfoot' )->_( 'tr' );
+			$row = (object)$this->_footer;
+			
+			foreach( $this->_cols as $col )
+			{
+				$col->renderCell( $row, $tr, ROW_FOOTER );
+			}
+			
+			$this->_onRow( $tr, $row );
+		}
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -187,8 +260,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		else
 		{
 			$tr = $this->_( 'tr' );
-			$tr->_( 'td' )->content( $this->emptyMessage )->addAttribute( 'colspan', count( $this->_cols ) )->css_class( 'empty' );
-			
+			$tr->_( 'td' )->content( $this->emptyMessage, false )->addAttribute( 'colspan', count( $this->_cols ) )->css_class( 'empty' );
 		}
 	}
 	//------------------------------------------------------------------------
@@ -198,7 +270,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 
 		foreach( $this->_cols as $col )
 		{
-			$col->renderCell( $row, $tr, NON_HEADER_ROW );
+			$col->renderCell( $row, $tr, ROW_NORMAL );
 		}
 		
 		if ( count( $this->altRowClasses ) > 0 )
@@ -217,8 +289,8 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		}
 
 		$this->renderHeader();
-		$this->renderFooter();
 		$this->renderRows();
+		$this->renderFooter();
 		alternate(); // reset for next grid
 
 		return parent::render();
@@ -230,59 +302,43 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	/**
 	* Just a wrapper for ucwords()
 	*/
-	public function ucwords( $col, $cell, $row )
+	public function ucwords( $col, $cell, $row, $cellType )
 	{
-		if ( $row == null )
-		{
-			$cell->content( $col->caption );
-		}
-		else
+		if ( $cellType == ROW_NORMAL )
 		{
 
-			$cell->content( ucwords($row->{$col->fieldName}) );
+			$cell->content( ucwords($cell->content) );
 		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Mask data such as account numbers, etc
 	*/
-	public function usa_phone( $col, $cell, $row )
+	public function usa_phone( $col, $cell, $row, $cellType )
 	{
-		if ( $row === null )
+		if ( $cellType == ROW_NORMAL )
 		{
-			$cell->content( $col->caption );
-		}
-		else
-		{
-			$cell->content( FORMAT()->usa_phone( $row->{$col->fieldName} ) );
+			$cell->content( FORMAT()->usa_phone( $cell->content ) );
 		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Mask data such as account numbers, etc
 	*/
-	public function obfuscate( $col, $cell, $row )
+	public function obfuscate( $col, $cell, $row, $cellType )
 	{
-		if ( $row === null )
+		if ( $cellType == ROW_NORMAL )
 		{
-			$cell->content( $col->caption );
-		}
-		else
-		{
-			$cell->content( FORMAT()->obfuscate( $row->{$col->fieldName} ) );
+			$cell->content( FORMAT()->obfuscate( $cell->content ) );
 		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Formats a date
 	*/
-	public function date( $col, $cell, $row )
+	public function date( $col, $cell, $row, $cellType )
 	{
-		if ( $row === null )
-		{
-			$cell->content( $col->caption );
-		}
-		else
+		if ( $cellType == ROW_NORMAL )
 		{
 			$cell->content( FORMAT()->date( $row->{$col->fieldName} ) );
 		}
@@ -291,30 +347,22 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	/**
 	* Formats a currency amount
 	*/
-	public function currency( $col, $cell, $row )
+	public function currency( $col, $cell, $row, $cellType )
 	{
-		if ( $row === null )
+		if ( $cellType == ROW_NORMAL )
 		{
-			$cell->content( $col->caption );
-		}
-		else
-		{
-			$cell->content( FORMAT()->currency( $row->{$col->fieldName} ) );
+			$cell->content( FORMAT()->currency( $cell->content ) );
 		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Formats a float amount with 2 decimal points
 	*/
-	public function float( $col, $cell, $row )
+	public function float( $col, $cell, $row, $cellType )
 	{
-		if ( $row === null )
+		if ( $cellType == ROW_NORMAL )
 		{
-			$cell->content( $col->caption );
-		}
-		else
-		{
-			$cell->content( number_format( (float)$row->{$col->fieldName}, 2 ) );
+			$cell->content( number_format( (float)$cell->content, 2 ) );
 		}
 	}
 	//------------------------------------------------------------------------
