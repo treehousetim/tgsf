@@ -38,7 +38,9 @@ $fpt = array(
 	'DECIMAL'	=> PDO::PARAM_STR,
 	'FLOAT'		=> PDO::PARAM_STR,
 	'DEC'		=> PDO::PARAM_STR,
-	'FLT'		=> PDO::PARAM_STR
+	'FLT'		=> PDO::PARAM_STR,
+	'DATE'		=> PDO::PARAM_STR,
+	'DATETIME'	=> PDO::PARAM_STR
 	);
 	
 // param type

@@ -19,7 +19,6 @@ class dbManager extends tgsfBase
 {
 	private $_setup = array();
 	private static $instance = null; // the singleton instance.
-	
 	//------------------------------------------------------------------------
 	/**
 	* The constructor - private to prevent direct instantiation.
@@ -166,6 +165,20 @@ class dbManager extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Returns the logical database connection object
+	* @param String The logical name of the database server connection object
+	*/
+	public function getLogicalDb( $which = 'default' )
+	{
+		if ( $this->setupExists( $which ) === false )
+		{
+			throw new tgsfDbException( 'The logical database Connection named "' . $which . '" has not been defined.' );
+		}
+		
+		return $this->_setup[$which];
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Alias of connect
 	* @see connect()
 	* @param String The logical name of the database server to connect to
@@ -177,7 +190,26 @@ class dbManager extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Turns nested transactions on
+	* @param String The logical name of the database server connection object
+	*/
+	public function nestedTransactionsOn( $which = 'default' )
+	{
+		dbm()->getLogicalDb( $which )->allowNestedTransactions = true;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Turns nested transactions off
+	* @param String The logical name of the database server connection object
+	*/
+	public function nestedTransactionsOff( $which = 'default' )
+	{
+		dbm()->getLogicalDb( $which )->allowNestedTransactions = false;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Begins a transaction on the given named logical database connection
+	* @param String The logical name of the database server to connect to
 	*/
 	public function beginTransaction( $which = 'default' )
 	{
@@ -186,6 +218,7 @@ class dbManager extends tgsfBase
 	//------------------------------------------------------------------------
 	/**
 	* Commits a transaction on the given named logical database connection
+	* @param String The logical name of the database server to connect to
 	*/
 	public function commit( $which = 'default' )
 	{
@@ -194,6 +227,7 @@ class dbManager extends tgsfBase
 	//------------------------------------------------------------------------
 	/**
 	* Rolls back a transaction on the given named logical database connection
+	* @param String The logical name of the database server to connect to
 	*/
 	public function rollBack( $which = 'default' )
 	{

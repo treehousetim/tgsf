@@ -24,7 +24,7 @@ class model extends table
 	function pkGet()
 	{
 		$q = new query();
-		$q->select( '*' )->from( $this->_name );
+		$q->select( '*' )->from( $this->_ro_name );
 		$this->wherePK( $q );
 		echo $q->generate();
 	}
@@ -45,19 +45,37 @@ class model extends table
 			$query->and_where( $field->getWhereParamString() );
 		}
 	}
+	
+	//------------------------------------------------------------------------
+	/**
+	* returns a datasource containing the record fetched by the given id, using {table}_id as the field
+	* @param Int The ID of the record
+	*/
+	public function getById( $id, $selectList = '*' )
+	{
+		$_field = $this->_ro_tableName . '_id';
+	
+		$q = new query();
+		
+		return $q->select( $selectList )
+		         ->from( $this->_ro_tableName )
+		         ->where( $_field . '=:' . $_field )
+		         ->bindValue( $_field, $id, ptINT )
+		         ->exec()
+		         ->fetch_ds();
+	}
+	
+	//------------------------------------------------------------------------
+
+	public function deleteById( $id, $selectList = '*' )
+	{
+		$_field = $this->_ro_tableName . '_id';
+
+		$q = new query();
+		
+		return $q->delete_from( $this->_ro_tableName )
+		         ->where( $_field . '=:' . $_field )
+		         ->bindValue( $_field, $id, ptINT )
+		         ->exec();
+	}
 }
-
-
-/*
-load_model( 'login' );
-//load_form( 'profileForm' );
-$login->login_id = 123;
-
-$login->get( array( 'login_id' => 123 ) );
-$login->SetFromModel( $profileForm );
-$errors = array();
-$login->validate( $errors ); // last ditch effort to catch errors - the formModel should do its own validation
-$login->insert();
-$id = $login->lastInsertId();
-$login->update();
-*/
