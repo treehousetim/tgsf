@@ -42,12 +42,13 @@ class tgsfHtmlTag extends tgsfBase
 		}
 		catch( Exception $e )
 		{
-			if ( ! empty( $this->_ro_attributes[$name] ) )
+			if ( array_key_exists( $name, $this->_ro_attributes ) )
 			{
 				return $this->_ro_attributes[$name];
 			}
-			throw new tgsfException( 'No attribute by that name has been set.' );
 		}
+
+		throw new tgsfException( 'No attribute by that name has been set.' );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -56,6 +57,11 @@ class tgsfHtmlTag extends tgsfBase
 	public function __set( $name, $value )
 	{
 		$this->setAttribute( $name, $value );
+	}
+	//------------------------------------------------------------------------
+	public function __toString()
+	{
+		return $this->render();
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -131,7 +137,7 @@ class tgsfHtmlTag extends tgsfBase
 	*/
 	public function &id( $id )
 	{
-		return $this->addAttribute( 'id', $id, SINGLE_ATTR_ONLY );
+		return $this->setAttribute( 'id', $id );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -164,7 +170,7 @@ class tgsfHtmlTag extends tgsfBase
 		// it's up to somewhere else to implode or otherwise handle these arrays
 		( ! empty( $this->_ro_attributes[$name] ) )
 		{
-			if ( in_array( $value, $this->_ro_attributes[$name] ) )
+			if ( !in_array( $value, $this->_ro_attributes[$name] ) )
 			{
 				$this->_ro_attributes[$name][] = $value;
 			}
@@ -173,6 +179,7 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			$this->_ro_attributes[$name][] = $value;
 		}
+
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -210,9 +217,16 @@ class tgsfHtmlTag extends tgsfBase
 	* Adds to the content of the tag.  Tag content always comes above child items that are added to the tag
 	* @param String The content to add to the tag.
 	*/
-	public function &content( $content )
+	public function &content( $content, $append = false )
 	{
-		$this->_ro_content .= $content;
+		if ( $append === true )
+		{
+			$this->_ro_content .= $content;
+		}
+		else
+		{
+			$this->_ro_content = $content;
+		}
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -222,10 +236,17 @@ class tgsfHtmlTag extends tgsfBase
 	*/
 	protected function _renderItem( &$htmlTag )
 	{
+		$content = $htmlTag->content;
+
+		if ( empty( $content ) )
+		{
+			$content = $this->empty_message;
+		}
+	
 		// if an item is only content then we simply return the content.
 		if ( $htmlTag->contentOnly === true )
 		{
-			return $htmlTag->content;
+			return $content;
 		}
 		
 		$atrString = '';
@@ -236,13 +257,6 @@ class tgsfHtmlTag extends tgsfBase
 				$val = implode( ' ', $val );
 			}
 			$atrString .= " $key=\"$val\"";
-		}
-
-		$content = $htmlTag->content;
-
-		if ( empty( $content ) )
-		{
-			$content = $this->empty_message;
 		}
 		
 		$out = "<{$htmlTag->tag}{$atrString}";
@@ -255,6 +269,7 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			$out .= '>';
 		}
+		
 		return $out;
 	}
 
@@ -262,13 +277,13 @@ class tgsfHtmlTag extends tgsfBase
 	/**
 	* Generates and returns the HTML for the tags
 	*/
-	function render( $root = true )
+	function render()
 	{
 		foreach ( $this->_children as &$item )
 		{
 			if ( $item->hasChildren() )
 			{
-				$item->render( false );
+				$item->render();
 			}
 
 			$this->_ro_content .= $this->_renderItem( $item );

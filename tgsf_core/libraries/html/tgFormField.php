@@ -172,6 +172,7 @@ class tgsfFormField extends tgsfBase
 		if ( $this->_ro_label === null )
 		{
 			$label = new tgsfHtmlTag( 'label' );
+			$label->css_class( $this->_type );
 			$this->_ro_label =& $label;
 			
 			$label->_('')->content( $this->caption );
@@ -202,6 +203,7 @@ class tgsfFormField extends tgsfBase
 			$tag->addAttribute( 'name', $this->_name, SINGLE_ATTR_ONLY );
 			$tag->id( $this->_name );
 			$tag->value( $this->value );
+			$tag->css_class( $this->_type );
 		
 			switch ( $this->_type )
 			{
@@ -274,6 +276,12 @@ class tgsfFormField extends tgsfBase
 			case fftButton:
 				$tag->changeTag( 'button' );
 				$tag->content( $this->_caption );
+				break;
+				
+			case fftStatic:
+				$tag->changeTag( 'p' );
+				$tag->content( $this->_value );
+				break;
 			}
 			$this->form->onField( $this->_ro_tag );
 		}

@@ -26,6 +26,7 @@ enum( 'fft',
 		'Reset'		=> 'reset',
 		'Password'	=> 'password',
 		'OtherTag'	=> 'other',
+		'Static'	=> 'statictext'
 		)
 	);
 load_library( 'html/tgsfHtmlTag', IS_CORE_LIB );
@@ -205,7 +206,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 	* Forces a valid/invalid condition on the form.
 	* @param Bool - Use defines from validate/tgsfValidate.php  FORCE_VALID, FORCE_INVALID
 	*/
-	protected function _forceValid( $value )
+	protected function forceValid( $value )
 	{
 		$this->_ro_valid = $value;
 	}
@@ -253,7 +254,7 @@ abstract class tgsfFormTemplate extends tgsfBase
 
 	public function hidden( &$field, &$container )
 	{
-		return html_form_hidden( $field->name, $field->value );
+		$container->addTag( $field->tag );
 	}
 	
 	abstract public function fieldContainer(  &$form, $group = '' );
