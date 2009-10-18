@@ -26,15 +26,20 @@ enum( 'vt_',
 		'neq',
 		'date',
 		'match_field',
+		'not_match_field',
 		'match_value',
 		'db_unique',
 		'db_exists',
 		'usa_phone',
 		'usa_state',
 		'usa_zipcode',
+		'bank_routing',
+		'credit_card',
 		'custom'
 		), ENUM_USE_VALUE
 	);
+define( 'FORCE_VALID', true );
+define( 'FORCE_INVALID', false );
 
 class tgsfValidate extends tgsfBase
 {
@@ -43,7 +48,19 @@ class tgsfValidate extends tgsfBase
 	protected $_ro_errors	= array();
 	protected $_ro_valid	= true;
 	//------------------------------------------------------------------------
-	protected function &_getField( $name )
+	/**
+	* an alias to addField
+	*/
+	public function &_( $fieldName )
+	{
+		return $this->addField( $fieldName );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Adds a new field to this validate object
+	* @param String The name of the field to add.
+	*/
+	public function &addField( $name )
 	{
 		if ( ! isset( $this->_fields[$name] ) )
 		{
@@ -54,11 +71,45 @@ class tgsfValidate extends tgsfBase
 		return $this->_fields[$name];
 	}
 	//------------------------------------------------------------------------
-	public function &_( $fieldName )
+	/**
+	* Allows a field object to be retrieved using ->fieldName instead of a function call
+	* If no field exists for the provided member var name, we pass this off to the parent
+	* @param String The name of the field.
+	*/
+	public function __get( $name )
 	{
-		return $this->_getField( $fieldName );
+		try
+		{
+			return parent::__get( $name );
+		}
+		catch ( Exception $e )
+		{
+			if ( isset( $this->_fields[$name] ) )
+			{
+				return $this->_fields[$name];
+			}
+		}
+
+		throw new tgsfException( 'No validation Rule' );
 	}
 	//------------------------------------------------------------------------
+	/**
+	* gets a validation field object by name
+	* @param String The name of the field
+	*/
+	public function &getField( $name )
+	{
+		if ( ! isset( $this->_fields[$name] ) )
+		{
+			throw new tgsfException( 'No validation rule exists for field "' . $name . '" when calling getField' );
+		}
+		return $this->_fields[$name];
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Executes the validation for all fields
+	* @param Object::tgsfDataSource The datasource to use for getting values to validate with.
+	*/
 	public function execute( &$ds )
 	{
 		$this->_ds =& $ds;
