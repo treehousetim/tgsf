@@ -23,7 +23,9 @@ define( 'IS_CORE_PATH', true );
 define( 'IS_CORE_LIB', true );
 define( 'IS_CORE_CONFIG', true );
 define( 'IS_CORE', true );
+define( 'IS_APP', false );
 define( 'IS_CORE_TEMPLATE', true );
+define( 'IS_APP_TEMPLATE', false );
 //------------------------------------------------------------------------
 define( 'ENUM_USE_VALUE', true );
 //------------------------------------------------------------------------
@@ -113,10 +115,8 @@ function load_library( $name, $core = false )
 * @param String The path and name (minus the extension) of the template library 
 * @see load_cloned_object
 */
-function &load_template_library( $name )
+function &load_template_library( $name, $core = true )
 {
-	global $useAppFormTemplates;
-	$core = $useAppFormTemplates === false;
 	return load_cloned_object( path( 'libraries/templates', $core ), $name );
 }
 //------------------------------------------------------------------------
@@ -143,7 +143,7 @@ function &load_form( $name, $core = false )
 * Model files are required to return a new instance of the model
 * Models should not require constructor parameters as this loader will know nothing about that.
 * @param String The path and name of the model.  This is prefixed by the application's
-* models path
+* model's path
 * @param Bool Is the model located in the core?  This would only be used for built in models
 * like might be used in a core library (like a user lib).
 * @see load_cloned_object
@@ -151,6 +151,19 @@ function &load_form( $name, $core = false )
 function &load_model( $name, $core = false )
 {
 	return load_cloned_object( path( 'models', $core ), $name );
+}
+//------------------------------------------------------------------------
+/**
+* Works like models and forms.  Used for grids (html tables)
+* @param String The path and name of the model.  This is prefixed by the application's
+* grid's path
+* @param Bool Is the grid located in the core?  This would only be used for built in grids
+* like might be used in a core library (like a user lib).
+* @see load_cloned_object
+*/
+function &load_grid( $name, $core = false )
+{
+	return load_cloned_object( path( 'grids', $core ), $name );
 }
 //------------------------------------------------------------------------
 /**
@@ -200,6 +213,28 @@ function load_config( $name, $core=false )
 	require_once path( 'config', $core ) . $name . PHP;
 }
 //------------------------------------------------------------------------
+function load_database_libraries()
+{
+	// enums for the database libraries
+	load_library( 'db/enum',			IS_CORE_LIB );
+	load_library( 'db/dbManager',		IS_CORE_LIB );
+	load_library( 'db/dbSetup',			IS_CORE_LIB );
+	load_library( 'db/queryJoin',		IS_CORE_LIB );
+	load_library( 'db/query',			IS_CORE_LIB );
+	load_library( 'db/foreignKey',		IS_CORE_LIB );
+	load_library( 'db/field',			IS_CORE_LIB );
+	load_library( 'db/dbIndex',			IS_CORE_LIB );
+	load_library( 'db/table',			IS_CORE_LIB );
+	load_library( 'db/model',			IS_CORE_LIB );
+	load_library( 'db/dbDataSource',	IS_CORE_LIB );
+}
+//------------------------------------------------------------------------
+function load_form_libraries()
+{
+	load_library( 'html/tgForm',			IS_CORE_LIB );
+	load_library( 'html/tgFormField',		IS_CORE_LIB );
+}
+//------------------------------------------------------------------------
 function maintenance_mode_check()
 {
 	do_action( 'maintenance_mode_check' );
@@ -217,6 +252,7 @@ function maintenance_mode_check()
 //------------------------------------------------------------------------
 function force_no_www( $checkFor = true )
 {
+	$config['host_www'] = false;
 	if ( starts_with( $_SERVER['HTTP_HOST'], 'www.' ) )
 	{
 		location_301( $_SERVER['REQUEST_URI'] );
@@ -228,6 +264,8 @@ function force_no_www( $checkFor = true )
 */
 function force_www()
 {
+	global $config;
+	$config['host_www'] = true;
 	if ( ! starts_with( current_host(), 'www.' ) )
 	{
 		location_301( $_SERVER['REQUEST_URI'] );
@@ -240,7 +278,7 @@ function force_trailing_slash()
 	if ( empty( $_SERVER['REDIRECT_QUERY_STRING'] ) && ! empty( $_SERVER['REDIRECT_URL'] ) && strlen( $_SERVER['REDIRECT_URL'] ) && substr( $_SERVER['REDIRECT_URL'], -1 ) != '/' )
 	{
 		$vars = array();
-		$page = tg_parse_url( $vars );
+		$page = tgsf_parse_url( $vars );
 
 		$extra = '';
 		if ( count( $vars ) )
@@ -306,8 +344,7 @@ function get_view_content( $name, $vars = array(), $core = false )
 	extract( $vars );
 	ob_start();
 	include view( $name, $core );
-	$out = ob_get_clean();
-	return $out;
+	return ob_get_clean();
 }
 //------------------------------------------------------------------------
 function image( $file, $core = false )
@@ -359,10 +396,22 @@ function url( $url, $core = false )
 	return current_base_url() . $url;
 }
 //------------------------------------------------------------------------
-function tg_parse_url( &$vars )
+function url_vars( $varArray )
 {
-	global $page, $pageVars;
+	$prefix		= config( 'get_string' );
+	$separator	= config( 'get_separator');
+	$equals		= config( 'get_equals' );
 
+	foreach ( $varArray as $name => $value )
+	{
+		$vars[] = $name . $equals . $value;
+	}
+	return $prefix . implode( $separator, $vars );
+}
+//------------------------------------------------------------------------
+// parse_url is a built in function, that's why this is named tgsf_parse_url
+function tgsf_parse_url()
+{
 	$baseUrlPart = current_base_url_path();
 
 	$page = empty( $_SERVER['REDIRECT_URL'] )?'':trim( $_SERVER['REDIRECT_URL'], '/' );
@@ -374,11 +423,9 @@ function tg_parse_url( &$vars )
 	{
 		$page = $pieces[0];
 		$varPieces = $pieces[1];
-		$vars =& parse_url_vars( $varPieces );
+		tgsf_parse_url_vars( $varPieces );
 	}
 	$page = trim( $page, ' /' );
-	
-	$pageVars =& $vars;
 	
 	if ( $page == '' )
 	{
@@ -388,8 +435,15 @@ function tg_parse_url( &$vars )
 	return $page;
 }
 //------------------------------------------------------------------------
-function parse_url_vars( $varPieces )
+function tgsf_parse_url_vars( $varPieces )
 {
+	static $vars = null;
+
+	if ( ! $vars === null )
+	{
+		return $vars;
+	}
+	
 	// get our pieces by exploding on the slash
 	$pieces = array();
 	if ( ! is_null( $varPieces ) )
@@ -424,29 +478,32 @@ function parse_url_vars( $varPieces )
 			{
 				$_GET['_' . $name] =& $val;
 			}
-			
+
 			$vars[$name] =& $val;
 			$ix++;
 			unset( $val );
 		}
+
+		$_GET['__tgsf_vars'] =& $vars;
 		
 		if ( $pieceCnt % 2 != 0  )
 		{
-			show_error( 'Count of variables is not even - pass variables using name/value pairs' );
+			throw new tgsfException( 'Count of variables is not even - pass variables using name/value pairs' );
 		}
 	}
 	return $vars;
 }
 //------------------------------------------------------------------------
-function url_array( &$vars )
+function url_array()
 {
-	$page = tg_parse_url( $vars );
-	return explode( '/', $page );
+	return explode( '/', tg_parse_url() );
 }
 //------------------------------------------------------------------------
 function resolve_controller( $page )
 {
+	do_action( 'pre_resolve_controller', $page );
 	$page = do_filter( 'pre_resolve_controller', $page );
+
 	if ( controller_exists( $page ) )
 	{
 		$out = controller( $page );
@@ -459,6 +516,7 @@ function resolve_controller( $page )
 		}
 		else
 		{
+			do_action( 'pre_404', $page );
 			// we don't output 404 headers here so that the 404 controller can make choices of its own
 			// it should output the 404 header.
 			$out = controller( '404' );
@@ -467,20 +525,8 @@ function resolve_controller( $page )
 	}
 
 	$out = do_filter( 'post_resolve_controller', $out, $page );
+	do_action( 'post_resolve_controller', $page, $out );
 	return $out;
-}
-//------------------------------------------------------------------------
-function dispatch( $page )
-{
-	do_action( 'dispatch' );
-	
-	$page = do_filter( 'dispatch', $page );
-
-	content_buffer();
-	
-	include resolve_controller( $page );
-	
-	end_buffer();
 }
 //------------------------------------------------------------------------
 function is_gz_capable()
@@ -558,6 +604,10 @@ function enable_browser_cache( $file )
 function location_301( $url, $local = true )
 {
 	header( "HTTP/1.1 301 Moved Permanently" );
+	if ( can_plugin() )
+	{
+		$url = do_filter( 'perm_redirect_url', $url );
+	}
 	if ( $local )
 	{
 		header( 'Location: ' . url( $url ) );
@@ -574,6 +624,11 @@ function location( $url, $local = true ) { location_303( $url, $local ); } // lo
 function location_303( $url, $local = true )
 {
 	header( "HTTP/1.1 303 See Other" );
+	if ( can_plugin() )
+	{
+		$url = do_filter( 'temp_redirect_url', $url );
+	}
+	
 	if ( $local )
 	{
 		header( 'Location: ' . url( $url ) );
@@ -582,6 +637,7 @@ function location_303( $url, $local = true )
 	{
 		header( 'Location: ' . $url );
 	}
+	exit();
 }
 //------------------------------------------------------------------------
 /**
@@ -594,43 +650,307 @@ function hash_password( $clearText, $salt = null )
 {
     if ( is_null( $salt ) )
     {
-        $salt = substr( sha1( uniqid( rand(), true ) ), 0, SALT_LENGTH) ;
+        $salt = randomHash( SALT_LENGTH );
     }
     else
     {
         $salt = substr( $salt, 0, SALT_LENGTH );
     }
     $hashed = $salt . sha1($salt . $clearText);
+	do_action( 'hash_password', $hashed, $salt, $clearText );
 
+	// we should never be calling this before the plugin library has loaded
+	$hashed = do_filter( 'hash_password', $hashed, $clearText, $salt );
     return $hashed;
 }
 //------------------------------------------------------------------------
+/**
+* Random hash - defaults to being 12 characters long
+*/
 function randomHash( $length = 12 )
 {
 	return strtoupper( substr( sha1( uniqid( rand(), true ) ), 0, $length ) );
 }
 //------------------------------------------------------------------------
-function log_exception( $e )
+function randomCode ( $length = 4, $useNumbers = true, $useLower = false, $useSpecial = false )
 {
-	$file = path( 'logs', IS_CORE_PATH ) . 'exception_log.txt';
+	$set = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	
-	$out = PHP_EOL . '------------------------------------------------------------------------' . PHP_EOL;
-	$out .= date( 'Y/m/d H:i:s' ) . PHP_EOL;
-	$out .= '----------------------' . PHP_EOL;
-	$out .= $e->getMessage() . PHP_EOL;
+	if ( $useNumbers )
+	{
+		$set .= "0123456789";
+	}
+	
+	if ( $useLower )
+	{
+		$set .= "abcdefghijklmnopqrstuvwxyz";;
+	}
+	
+	if ( $useSpecial )
+	{
+		$set .= "~@#$%^*()_+-={}|][";
+	}
+	$code = '';
+	for ( $ix=0; $ix < $length; $ix++ )
+	{
+		$code .= $set[(mt_rand(0, (strlen( $set ) - 1 ) ) )];
+	}
+	return $code;
+}
+//------------------------------------------------------------------------
+function log_exception( $e, $tgsfLogError = false )
+{
+	$out  = $e->getMessage() . PHP_EOL;
 	$out .= 'File: ' . $e->getFile() . PHP_EOL;
 	$out .= 'Line: ' . $e->getLine() . PHP_EOL;
 	$out .= $e->getTraceAsString();
-	file_put_contents( $file, $out, FILE_APPEND );
+
+	if ( can_plugin() )
+	{
+		$out = do_filter( 'log_exception', $out, $e );
+	}
+	general_log( $out, 'exception_log.txt' );
 }
 //------------------------------------------------------------------------
 function log_query_error( $query )
 {
-	$file = path( 'logs', IS_CORE_PATH ) . 'query_error_log.txt';
+	if ( can_plugin() )
+	{
+		$query = do_filter( 'log_query_error', $query );
+	}
+	general_log( $query, 'query_error_log.txt' );
+}
+//------------------------------------------------------------------------
+function log_error( $message )
+{
+	if ( can_plugin() )
+	{
+		$message = do_filter( 'log_error', $message );
+	}
+	general_log( $message, 'error_log.txt' );
+}
+//------------------------------------------------------------------------
+function general_log( $message, $file = 'general_log.txt' )
+{
+	$file = clean_text( $file, '_', "." );
+	$file = path( 'logs', IS_CORE_PATH ) . $file;
 	
 	$out = PHP_EOL . '------------------------------------------------------------------------' . PHP_EOL;
 	$out .= date( 'Y/m/d H:i:s' ) . PHP_EOL;
 	$out .= '----------------------' . PHP_EOL;
-	$out .= $query . PHP_EOL;
+	$out .= $message . PHP_EOL;
+	
+	if ( can_plugin() )
+	{
+		$out = do_filter( 'general_log', $out, $message );
+	}
+	
 	file_put_contents( $file, $out, FILE_APPEND );
+}
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+// utility functions
+/**
+* Cleans out possible email header injection attacks.  Spammers try to inject new line characters as delimiters
+* so they can put in their own headers in an email message.  We're simply removing them.  these characters
+* should not exist in email addresses or in email subjects.  don't use this on message bodies.
+* @param String The text to clean (something like an email address that was typed in)
+*/
+function clean_for_email( $inbound )
+{
+    return str_replace( array( "\n", "\r" ), "", $inbound );
+}
+//------------------------------------------------------------------------
+/**
+* Trims an array - removes empty and null elements
+* @param String The entire string to compare against
+* @param String The snippet to test for at the beginning of $compare
+*/
+function trimArray( $inArray )
+{
+    foreach ( $inArray as $key => $value )
+    {
+        if ( trim( $value ) !="" )
+        {
+            if ( is_int( $key ) )
+            {
+                $outArray[] = trim( $value );
+            }
+            elseif ( is_string( $key ) )
+            {
+                $outArray[$key] = trim( $value );
+            }
+        }
+    }
+    
+    return $outArray;
+}
+//------------------------------------------------------------------------
+/**
+* Returns true if the string to compare starts with the snippet
+* @param String The entire string to compare against
+* @param String The snippet to test for at the beginning of $compare
+*/
+function starts_with( $subject, $snippet )
+{
+	if ( is_array( $snippet ) )
+	{
+		$out = false;
+		foreach ( $snippet as $value )
+		{
+			if ( $value == substr( $subject, 0, strlen( $value ) ) )
+			{
+				$out = true;
+				break;
+			}
+		}
+	}
+	else
+	{
+		$out = $snippet === substr( $subject, 0, strlen( $snippet ) );
+	}
+	
+	return $out;
+}
+//------------------------------------------------------------------------
+/**
+* Returns true if the string to compare ends with the snippet
+* @param String The entire string to compare against
+* @param String The snippet to test for at the end of $compare
+*/
+function ends_with( $subject, $snippet )
+{
+	if ( is_array( $snippet ) )
+	{
+		$out = false;
+		foreach ( $snippet as $value )
+		{
+			if ( $value == substr( $subject, -1 * strlen( $value ) ) )
+			{
+				$out = true;
+				break;
+			}
+		}
+	}
+	else
+	{
+		$out = $snippet == substr( $subject, -1 * strlen( $snippet ) );
+	}
+	
+	return $out;
+}
+//------------------------------------------------------------------------
+/**
+* Returns the specified number of tab characters - a silly function
+* that only serves to create pretty looking code.
+* @param Int The number of tab characters to return.
+*/
+function tab( $repeat )
+{
+	return str_repeat( "\t", $repeat );
+}
+//------------------------------------------------------------------------
+/**
+* Attempts to simulate the C language enum construct by creating defines
+* for the array items passed in.
+* @param String The name of the group/prefix for the enum'd values. example: qt or QUERY_TYPE_
+* @param Array The array of items to define values for.  If an array key is non-numeric  then that becomes the define name.
+* @param bool Should enum use the value for the defined value or use the given array key 
+* example: $arrayExample['DEF'] = 'value'; enum( 'example', $arrayExample ); creates this define:
+* define( 'exampleDEF', 'value' );
+*/
+function enum( $prefix, $items, $useValueForDefine = false )
+{
+	if ( $useValueForDefine )
+	{
+		foreach ( $items as $key => $value )
+		{
+			define( $prefix . $value, $value );
+		}
+	}
+	else
+	{
+		foreach ( $items as $key => $value )
+		{
+			if ( is_numeric( $key ) )
+			{
+				define( $prefix . $value, $key );
+			}
+			else
+			{
+				define( $prefix . $key, $value );
+			}
+		}
+	}
+}
+//------------------------------------------------------------------------
+/**
+* if the passed argument is already an array then nothing is done.
+* if the passed argument is not an array then an a
+* @param Mixed The variable to test for arrayness
+* @param Array The return variable 
+*/
+function arrayify( &$in, &$out )
+{
+	if ( ! is_array( $in ) )
+	{
+		$out = array();
+		$out[] = $in;
+	}
+	else
+	{
+		$out = array();
+		$out = $in;
+	}
+}
+//------------------------------------------------------------------------
+/**
+* Determines if a string is a local file based on whether or not it
+* begins with http:// or https://
+* @param String The file or path to check
+*/
+function is_local( $file )
+{
+	// return if the file does not start with
+	return ! starts_with( $file, array( 'http://', 'https://' ) );
+}
+//------------------------------------------------------------------------
+function must_end_with( &$subject, $ending )
+{
+	if ( ! ends_with( $subject, $ending ) )
+	{
+		$subject .= $ending;
+	}
+}
+//------------------------------------------------------------------------
+function clean_text( $subject, $replace = '_', $extraAllowedChars = '' )
+{
+	return preg_replace( '/[^a-z0-9' . $extraAllowedChars . ']+/sim', $replace, $subject );
+}
+//------------------------------------------------------------------------
+function get_dump( &$var, $formatHTML = false )
+{
+	$prefix = '';
+	$postfix = '';
+
+	if ( $formatHTML === true )
+	{
+		$prefix = '<pre>';
+		$postfix = '</pre>';
+	}
+	
+	ob_start();
+	var_dump( $var );
+	return $prefix . ob_get_clean() . $postfix;
+}
+//------------------------------------------------------------------------
+function memory_stats()
+{
+	//echo number_format( memory_get_usage() ) . '<br>';
+	//echo number_format( memory_get_peak_usage() ) . '<br><br>';
+
+	fb( number_format(memory_get_usage()), 'Mem Usage', FirePHP::INFO );
+	fb( number_format(memory_get_peak_usage()), 'Mem Usage (Peak)', FirePHP::INFO );
 }
