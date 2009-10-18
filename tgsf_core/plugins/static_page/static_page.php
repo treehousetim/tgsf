@@ -5,11 +5,11 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-add_action( 'register_plugin_static_page', 'static_page_setup' );
+add_action( 'static_page_init', 'static_page_setup' );
 function static_page_setup( $file )
 {
 	$class = new staticPage();
-	add_action( 'pre_404', 'sp_h' array( &$class, 'pre404' ) );
+	add_action( 'pre_404', array( &$class, 'pre404' ) );
 }
 
 
@@ -17,7 +17,7 @@ class staticPage
 {
 	function __construct()
 	{
-		$this->model = load_cloned_object( 'plugins/static_page/model' );
+		$this->model = load_cloned_object( path( 'plugins/static_page', IS_CORE ), 'model' );
 	}
 	function pre404( $page )
 	{
