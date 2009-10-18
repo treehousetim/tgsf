@@ -13,8 +13,21 @@ class tgsfValidateField extends tgsfBase
 	//------------------------------------------------------------------------
 	public		$fieldName;
 	//------------------------------------------------------------------------
-	protected function &_( $ruleType )
+	/**
+	* Adds a new validation rule to this validation field
+	* @param Mixed.  If an instance of a validation rule, then the rule has its field set to this rule
+	* and is added to this field's rules array.  If a string, then it is the rule type string
+	* and is ends up being used to instantiate an object of class tvr_{$ruleType}
+	*/
+	public function &addRule( $ruleType )
 	{
+		if ( $ruleType instanceof tgsfValidateRule )
+		{
+			$this->_rules[] =& $ruleType;
+			$ruleType->setField( $this );
+			return $ruleType;
+		}
+		
 		$className = 'tvr_' . $ruleType;
 		
 		if ( ! class_exists( $className ) )
@@ -22,9 +35,17 @@ class tgsfValidateField extends tgsfBase
 			throw new tgsfValidationException( 'Undefined validation rule type: ' . $ruleType );
 		}
 		
-		$rule = new $className( $field );
+		$rule = new $className( $this );
 		$this->_rules[] =& $rule;
 		return $rule;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* an alias to addRule
+	*/
+	protected function &_( $ruleType )
+	{
+		return $this->addRule( $ruleType );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -50,7 +71,23 @@ class tgsfValidateField extends tgsfBase
 	{
 		foreach ( $this->_rules as &$rule )
 		{
-			$rule->execute( $this->fieldName, $ds );
+			if ( $rule->emptyValueValid === true )
+			{
+				$value = $ds->_( $this->fieldName );
+				if ( empty( $value ) )
+				{
+					$rule->valid = true;
+				}
+				else
+				{
+					$rule->execute( $this->fieldName, $ds );
+				}
+			}
+			else
+			{
+				$rule->execute( $this->fieldName, $ds );
+			}
+			
 			if ( ! $rule->valid )
 			{
 				$errors[$this->fieldName][] = $rule->errorMessage;
@@ -155,6 +192,15 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	public function &not_match_field( $field, $fieldCaption, $errorMessage = '' )
+	{
+		$rule =& $this->_( vt_not_match_field );
+		$rule->field = $field;
+		$rule->fieldCaption = $fieldCaption;
+		$rule->overrideError = $errorMessage;
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	public function &match_value( $value )
 	{
 		$rule =& $this->_( vt_match_value );
@@ -193,6 +239,18 @@ class tgsfValidateField extends tgsfBase
 	public function &usa_zipcode()
 	{
 		$this->_( vt_usa_zipcode );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &bank_routing()
+	{
+		$this->_( vt_bank_routing );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &credit_card()
+	{
+		$this->_( vt_credit_card );
 		return $this;
 	}
 	//------------------------------------------------------------------------
