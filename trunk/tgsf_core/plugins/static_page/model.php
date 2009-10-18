@@ -44,10 +44,10 @@ class staticPageModel extends model
 			}
 			catch( Exception $e )
 			{
-				log_exception( $e );
-				show_error( 'An error occurred while loading this page.  A site administrator has been notified with the details.  Please try again later.' );
+				show_error( 'An error occurred while loading this page.  A site administrator has been notified with the details.  Please try again later.', $e );
 			}
 		}
 		return $row;
 	}
 }
+return new staticPageModel();
