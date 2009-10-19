@@ -9,7 +9,6 @@ Options -Indexes
 RewriteEngine on
 
 <IfModule mod_rewrite.c>
-	# RewriteRule ^tgsf_core/ /mm/404 [L]
 	RewriteRule ^application/config/		- [F]
 	RewriteRule ^application/controllers/	- [F]
 	RewriteRule ^application/forms/			- [F]
