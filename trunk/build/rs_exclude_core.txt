@@ -2,10 +2,10 @@
 .DS_Store
 .svn
 build
-.htaccess
-application
-/index.php
+/application
 /db_config
 /tgsf_core_assets/minify_groups/*
 /rs_sync_exclude.txt
+/rs_sync_include.txt
 /sync-core.php
+/tgsf_core/logs/*
