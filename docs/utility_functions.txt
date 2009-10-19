@@ -1,0 +1,112 @@
+function clean_for_email( $inbound )
+
+* Cleans out possible email header injection attacks.  Spammers try to inject new line characters as delimiters
+* so they can put in their own headers in an email message.  We're simply removing them.  these characters
+* should not exist in email addresses or in email subjects.  don't use this on message bodies.
+
+* @param String The text to clean (something like an email address that was typed in)
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function trimArray( $inArray )
+
+* Trims an array - removes empty and null elements
+
+* @param String The entire string to compare against
+* @param String The snippet to test for at the beginning of $compare
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function starts_with( $subject, $snippet )
+
+* Returns true if the string to compare starts with the snippet
+
+* @param String The entire string to compare against
+* @param String The snippet to test for at the beginning of $compare
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function ends_with( $subject, $snippet )
+
+* Returns true if the string to compare ends with the snippet
+
+* @param String The entire string to compare against
+* @param String The snippet to test for at the end of $compare
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function tab( $repeat )
+
+* Returns the specified number of tab characters - a silly function
+* that only serves to create pretty looking code.
+
+* @param Int The number of tab characters to return.
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function enum( $prefix, $items, $useValueForDefine = false )
+
+* Attempts to simulate the C language enum construct by creating defines for the array items passed in.
+
+* @param String The name of the group/prefix for the enum'd values. example: qt or QUERY_TYPE_
+* @param Array The array of items to define values for.  If an array key is non-numeric  then that becomes the define name.
+* @param bool Should enum use the value for the defined value or use the given array key 
+
+* example: $arrayExample['DEF'] = 'value'; enum( 'example', $arrayExample ); creates this define:  define( 'exampleDEF', 'value' );
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function arrayify( &$in, &$out )
+
+* if the passed argument is already an array then nothing is done.
+* if the passed argument is not an array then an a
+
+* @param Mixed The variable to test for arrayness
+* @param Array The return variable 
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function is_local( $file )
+
+* Determines if a string is a local file based on whether or not it begins with http:// or https://
+
+* @param String The file or path to check
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function must_end_with( &$subject, $ending )
+
+* Does what it says it does.
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function clean_text( $subject, $replace = '_', $extraAllowedChars = '' )
+
+* Does what it says it does.
+//------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------
+function get_dump( &$var, $formatHTML = false )
+
+Returns a var_dump as a string.  If formatHTML == true, wraps <pre> tags around the return value
+//------------------------------------------------------------------------

@@ -1,0 +1,21 @@
+Running Multiple Applications under tgsf
+----------------------------------------
+
+To handle multiple applications running under tgsf, you only need to put your url parsing logic
+into the /app_detector.php file.  This file has access to all of the functions in tgsf_core/libraries/tgsfUrlDetection.php
+
+app_detector.php is not overwritten in upgrade distributions.
+
+If you need to use a database for application detection, you'll need to add a call to
+
+load_database_libraries();
+
+We recommend using a logical name for your app detection database and then passing that to the query constructor
+in the app_detector.php file.
+
+dbm()->useSetup( new dbSetup( 'user', 'password', 'db_name' ), 'app_detection' );
+$q = new query( 'app_detection' );
+
+
+This way applications can set up their own default database connections and all their queries work as expected.
+
