@@ -20,11 +20,14 @@ pt( paramType )
 
 
 examples:
+$ds = new tgsfDataSource();
+// set ds here or use another datasource that's already set
 
 $q = new query();
 $q->insert_into( 'user' );
 $q->pt( ptSTR )->insert_fields( array( 'user_email', 'user_first_name' ) );
-$q->
+$q->pt( ptINT )->insert_fields( array( 'user_id' ) );
+$q->autoBind( $ds ); // automatically binds using the ->pt calls above to set the type
 
 
 counting rows as t/f result

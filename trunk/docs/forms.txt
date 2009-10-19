@@ -1,5 +1,36 @@
+form field defined types:
+
+fftHidden
+fftText
+fftTextArea
+fftFile
+fftDropDown
+fftList
+fftRadio
+fftCheck
+fftImage
+fftButton
+fftSubmit
+fftReset
+fftPassword
+fftOtherTag
+
+Forms are classes that extend tgsfForm which in turn extends tgsfHtmlTag.
+
+Forms are required to implement 2 functions.
+_setup()
+_setupValidate( &$v );
+
+form field groups:
+
 $this->startGroup( 'Just a Caption' );
 
 groups create (when using the built in top template) fieldsets with legends.
 css classes are created from the captions, lowercase with underscores replacing spaces and other non standard characters.
-to create fieldsets without a legend, prefix your caption with an underscore _
+
+To create fieldsets without a legend, prefix your caption with an underscore _
+
+If you want to output labels and fields without using the built in form rendering and templates, you can use this syntax:
+
+echo $form->fieldByName( 'example_field' )->getLabelTag()->render();
+echo $form->fieldByName( 'example_field' )->getFieldTag()->render();

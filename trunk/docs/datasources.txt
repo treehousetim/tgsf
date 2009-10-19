@@ -1,0 +1,15 @@
+the datasource object supports many features:
+
+GET()
+POST()
+
+are both singleton functions that return datasources.
+
+in order to work with a GET() or POST() datasource, you need to clone it.
+this is to prevent a script from overriding them globally.
+
+to get a piece of data from a datasource, use one of these 3 methods:
+
+echo $ds->varname;
+echo $ds->getVar( 'varname', 'Default Value' );
+echo $ds->_( 'varname', 'Default Value' );
