@@ -6,6 +6,7 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
+// User Agent configuration goes here.
 
 $itouch = preg_match('/ipod|iphone/sim', $_SERVER['HTTP_USER_AGENT'] );
 $iphone = preg_match('/iphone/sim', $_SERVER['HTTP_USER_AGENT'] );
