@@ -22,11 +22,12 @@ include $versionFile;
 $build++;
 
 $out = "<?php\n";
-$out .= '$major = ' . $major . ";\n";
-$out .= '$minor = ' . $minor . ";\n";
-$out .= '$nano = ' . $nano . ";\n\n";
-$out .= '$build = ' . $build . ";\n\n";
-$out .= '$versionString = "{$major}.{$minor}.{$nano}.{$build}";';
+$out .= '$major = ' . $major . ";" . PHP_EOL;
+$out .= '$minor = ' . $minor . ";" . PHP_EOL;
+$out .= '$nano = ' . $nano . ";" . PHP_EOL . PHP_EOL;
+$out .= '$build = ' . $build . ";" . PHP_EOL . PHP_EOL;
+$out .= '$versionString = "{$major}.{$minor}.{$nano}.{$build}";' . PHP_EOL;
+$out .= "define( 'TGSF_VERSION', \$versionString );" . PHP_EOL;
 
 file_put_contents( $versionFile, $out );
 include $versionFile;
@@ -44,11 +45,11 @@ createZip( $fullFolder, $fullFolder );
 
 echo "\n" . 'Uploading to Google Code';
 
-uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass );
-uploadToGoogleCode( 'GZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
+uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass, 'Featured' );
+//uploadToGoogleCode( 'GZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
 
-uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass );
-uploadToGoogleCode( 'GZIP - Full Framework', 'tgsf', $fullFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
+uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass, 'Featured' );
+//uploadToGoogleCode( 'GZIP - Full Framework', 'tgsf', $fullFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
 
 
 //------------------------------------------------------------------------
@@ -86,9 +87,9 @@ function createZip( $zipName, $folderToZip )
 {
 	echo "Creating Zip and Tar\n";
 	@unlink( $zipName . '.zip' );
-	@unlink( $zipName . '.tar.gz' );
+	//@unlink( $zipName . '.tar.gz' );
 	system( "zip -r9 -q {$zipName}.zip {$folderToZip}" );
-	system( "tar -pczf {$zipName}.tar.gz {$folderToZip}" );
+	//system( "tar -pczf {$zipName}.tar.gz {$folderToZip}" );
 }
 //------------------------------------------------------------------------
 // this function comes from the PHP manual notes
