@@ -125,6 +125,8 @@ class tgsfLog extends tgsfBase
 	*/
 	public function log( $message, $type = 'generic', $table = '', $record_key = '' )
 	{
+		global $argv;
+
 		$userRec = new stdClass();
 		$userId = '';
 		if ( function_exists( 'AUTH_is_configured' ) && AUTH_is_configured() && AUTH()->loggedIn )
@@ -133,15 +135,15 @@ class tgsfLog extends tgsfBase
 			$userId = AUTH()->getLoginId();
 		}
 		
-		$ds = new tgsfDataSource();
+		$ds = tgsfDataSource::factory();
 		$ds->setVar( 'log_type',				$type );
 		$ds->setVar( 'log_datetime',			date( 'Y-m-d H:i:s' ) );
-		$ds->setVar( 'log_remote_addr',			$_SERVER['REMOTE_ADDR'] );
+		$ds->setVar( 'log_remote_addr',			TGSF_CLI ? '127.0.0.1' : $_SERVER['REMOTE_ADDR'] );
 		$ds->setVar( 'log_message',				$message );
 		$ds->setVar( 'log_table',				$table );
 		$ds->setVar( 'log_table_record_key',	$record_key );
 		$ds->setVar( 'log_user_id',				$userId );
-		$ds->setVar( 'log_url',					$_SERVER['REQUEST_URI'] );
+		$ds->setVar( 'log_url',					TGSF_CLI ? CLI() : $_SERVER['REQUEST_URI'] );
 
 		$ds->setVar( 'log_get',					get_dump( $_GET ) );
 		$ds->setVar( 'log_post',				get_dump( $_POST ) );
@@ -150,6 +152,7 @@ class tgsfLog extends tgsfBase
 		$ds->setVar( 'log_server',				get_dump( $_SERVER ) );
 		$ds->setVar( 'log_env',					get_dump( $_ENV ) );
 		$ds->setVar( 'log_files',				get_dump( $_FILES ) );
+		$ds->setVar( 'log_argv',				get_dump( $argv ) );
 
 		$q = new query();
 		$q->insert_into( $this->tableName );
@@ -157,7 +160,7 @@ class tgsfLog extends tgsfBase
 				'log_type','log_remote_addr','log_message',
 				'log_table','log_table_record_key','log_url',
 				'log_get','log_post','log_cookie','log_session',
-				'log_server','log_env','log_files','log_user_id' ) );
+				'log_server','log_env','log_files','log_argv','log_user_id' ) );
 
 		$q->pt( ptDATETIME )->insert_fields( 'log_datetime' );
 		$q->autoBind( $ds );

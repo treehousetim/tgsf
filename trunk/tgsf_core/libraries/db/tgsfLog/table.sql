@@ -16,5 +16,6 @@ CREATE TABLE `tgsf_log` (
   `log_server` text NOT NULL,
   `log_env` text NOT NULL,
   `log_files` text NOT NULL,
+  `log_argv` text NOT NULL,
   PRIMARY KEY (`log_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8

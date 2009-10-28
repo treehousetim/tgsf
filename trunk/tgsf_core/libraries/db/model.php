@@ -51,7 +51,7 @@ class model extends table
 	* returns a datasource containing the record fetched by the given id, using {table}_id as the field
 	* @param Int The ID of the record
 	*/
-	public function getById( $id, $selectList = '*' )
+	public function fetchById( $id, $selectList = '*' )
 	{
 		$_field = $this->_ro_tableName . '_id';
 	

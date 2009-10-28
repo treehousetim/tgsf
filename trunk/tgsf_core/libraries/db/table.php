@@ -30,14 +30,14 @@ class table extends tgsfBase
 	* The datasource
 	*/
 	protected $_ds;
-	
+
 	private $_fields		= array();
 	protected $_primaryKey	= array();
 	private $_foreignKey	= array();
 	private $_fieldsByName	= array();
 	private $_idxDefs		= array();
 	private $_fieldValues	= array();
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* A constructor - Takes the table name and logical connection name (defaults to default)
@@ -49,19 +49,26 @@ class table extends tgsfBase
 		$this->_ro_tableName = $name;
 		$this->_logicalDb = $which;
 	}
-	//------------------------------------------------------------------------
+
 	/**
 	* Used for getting field values
 	*/
 	public function __get( $name )
 	{
-		if ( array_key_exists( $name, $this->_fieldValues ) )
+		$retVal = null;
+
+		if ( isset( $this->_fieldValues[$name] ) )
 		{
-			return $this->_fieldValues[$name];
+			$retVal = $this->_fieldValues[$name];
+		}
+		else
+		{
+			$retVal = parent::__get( $name );
 		}
 
-		return parent::__get( $name );
+		return $retVal;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Used for setting field values
@@ -70,6 +77,7 @@ class table extends tgsfBase
 	{
 		$this->_fieldValues[$name] = $val;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a field object to the list of primary key fields
@@ -83,6 +91,7 @@ class table extends tgsfBase
 			$field->primaryKey = true;
 		}
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a simple index to this table
@@ -93,9 +102,10 @@ class table extends tgsfBase
 	{
 		$idx = new dbIndex( $this->_ro_tableName, $field );
 		$this->_idxDefs[] =& $idx;
-		
+
 		return $idx;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds an index object to the table
@@ -105,6 +115,7 @@ class table extends tgsfBase
 	{
 		$this->_idxDefs[] = &$idx;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a foreign key object to the list of foreign key fields
@@ -115,13 +126,14 @@ class table extends tgsfBase
 	*/
 	public function fk( $localField , $foreignTable , $foreignField, $relName = null )
 	{
-		if( is_null( $relName ) )
+		if ( is_null( $relName ) )
 		{
 			$relName = $this->_ro_tableName . '_' . $localField . '_fk';
-		}	
+		}
 
 		$this->_foreignKey[] = new foreignKey( $this->_ro_tableName, $localField, $foreignTable, $foreignField, $relName );
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a new field to this table
@@ -137,7 +149,7 @@ class table extends tgsfBase
 		$field = new field( $name, $type, $size );
 		$this->_fields[] =& $field;
 		$this->_fieldsByName[$name] =& $field;
-		
+
 		$options = array();
 
 		foreach ( $args as $value )
@@ -147,16 +159,16 @@ class table extends tgsfBase
 			case FIELD_NOT_NULL:
 				$options['NOT NULL'] = '';
 				break;
-				
+
 			case FIELD_AUTO_INC:
 				$options['AUTO_INCREMENT'] = '';;
 				$this->_primaryKey( $field );
 				break;
-			
+
 			case FIELD_PRIMARY_KEY:
 				$this->primaryKey( $field );
 				break;
-			
+
 			case FIELD_UNSIGNED:
 				$options['UNSIGNED'] = '';
 				break;
@@ -167,6 +179,7 @@ class table extends tgsfBase
 
 		return $field;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Creates an auto inc field using the table name_id as the field name.
@@ -175,6 +188,7 @@ class table extends tgsfBase
 	{
 		$this->field( $this->_ro_tableName . '_id', 'BIGINT', FIELD_NO_SIZE, FIELD_NOT_NULL, FIELD_AUTO_INC, FIELD_UNSIGNED );
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Generates the DDL for the entire table - create table, alter table add foreign key, and create index
@@ -193,12 +207,12 @@ class table extends tgsfBase
 			{
 				$pk[] = $field->name;
 			}
-			
+
 			$int[] = tab(1) . 'PRIMARY KEY(' . implode( ',', $pk ) . ')';
 		}
-		
+
 		$out[] = implode( ",\n", $int );
-	
+
 		if ( $this->_engine != '' )
 		{
 			$out[] = ") ENGINE={$this->_engine};\n";
@@ -207,27 +221,28 @@ class table extends tgsfBase
 		{
 			$out[] = ");\n";
 		}
-		
+
 		$tableDDL = implode( "\n", $out );
-		
+
 		$out = array(); // recycle this variable now that we're done with it
-		
+
 		foreach ( $this->_foreignKey as &$fk )
 		{
 			$out[] = $fk->generateDDL();
 		}
 		$tableDDL .= implode( "\n", $out ) . "\n";
-		
+
 		$out = array();
 		foreach ( $this->_idxDefs as &$idx )
 		{
 			$out[] = $idx->generateDDL();
 		}
-		
+
 		$tableDDL .= implode( "\n", $out ) . "\n";
-		
+
 		return $tableDDL;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	*

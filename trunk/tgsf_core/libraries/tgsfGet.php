@@ -5,6 +5,11 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
+//------------------------------------------------------------------------
+// unlike most singletons in tgsf, tgsfGet and tgsfPost both allow cloning.
+// this is so that a get datasource can be cloned and manipulated
+// prior to use in a query.  
+//------------------------------------------------------------------------
 function &GET()
 {
 	return tgsfGet::get_instance();
@@ -13,22 +18,21 @@ function &GET()
 class tgsfGet extends tgsfDataSource
 {
 	private static	$_instance			= null;
-	protected		$_ro_dataPresent	= false;
-	
+
 	//------------------------------------------------------------------------
 	/**
-	* The constructor sets the type and detects if a POST has occurred
-	* if it has, it add all the POST variables into this datasource (itself).
+	* The constructor sets the type and detects if there is any GET data
+	* if there is, it add all the GET variables into this datasource (itself).
 	* it is also protected as we will be using the get_instance method to instantiate
 	*/
-	protected function __construct()
+	public function __construct()
 	{
-		parent::__construct( dsTypePOST );
+		parent::__construct( dsTypeGET );
 		
 		if ( isset( $_GET ) && count( $_GET ) > 0 )
 		{
 			$this->_ro_dataPresent = true;
-			$this->set( $_GET );
+			$this->_set( $_GET );
 		}
 	}
 	
@@ -46,13 +50,37 @@ class tgsfGet extends tgsfDataSource
 		
 		return self::$_instance;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
-	* Prevent users from cloning the instance
+	* disallow resetting this if we're still a get type
 	*/
-	public function __clone()
+	public function reset()
 	{
-		throw new tgsfException( 'Cloning a singleton (tgsfGet) is not allowed. Use the GET() function to get its instance.' );
+		if ( $this->_type == dsTypeGET )
+		{
+			throw new tgsfException( 'Resetting a GET datasource is disallowed.' );
+		}
+		parent::reset();
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Manually set a member of the data source
+	*/
+	public function setVar( $varName, $varValue )
+	{
+		if ( $this->_type == dsTypeGET )
+		{
+			throw new tgsfException( 'You may not use setVar on GET datasources - Maybe you could use the remap function instead.' );
+		}
+		parent::setVar( $varName, $varValue );
+	}
+	//------------------------------------------------------------------------
+	public function set( $source )
+	{
+		if ( $this->_type == dsTypeGET )
+		{
+			throw new tgsfException( 'You may not use set on GET datasources.' );
+		}
+		parent::set( $source );
 	}
 }

@@ -6,3 +6,4 @@ min/cache
 minify_groups
 /docs
 /project-docs
+.htaccess

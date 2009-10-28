@@ -20,6 +20,15 @@ YUI Reset CSS
 http://developer.yahoo.com/yui/reset/
 Licensed under the BSD license
 
+FirePHP
+http://www.firephp.org/
+Copyright (c) 2006-2009, Christoph Dorn
+All rights reserved.
+
+Zack Bloom's advgraph - PHP Advanced Graphing Class
+http://www.zackbloom.com/graph/
+Copyright (C) 2006-2007 Zack Bloom
+Licensed under the LGPL
 
 tgsf also bundles some public domain javascript utility functions and jQuery plugins inside the tgsf_core_assets/js/utility.js file.
 the tgsf project has bundled these code snippets in good faith that they truly reside in the public domain.

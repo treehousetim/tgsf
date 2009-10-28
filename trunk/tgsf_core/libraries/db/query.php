@@ -33,6 +33,7 @@ class query extends tgsfBase
 	protected $_updateTable			= '';
 	protected $_whereList			= array( "1=1" );
 	protected $_type				= qtNONE;
+	protected $_table				= '';
 	protected $_limit				= '';
 
 	protected $_selectList			= array();
@@ -218,6 +219,7 @@ class query extends tgsfBase
 		$this->_updateTable			= '';
 		$this->_whereList			= array( "1=1" );
 		$this->_type				= qtNONE;
+		$this->_table				= '';
 		$this->_limit				= '';
 
 		$this->_selectList			= array();
@@ -305,6 +307,29 @@ class query extends tgsfBase
 		$this->_whereList[] = 'OR ' . $where;
 		return $this;
 	}
+	//------------------------------------------------------------------------
+	/**
+	* Adds an AND condition for a like - only if the datasource contains a non-empty value for $name
+	*/
+	public function where_like( $name, $ds, $valuePrefix = '%', $valuePostfix = '%', $booleanOp = 'AND ' )
+	{
+		if ( $ds->{$name} != '' )
+		{
+			$this->_whereList[] = $booleanOp . $name . ' LIKE :' . $name;
+			$val = $valuePrefix . trim( $ds->_( $name ) ) . $valuePostfix;
+			
+			$this->bindValue( $name, $val, ptSTR );
+		}
+
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Adds an OR condition for a like - only if the datasource contains a non-empty value for $name
+	*/
+	public function or_where_like( $name, $ds, $valuePrefix = '%', $valuePostfix = '%' )
+	{
+		$this->where_like( $name, $ds, $valuePrefix, $valuePostfix, 'OR ' );
+	}
 	// end of where public methods
 	//------------------------------------------------------------------------
 	
@@ -316,6 +341,7 @@ class query extends tgsfBase
 	public function &from( $table )
 	{
 		$this->_fromList[] = $table;
+		$this->_table = $table;
 		return $this;
 	}
 	
@@ -343,6 +369,7 @@ class query extends tgsfBase
 	{
 		$this->_type = qtINSERT;
 		$this->_insertTable = $table;
+		$this->_table = $table;
 		return $this;
 	}
 	
@@ -466,10 +493,11 @@ class query extends tgsfBase
 	* @param String The name of the table we're updating
 	* @return $this - current instance for method chaining.
 	*/
-	public function &update( $tableName )
+	public function &update( $table )
 	{
-		$this->_updateTable = $tableName;
 		$this->_type = qtUPDATE;
+		$this->_updateTable = $table;
+		$this->_table = $table;
 		return $this;
 	}
 	
@@ -612,6 +640,43 @@ class query extends tgsfBase
 			throw new tgsfDbException( 'Error executing query - error is: ' . implode( "\n", $this->_stmHandle->errorInfo() ) );
 		}
 		$this->_executed = true;
+		return $this;
+	}
+	
+	//------------------------------------------------------------------------
+	
+	public function &log( $pk1 = '' )
+	{
+		/*
+		ob_start();
+		var_dump( $this );
+		$me = ob_get_contents();
+		ob_end_clean();
+		*/
+	
+		$ds = new dbDataSource();
+		$ds->set( array(
+		    'log_table'  => $this->_table,
+		    'log_type'   => $this->_type,
+		    'log_pk1'    => $pk1,
+		    'log_sql'    => $this->generate(),
+		    'log_params' => serialize( $this->_params )
+		) );
+	
+		$q = new query();
+	
+		$q->insert_into( 'db_log' )
+		  ->pt( ptSTR )
+		  ->insert_fields( array(
+		    	'log_table',
+		    	'log_type',
+		    	'log_pk1',
+		    	'log_sql',
+		    	'log_params'
+		    ))
+		  ->autoBind( $ds )
+		  ->exec();
+	
 		return $this;
 	}
 	

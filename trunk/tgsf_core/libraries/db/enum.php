@@ -8,11 +8,11 @@ for complete licensing information.
 
 enum( 'qt',
 	array(
-		'NONE',
-		'SELECT',
-		'INSERT',
-		'UPDATE',
-		'DELETE'
+		'NONE'   => NULL,
+		'SELECT' => 'SELECT',
+		'INSERT' => 'INSERT',
+		'UPDATE' => 'UPDATE',
+		'DELETE' => 'DELETE'
 		)
 	);
 

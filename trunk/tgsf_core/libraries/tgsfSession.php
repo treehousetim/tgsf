@@ -52,10 +52,14 @@ class tgsfSession extends tgsfBase
 	*/
 	public function &start()
 	{
+		if ( TGSF_CLI )
+		{
+			return $this;
+		}
+		
 		if ( $this->_ro_started === false )
 		{
 			load_config( 'session' );
-			
 			ini_set( 'session.use_trans_sid',		false					);
 			ini_set( 'url_rewriter.tags',			''						);
 			ini_set( 'session.use_cookies',			true					);

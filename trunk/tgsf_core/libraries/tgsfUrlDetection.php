@@ -6,27 +6,28 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 //------------------------------------------------------------------------
-function current_base_url_path()
+function current_base_url_path( $returnSingleSlash = false )
 {
 	list( $base_url_path ) = explode( '/index.php', $_SERVER['SCRIPT_NAME'] );
 	$out = trim( $base_url_path, '/' ) . '/';
-	
-	if ( $out == '/' )
+
+	if ( $out == '/' && $returnSingleSlash == false )
 	{
 		$out = '';
 	}
+
 	return $out;
 }
 //------------------------------------------------------------------------
 function current_protocol()
 {
 	$protocol = 'http';
-	
+
 	if ( ! empty( $_SERVER['https'] ) && $_SERVER['https'] === 'on' )
 	{
 		$protocol = 'https';
 	}
-	
+
 	return $protocol;
 }
 //------------------------------------------------------------------------
@@ -36,7 +37,7 @@ function current_has_www()
 	return starts_with( $host, 'www.' );
 }
 //------------------------------------------------------------------------
-function current_host()
+function current_domain()
 {
 	list( $host ) = explode( ':', $_SERVER['HTTP_HOST'] );
 
@@ -44,10 +45,17 @@ function current_host()
 	{
 		$host = substr( $host, 4 );
 	}
-	
+	return $host;
+}
+//------------------------------------------------------------------------
+function current_host()
+{
+	$host = current_domain();
+
 	// if the host is not localhost, and it is the live host (as defined in the app config)
 	// and we have host_www turned on (as defined in the app config)
 	// then add www. to the hostname.
+	// TODO: add dotted ip addresses here
 	if ( $host != 'localhost' && $host == config( 'live_host' ) && config( 'host_www' ) == true )
 	{
 		$host = 'www.' . $host;
@@ -59,7 +67,7 @@ function current_host()
 function current_port()
 {
 	$port = '';
-	
+
 	if ( ! isset( $_SERVER['SERVER_PORT'] ) )
 	{
 		list( $host, $port ) = explode( ':', $_SERVER['HTTP_HOST'] );
@@ -69,7 +77,7 @@ function current_port()
 	{
 		$port = $_SERVER['SERVER_PORT'];
 	}
-	
+
 	if ( $port == '80' )
 	{
 		$port = '';
@@ -78,7 +86,7 @@ function current_port()
 	{
 		$port = ':' . $_SERVER['SERVER_PORT'];
 	}
-	
+
 	return $port;
 }
 

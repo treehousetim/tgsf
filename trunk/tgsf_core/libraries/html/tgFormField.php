@@ -26,6 +26,8 @@ class tgsfFormField extends tgsfBase
 	protected	$_ro_tag		= null;
 	protected	$_ro_label		= null;
 	protected	$_ro_valueSet	= false;
+	protected	$_ro_labelAttributes = array();
+	protected	$_ro_fieldAttributes = array();
 	//------------------------------------------------------------------------
 	public		$form			= null;
 	//------------------------------------------------------------------------
@@ -164,6 +166,16 @@ class tgsfFormField extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Sets an attribute for the label
+	* @param String The name of the attribute
+	* @param String The value of the attribute
+	*/
+	public function setLabelAttribute( $name, $value )
+	{
+		$this->_ro_labelAttributes[$name] = $value;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* creates and returns $this->label
 	*/
 	public function getLabelTag()
@@ -172,6 +184,7 @@ class tgsfFormField extends tgsfBase
 		if ( $this->_ro_label === null )
 		{
 			$label = new tgsfHtmlTag( 'label' );
+			$label->setAttributes( $this->_ro_labelAttributes );
 			$label->css_class( $this->_type );
 			$this->_ro_label =& $label;
 			
@@ -189,6 +202,16 @@ class tgsfFormField extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Sets an attribute for the field
+	* @param String The name of the attribute
+	* @param String The value of the attribute
+	*/
+	public function setFieldAttribute( $name, $value )
+	{
+		$this->_ro_fieldAttributes[$name] = $value;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Returns and sets $this->tag (read only) as a new tgsfHtmlTag object
 	*/
 	public function getFieldTag()
@@ -198,6 +221,7 @@ class tgsfFormField extends tgsfBase
 		if ( $this->_ro_tag === null )
 		{
 			$tag = new tgsfHtmlTag( 'input' );
+			$tag->setAttributes( $this->_ro_fieldAttributes );
 			$this->_ro_tag =& $tag;
 			
 			$tag->addAttribute( 'name', $this->_name, SINGLE_ATTR_ONLY );

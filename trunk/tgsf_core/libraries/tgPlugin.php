@@ -67,13 +67,21 @@ class tgPlugin
 	function registerPlugin( $file, $name )
 	{
 		$out = false;
-		if ( file_exists(  $file ) && ! in_array( array_keys( $this->_plugins ), $file ) )
+		if ( file_exists(  $file ) )
 		{
-			$this->_pluginNames[] = $name;
-			$this->_plugins[$file]['name'] = $name;
-			$this->_plugins[$file]['file'] = $file;
-			$out = true;
-			$this->doAction( 'register_plugin', $file );
+			if ( ! in_array( $file, array_keys( $this->_plugins ) ) )
+			{
+				$this->_pluginNames[] = $name;
+				$this->_plugins[$file]['name'] = $name;
+				$this->_plugins[$file]['file'] = $file;
+				$out = true;
+				$this->doAction( 'register_plugin', $file );
+				$this->doAction( 'register_plugin_' . $name, $file );
+			}
+		}
+		else
+		{
+			throw new tgsfException( 'Unable to load plugin file for plugin (' . $name . '): ' . $file );
 		}
 		return $out;
 	}
@@ -118,7 +126,7 @@ class tgPlugin
 			{
 				foreach ( $items as $action )
 				{
-					$retVal[] = call_user_func( $action, $params );
+					$retVal[] = call_user_func_array( $action, $params );
 				}
 			}
 		}

@@ -25,11 +25,17 @@ class tgsfGridCol extends tgsfHtmlTag
 	protected $_ro_footerCell	= null;
 	
 	protected $_renderFunc		= null;
+	
+	protected $_ro_url			= null;
+	protected $_ro_urlvars		= array();
+	protected $_ro_fields		= array();
+	protected $_ro_mailToField		= '';
 
 	//------------------------------------------------------------------------
 	public function __construct( $name )
 	{
-		$this->_ro_fieldName = $name;
+		$this->_ro_fields = (array)$name;
+		$this->_ro_fieldName = $this->_ro_fields[0];
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -81,16 +87,80 @@ class tgsfGridCol extends tgsfHtmlTag
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Sets a url object on the column - this is set as the content of cells
+	* with the rendered content as the link text
+	* @param Object::tgsfUrl A url object used to create a link with the cell contents
+	*/
+	public function &url( $url, $urlVars )
+	{
+		if ( $url instanceof tgsfUrl )
+		{
+			$this->_ro_url = clone $url;
+		}
+		else
+		{
+			$this->_ro_url = URL( (string)$url );
+		}
+
+		$this->_ro_urlVars = (array)$urlVars;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets a column up to generate a mailto link
+	*/
+	public function mailTo( $fieldName )
+	{
+		$this->_ro_mailToField = $fieldName;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Internal function to get the content of a cell
+	*/
+	protected function _getCellContent( $cell, &$row )
+	{
+		$fields = (array)$row;
+		
+		foreach( $this->_ro_fields as $fieldPart )
+		{
+			if ( array_key_exists( $fieldPart, $fields ) )
+			{
+				$cell->content( $fields[$fieldPart], APPEND_CONTENT );
+			}
+			else
+			{
+				$cell->content( $fieldPart, APPEND_CONTENT );
+			}
+		}
+		
+		if ( $this->_ro_url instanceof tgsfUrl )
+		{
+			foreach( $this->_ro_urlVars as $fieldName => $urlVar )
+			{
+				$this->_ro_url->setVar( $urlVar, $fields[$fieldName] );
+			}
+			$a = $this->_ro_url->anchorTag()->content( $cell->content );
+			$cell->content( $a );
+		}
+		elseif( ! empty( $this->_ro_mailToField ) )
+		{
+			$email = $fields[$this->_ro_mailToField];
+			$cell->content( '<a class="mailto" href="mailto:' . $email . '">' . $email . '</a>' );
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
 	*
 	*/
-	public function renderCell( &$row, $tr, $cellType = ROW_NORMAL )
+	protected function &_getCellObject( &$tr, $type )
 	{
-		if ( $cellType == ROW_HEADER )
+		if ( $type == ROW_HEADER )
 		{
 			$cell = $tr->_( 'th' );
 			$this->_ro_headerCell =& $cell;
+			$cell->content( $this->_ro_caption );
 		}
-		elseif ( $cellType == ROW_FOOTER )
+		elseif ( $type == ROW_FOOTER )
 		{
 			$cell = $tr->_( 'td' );
 			$this->_ro_footerCell =& $cell;
@@ -101,24 +171,25 @@ class tgsfGridCol extends tgsfHtmlTag
 		}
 		
 		$cell->setAttributes( $this->attributes );
+
+		return $cell;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function renderCell( &$row, $tr, $cellType = ROW_NORMAL )
+	{
+		$cell = $this->_getCellObject( $tr, $cellType );
 		
-		if ( $cellType == ROW_HEADER )
+		if ( $cellType != ROW_HEADER )
 		{
-		    $cell->content( $this->_ro_caption );
-		}
-		else
-		{
-		    if ( $row === null )
-		    {
-		    	throw new tgsfGridException( 'Grid Row may not be null for non-header rows.' );
-		    }
-		    
-		    $fields = (array)$row;
-			
-			if ( isset($fields[$this->_ro_fieldName]) )		    
+			if ( $row === null )
 			{
-		    	$cell->content( $row->{$this->_ro_fieldName} );
-		    }
+				throw new tgsfGridException( 'Grid Row may not be null for non-header rows.' );
+			}
+
+			$this->_getCellContent( $cell, $row );
 		}
 
 		if ( $this->_renderFunc !== null )
@@ -161,20 +232,24 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	public		$emptyMessage	= 'Nothing to show';
 	public		$altRowClasses	= array( '', 'alt' );
 	//------------------------------------------------------------------------
-	final public function __construct()
+	public function __construct()
 	{
+		$this->css_class( 'grid' );
 		parent::__construct( 'table' );
 		$this->_setup();
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Adds a column to the grid
+	* Pass any number of parameters.  Any literal text should be prefixed by two underscores - otherwise it will be assumed to be a field name.
+	* example: addCol( 'last_name', ', ', 'first_name' );
 	* @param String The name of the column - should be the name of the property in the row object
 	* unless we're providing a render function for a column.
 	*/
-	public function &addCol( $name )
+	public function &addCol()
 	{
-		$col = new tgsfGridCol( $name );
+		$parts = func_get_args();
+		$col = new tgsfGridCol( $parts );
 		$this->_cols[] =& $col;
 		return $col;
 	}
