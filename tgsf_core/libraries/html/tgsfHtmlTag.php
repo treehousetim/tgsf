@@ -9,12 +9,15 @@ for complete licensing information.
 define( 'SINGLE_ATTR_ONLY', true );
 define( 'MULTI_ATTR', false );
 define( 'NON_TAG_CONTENT', '' );
+define( 'RENDER_OPEN_TAG_ONLY', true );
+define( 'APPEND_CONTENT', true );
 //------------------------------------------------------------------------
 /**
 * An html tag container
 */
 class tgsfHtmlTag extends tgsfBase
 {
+	public $parent;
 	protected $_children		= array();
 	protected $_ro_tag;
 	protected $_ro_attributes	= array();
@@ -97,6 +100,7 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			$item = new tgsfHtmlTag( (string)$tag );
 		}
+		$item->parent = $this;
 
 		$this->_children[] = $item;
 		return $item;
@@ -170,6 +174,11 @@ class tgsfHtmlTag extends tgsfBase
 		// it's up to somewhere else to implode or otherwise handle these arrays
 		( ! empty( $this->_ro_attributes[$name] ) )
 		{
+			if ( ! is_array($this->_ro_attributes[$name]) )
+			{
+				$this->_ro_attributes[$name] =(array)$this->_ro_attributes[$name];
+			}
+		
 			if ( !in_array( $value, $this->_ro_attributes[$name] ) )
 			{
 				$this->_ro_attributes[$name][] = $value;
@@ -216,6 +225,7 @@ class tgsfHtmlTag extends tgsfBase
 	/**
 	* Adds to the content of the tag.  Tag content always comes above child items that are added to the tag
 	* @param String The content to add to the tag.
+	* @param Bool Append new content to existing content.  Use define APPEND_CONTENT
 	*/
 	public function &content( $content, $append = false )
 	{
@@ -234,7 +244,7 @@ class tgsfHtmlTag extends tgsfBase
 	* Renders the tag
 	* @param Object The tag to render
 	*/
-	protected function _renderItem( &$htmlTag )
+	protected function _renderItem( &$htmlTag, $openTagOnly = false )
 	{
 		$content = $htmlTag->content;
 
@@ -260,10 +270,16 @@ class tgsfHtmlTag extends tgsfBase
 		}
 		
 		$out = "<{$htmlTag->tag}{$atrString}";
-
-		if ( $content != '' )
+		if ( $openTagOnly == false )
 		{
-			$out .= ">{$content}</{$htmlTag->tag}>";
+			if ( $content != '' )
+			{
+				$out .= ">{$content}</{$htmlTag->tag}>";
+			}
+			else
+			{
+				$out .= '>';
+			}
 		}
 		else
 		{
@@ -289,5 +305,10 @@ class tgsfHtmlTag extends tgsfBase
 			$this->_ro_content .= $this->_renderItem( $item );
 		}
 		return $this->_renderItem( $this );
+	}
+	//------------------------------------------------------------------------
+	public function renderTagOnly()
+	{
+		return $this->_renderItem( $this, RENDER_OPEN_TAG_ONLY );
 	}
 }

@@ -70,24 +70,26 @@ abstract class tgsfForm extends tgsfHtmlTag
 	abstract protected function _setupValidate( &$v );
 	/* abstract */ public function onLabel( &$label ){}
 	/* abstract */ public function onField( &$field ){}
-	/* abstract */ public function onSelectOption( $field ){}
+	/* abstract */ public function onSelectOption( &$field ){}
+	/* abstract */ public function onGroupContainer( &$container, $groupName ){}
+	
 	//------------------------------------------------------------------------
 
 	public function __construct()
 	{
 		parent::__construct( 'form' );
-		$this->addAttribute( 'method', 'POST', SINGLE_ATTR_ONLY );
+		$this->setAttribute( 'method', 'POST' );
 	}
 	//------------------------------------------------------------------------
-	protected function useTemplate( $template )
+	protected function useTemplate( $template, $core = true )
 	{
-		if ( is_object( $template ) )
+		if ( is_object( $template ) && $template instanceof tgsfFormTemplate )
 		{
 			$this->_template = $template;
 		}
 		else
 		{
-			$this->_template = load_template_library( 'form/' . $template );
+			$this->_template = load_template_library( 'form/' . $template, $core );
 		}
 	}
 	//------------------------------------------------------------------------
@@ -104,6 +106,10 @@ abstract class tgsfForm extends tgsfHtmlTag
 		return $this->_validator;
 	}
 	//------------------------------------------------------------------------
+	public function &validator()
+	{
+		return $this->_getValidator();
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Sets a datasource for this form.
@@ -145,6 +151,12 @@ abstract class tgsfForm extends tgsfHtmlTag
 	*/
 	public function &fieldByName( $name )
 	{
+		if ( $this->_ro_setup === false )
+		{
+			$this->_setup();
+			$this->_ro_setup = true;
+		}
+
 		return $this->_fieldsByName[$name];
 	}
 	//------------------------------------------------------------------------
@@ -163,7 +175,20 @@ abstract class tgsfForm extends tgsfHtmlTag
 	*/
 	public function processor( $url )
 	{
-		$this->addAttribute( 'action', $url, SINGLE_ATTR_ONLY );
+		$this->setAttribute( 'action', $url );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function renderTagOnly()
+	{
+		if ( $this->_ro_setup === false )
+		{
+			$this->_setup();
+			$this->_ro_setup = true;
+		}
+		return parent::renderTagOnly();
 	}
 	//------------------------------------------------------------------------
 	/*
@@ -186,12 +211,14 @@ abstract class tgsfForm extends tgsfHtmlTag
 
 		$curGroup = $this->_fields[0]->group;
 		$container = $this->_template->fieldContainer( $this, $curGroup );
+		$this->onGroupContainer( $container, $curGroup );
 
 		foreach ( $this->_fields as &$field )
 		{
 			if ( $field->group != $curGroup )
 			{
 				$container = $this->_template->fieldContainer( $this, $field->group );
+				$this->onGroupContainer( $container, $field->group );
 			}
 			$curGroup = $field->group;
 			

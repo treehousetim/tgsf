@@ -177,6 +177,12 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	public function &future_date()
+	{
+		$this->_( vt_future_date );
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	public function &date()
 	{
 		$this->_( vt_date );

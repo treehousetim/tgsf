@@ -6,20 +6,32 @@ http://tgWebSolutions.com/opensource/tgsf/license
 for complete licensing information.
 */
 
+define( 'tgsfRoleGuest', 0 );
+define( 'tgsfRoleMember', 20 );
+define( 'tgsfRoleContributor', 40 );
+define( 'tgsfRoleEditor', 60 );
+define( 'tgsfRoleAdmin', 80 );
+define( 'tgsfRoleSuperAdmin', 100 );
 
-function &AUTH()
+function &AUTH( $model = null )
 {
-	return tgsfUserAuth::get_instance();
+	return tgsfUserAuth::get_instance( $model );
 }
-
+//------------------------------------------------------------------------
+function AUTH_is_configured()
+{
+	return tgsfUserAuth::$configured;
+}
+//------------------------------------------------------------------------
 class tgsfUserAuth extends tgsfBase
 {
 	private static	$_instance			= null;
-	
+	public static $configured			= false;
+
 	protected	$_ro_loggedIn			= false;
 	protected	$_ro_user				= null;
-	public		$model					= null;
-	public		$loginUrl				= '';
+	protected	$model					= null;
+	public		$loginUrl				= null;
 
 	//------------------------------------------------------------------------
 	/**
@@ -27,16 +39,24 @@ class tgsfUserAuth extends tgsfBase
 	* user's login record if so.
 	* it is also protected as we will be using the get_instance method to instantiate
 	*/
-	protected function __construct()
+	protected function __construct( $model )
 	{
-		session_start();
+		$this->model = $model;
+		SESSION()->start();
 		$this->_ro_loggedIn = ! empty( $_SESSION['loggedin'] ) && $_SESSION['loggedin'] === true;
-		$this->model = load_model( 'login' );
-		
-		if ( $this->_ro_loggedIn === true )
+
+		if ( $this->_ro_loggedIn === true && $this->model !== null )
 		{
-			$this->_ro_user	= $this->model->getForAuth( $_SESSION['record_id'] );
+			if ( array_key_exists( 'record_id', $_SESSION ) === false )
+			{
+				$this->logout();
+			}
+			else
+			{
+				$this->_ro_user	= $this->model->getForAuth( $_SESSION['record_id'] );
+			}
 		}
+		self::$configured = true;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -51,12 +71,25 @@ class tgsfUserAuth extends tgsfBase
 		{
 			$this->_ro_user = $row;
 			$_SESSION['loggedin'] = true;
-			$_SESSION['record_id'] = $this->model->getRecordId( $row );
+			$_SESSION['record_id'] = $this->model->getAuthRecordId( $row );
+			$this->_ro_user	= $this->model->getForAuth( $_SESSION['record_id'] );
 			return true;
 		}
 
 		$this->logout();
 		return false;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns the logged in user's id
+	*/
+	public function getLoginId()
+	{
+		if ( ! is_null( $this->_ro_user ) )
+		{
+			return $this->model->getAuthRecordId( $this->_ro_user );
+		}
+		return null;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -74,25 +107,57 @@ class tgsfUserAuth extends tgsfBase
 	/**
 	*
 	*/
-	public function requireLogin()
+	public function &requireLogin()
 	{
+		do_action( 'AUTH_login_check', $this->loggedIn, $this );
+
 		if ( ! $this->loggedIn )
 		{
-			redirect( $this->loginUrl );
+			$this->loginUrl->redirect();
 		}
+		
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* If a user does not have the minimum role specified (integer) or higher,
+	* a 404 is displayed.
+	*/
+	public function &minRole( $minRole )
+	{
+		do_action( 'AUTH_min_role', $minRole, $this );
+
+		if ( $this->loggedIn === true )
+		{
+			if ( $this->model->getAuthRole( $this->_ro_user ) >= $minRole )
+			{
+				return $this;
+			}
+		}
+
+		// we display a 404 because we don't want to even acknowledge
+		// that a page exists to a user unless they have the clearance to
+		// view it.
+
+		display_404();
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Static function that returns the singleton instance of this class.
 	*/
-	public static function &get_instance()
+	public static function &get_instance( $model )
 	{
 		if ( self::$_instance === null )
 		{
+			if ( is_null( $model ) )
+			{
+				throw new tgsfException( 'A model is required when calling AUTH for the first time.' );
+			}
+
 			$c = __CLASS__;
-			self::$_instance = new $c;
+			self::$_instance = new $c( $model );
 		}
-		
+
 		return self::$_instance;
 	}
 	//------------------------------------------------------------------------

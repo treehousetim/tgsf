@@ -1,9 +1,4 @@
 <?php
-if ( get_magic_quotes_gpc() == 1 )
-{
-	die( 'You must turn magic quotes off.<br>http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc' );
-}
-
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -11,6 +6,13 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
+// this can be manually removed for production systems that are set up correctly.
+if ( get_magic_quotes_gpc() == 1 )
+{
+	die( 'You must turn magic quotes off.<br>http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc' );
+}
+
+define( 'TGSF_CLI',			false							);
 define( 'BASEPATH',			dirname( __FILE__ ) . '/'		);
 define( 'CORE_PATH',		BASEPATH . 'tgsf_core/'			);
 define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
@@ -35,6 +37,9 @@ try
 	// the file that determines which application we're loading - not modified for updates.
 	require BASEPATH . 'app_detector.php';
 
+	// not loaded in core-loader.php because of how CLI works
+	load_library( 'tgsfDataSource', IS_CORE_LIB );
+
 	// load the core libraries and whatnot
 	include CORE_PATH . 'core-loader.php';
 
@@ -42,7 +47,7 @@ try
 
 	// page is a global variable that is used in other places.
 	$page = tgsf_parse_url();
-	
+
 	require resolve_controller( $page );
 
 	if ( config( 'debug_mode' ) )

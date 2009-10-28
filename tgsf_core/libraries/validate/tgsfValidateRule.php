@@ -175,7 +175,7 @@ class tvr_gt extends tgsfValidateRule
 			return $this->valid = false;
 		}
 
-		$this->valid = int($value) > (int)$this->value || (float)$value > (float)$this->value;
+		$this->valid = (int)$value > (int)$this->value || (float)$value > (float)$this->value;
 		return $this->valid;
 	}
 }
@@ -191,7 +191,7 @@ class tvr_gte extends tgsfValidateRule
 			return $this->valid = false;
 		}
 
-		$this->valid = int($value) >= (int)$this->value || (float)$value >= (float)$this->value;
+		$this->valid = (int)$value >= (int)$this->value || (float)$value >= (float)$this->value;
 		return $this->valid;
 	}
 }
@@ -208,7 +208,7 @@ class tvr_lt extends tgsfValidateRule
 			return $this->valid = false;
 		}
 
-		$this->valid = int($value) < (int)$this->value || (float)$value < (float)$this->value;
+		$this->valid = (int)$value < (int)$this->value || (float)$value < (float)$this->value;
 		return $this->valid;
 	}
 }
@@ -225,7 +225,7 @@ class tvr_lte extends tgsfValidateRule
 			return $this->valid = false;
 		}
 
-		$this->valid = int($value) <= (int)$this->value || (float)$value <= (float)$this->value;
+		$this->valid = (int)$value <= (int)$this->value || (float)$value <= (float)$this->value;
 		return $this->valid;
 	}
 }
@@ -268,6 +268,24 @@ class tvr_date extends tgsfValidateRule
 			$day	= (int)$pieces[1];
 			$year	= (int)$pieces[2];
 			$this->valid = checkdate( $month, $day, $year );
+		}
+		
+		return $this->valid;
+	}
+}
+//------------------------------------------------------------------------
+class tvr_future_date extends tvr_date
+{
+	public $errorMessage = ' must be a valid date after today';
+	public function execute( $fieldName, $ds )
+	{
+		$this->valid = parent::execute( $fieldName, $ds );
+		
+		if ( $this->valid )
+		{
+			$date = strtotime( $ds->_( $fieldName ) );
+			$now = strtotime( date('Y-m-d', strtotime('+1 day') ) );
+			$this->valid = $date >= $now;
 		}
 		
 		return $this->valid;

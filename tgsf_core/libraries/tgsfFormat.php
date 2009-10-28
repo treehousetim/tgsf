@@ -22,7 +22,7 @@ class tgsfFormat extends tgsfBase
 	{
 		// do nothing
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Static function that returns the singleton instance of this class.
@@ -34,10 +34,10 @@ class tgsfFormat extends tgsfBase
 			$c = __CLASS__;
 			self::$_instance = new $c;
 		}
-		
+
 		return self::$_instance;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Prevent users from cloning the instance
@@ -50,7 +50,7 @@ class tgsfFormat extends tgsfBase
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
-	
+
 	public function usa_phone( $text, $formatWithParens = false )
 	{
 		$pattern = '\\1-\\2-\\3';
@@ -60,5 +60,47 @@ class tgsfFormat extends tgsfBase
 		}
 		return trim( preg_replace('/\\(?([0-9]{3})\\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})/', $pattern, $text ) );
 	}
-	
+	//------------------------------------------------------------------------
+	/**
+	* Formats a date
+	*/
+	public function date( $text )
+	{
+		$ts = strtotime( $text );
+		if ( $ts === false )
+		{
+			return '';
+		}
+
+		return date( 'm/d/Y', $ts );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Formats a currency amount
+	*/
+	public function currency( $amount )
+	{
+		setlocale( LC_MONETARY, 'en_US' );
+
+// money_format is NOT supported under windows
+// return money_format( '%n', (float)$amount );
+
+        // english notation with thousands seperator
+        return number_format($amount, 2, '.', ',');
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Mask data such as account numbers, etc
+	*/
+	public function obfuscate( $data, $len = 4, $chr = '*' )
+	{
+		$repeat = strlen($data) - (int)$len;
+
+		if ( $repeat < 1 )
+		{
+			$repeat = ceil( strlen($data) / 2 );
+		}
+
+		return str_repeat( $chr, $repeat ) . substr( $data, $repeat );
+	}
 }

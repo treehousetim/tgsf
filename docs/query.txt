@@ -20,7 +20,7 @@ pt( paramType )
 
 
 examples:
-$ds = new tgsfDataSource();
+$ds = tgsfDataSource::factory();
 // set ds here or use another datasource that's already set
 
 $q = new query();
