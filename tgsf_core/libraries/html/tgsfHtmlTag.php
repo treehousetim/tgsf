@@ -18,12 +18,14 @@ define( 'APPEND_CONTENT', true );
 class tgsfHtmlTag extends tgsfBase
 {
 	public $parent;
-	protected $_children		= array();
+	protected $_children				= array();
 	protected $_ro_tag;
-	protected $_ro_attributes	= array();
-	protected $_ro_content		= '';
-	protected $_ro_contentOnly	= false;
-	protected $empty_message    = null;
+	protected $_ro_attributes			= array();
+	protected $_ro_content				= '';
+	protected $_ro_unfilteredContent	= '';
+	protected $_ro_contentOnly			= false;
+	protected $empty_message    		= null;
+	protected $_ro_contentFilter		= null;
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -52,6 +54,19 @@ class tgsfHtmlTag extends tgsfBase
 		}
 
 		throw new tgsfException( 'No attribute by that name has been set.' );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function child( $ix = -1 )
+	{
+		if ( $ix < 0 )
+		{
+			return $this->_children;
+		}
+		
+		return $this->_children[$ix];
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -193,6 +208,14 @@ class tgsfHtmlTag extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* returns true/false if an attribute has been set on this tag
+	*/
+	public function hasAttribute( $name )
+	{
+		return array_key_exists( $name, $this->_ro_attributes );
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Sets an attribute ($name) to a $value
 	* @param String The name of the attribute
 	* @param String The value of the attribute
@@ -220,6 +243,26 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			unset( $this->_ro_attributes[$name] );
 		}
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &contentFilter( $callBack, $object = null )
+	{
+		$cb = array( $object, $callBack );
+				
+		if ( is_callable( $cb ) )
+		{
+			$this->_ro_contentFilter =& $cb;
+		}
+		else
+		{
+			$this->_ro_contentFilter = $callBack;
+		}
+
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -236,6 +279,13 @@ class tgsfHtmlTag extends tgsfBase
 		else
 		{
 			$this->_ro_content = $content;
+		}
+
+		$this->_ro_unfilteredContent = $this->_ro_content;
+
+		if ( is_callable( $this->_ro_contentFilter ) )
+		{
+			$this->_ro_content = call_user_func( $this->_ro_contentFilter, $this->_ro_content );
 		}
 		return $this;
 	}
@@ -270,9 +320,9 @@ class tgsfHtmlTag extends tgsfBase
 		}
 		
 		$out = "<{$htmlTag->tag}{$atrString}";
-		if ( $openTagOnly == false )
+		if ( in_array( $htmlTag->tag, array( 'input', 'br', 'hr', 'embed' ) ) === false )
 		{
-			if ( $content != '' )
+			if ( $openTagOnly == false )
 			{
 				$out .= ">{$content}</{$htmlTag->tag}>";
 			}
@@ -280,6 +330,16 @@ class tgsfHtmlTag extends tgsfBase
 			{
 				$out .= '>';
 			}
+/*
+			if ( $content != '' )
+			{
+				$out .= ">{$content}</{$htmlTag->tag}>";
+			}
+			else
+			{
+				$out .= '>';
+			}*/
+
 		}
 		else
 		{

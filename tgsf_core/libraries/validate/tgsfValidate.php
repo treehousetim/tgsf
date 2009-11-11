@@ -14,6 +14,8 @@ enum( 'vt_',
 	array(
 		'alpha',
 		'alpha_numeric',
+		'alphanum_extended',
+		'numeric',
 		'required',
 		'min_len',
 		'max_len',

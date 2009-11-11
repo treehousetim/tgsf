@@ -109,6 +109,17 @@ class tvr_alpha_numeric extends tgsfValidateRule
 	}
 }
 //------------------------------------------------------------------------
+class tvr_alphanum_extended extends tgsfValidateRule
+{
+	public $emptyValueValid = true;
+	public $errorMessage = ' may not contain / \ ? or = characters.';
+	public function execute( $fieldName, $ds )
+	{
+		$this->valid = preg_match( '%^[^/\\\\?=]+$%', $ds->_( $fieldName ) );
+		return $this->valid;
+	}
+}
+//------------------------------------------------------------------------
 class tvr_required extends tgsfValidateRule
 {
 	public $errorMessage = ' is required';
@@ -148,6 +159,17 @@ class tvr_int extends tgsfValidateRule
 	public function execute( $fieldName, $ds )
 	{
 		$this->valid = preg_match( '/^[0-9]+$/i', $ds->_( $fieldName ) );
+		return $this->valid;
+	}
+}
+//------------------------------------------------------------------------
+class tvr_numeric extends tgsfValidateRule
+{
+	public $emptyValueValid = true;
+	public $errorMessage = ' must be a number';
+	public function execute( $fieldName, $ds )
+	{
+		$this->valid = preg_match('/^[0-9]+[.]?+[0-9]*$/', $ds->_( $fieldName ) );
 		return $this->valid;
 	}
 }
@@ -220,10 +242,6 @@ class tvr_lte extends tgsfValidateRule
 		$this->errorMessage = ' must be less than or equal to ' . $this->value;
 
 		$value = $ds->_( $fieldName );
-		if ( empty( $value ) )
-		{
-			return $this->valid = false;
-		}
 
 		$this->valid = (int)$value <= (int)$this->value || (float)$value <= (float)$this->value;
 		return $this->valid;
@@ -276,15 +294,16 @@ class tvr_date extends tgsfValidateRule
 //------------------------------------------------------------------------
 class tvr_future_date extends tvr_date
 {
-	public $errorMessage = ' must be a valid date after today';
 	public function execute( $fieldName, $ds )
 	{
+		$this->errorMessage = ' must be a valid date ' . (int)$this->numDays . ' day(s) after today';
+		
 		$this->valid = parent::execute( $fieldName, $ds );
 		
 		if ( $this->valid )
 		{
 			$date = strtotime( $ds->_( $fieldName ) );
-			$now = strtotime( date('Y-m-d', strtotime('+1 day') ) );
+			$now = strtotime( date('Y-m-d', strtotime('+' . (int)$this->numDays . ' day') ) );
 			$this->valid = $date >= $now;
 		}
 		

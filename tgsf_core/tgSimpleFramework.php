@@ -116,6 +116,12 @@ function load_search( $name, $core = false )
 	return load_cloned_object( path( 'searches', $core ), $name );
 }
 //------------------------------------------------------------------------
+function load_report( $name, $core = false )
+{
+	load_library( 'report/tgsfReport', IS_CORE_LIB );
+	return load_cloned_object( path( 'reports', $core ), $name );
+}
+//------------------------------------------------------------------------
 /**
 * Loads an instantiated template library.  Works just like models.
 * Unlike most other load functions, this one is controlled by a global variable
@@ -291,8 +297,8 @@ function force_trailing_slash()
 	define( 'tgTrailingSlash', true );
 	if ( empty( $_SERVER['REDIRECT_QUERY_STRING'] ) && ! empty( $_SERVER['REDIRECT_URL'] ) && strlen( $_SERVER['REDIRECT_URL'] ) && substr( $_SERVER['REDIRECT_URL'], -1 ) != '/' )
 	{
-		$vars = array();
-		$page = tgsf_parse_url( $vars );
+		$page = tgsf_parse_url();
+		$vars = empty( $_GET['__tgsf_vars'] )?array():$_GET['__tgsf_vars'];
 
 		$extra = '';
 		if ( count( $vars ) )
@@ -794,6 +800,20 @@ function general_log( $message, $file = 'general_log.txt' )
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 // utility functions
+//------------------------------------------------------------------------
+/**
+*
+*/
+function wrap_not_empty( $before, $subject, $after = '' )
+{
+	if ( ! empty( $subject ) )
+	{
+		$subject = $before . $subject . $after;
+	}
+
+	return $subject;
+}
+//------------------------------------------------------------------------
 /**
 * Cleans out possible email header injection attacks.  Spammers try to inject new line characters as delimiters
 * so they can put in their own headers in an email message.  We're simply removing them.  these characters
@@ -925,26 +945,6 @@ function enum( $prefix, $items, $useValueForDefine = false )
 				define( $prefix . $key, $value );
 			}
 		}
-	}
-}
-//------------------------------------------------------------------------
-/**
-* if the passed argument is already an array then nothing is done.
-* if the passed argument is not an array then an a
-* @param Mixed The variable to test for arrayness
-* @param Array The return variable
-*/
-function arrayify( &$in, &$out )
-{
-	if ( ! is_array( $in ) )
-	{
-		$out = array();
-		$out[] = $in;
-	}
-	else
-	{
-		$out = array();
-		$out = $in;
 	}
 }
 //------------------------------------------------------------------------

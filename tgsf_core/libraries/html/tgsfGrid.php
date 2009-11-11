@@ -13,206 +13,18 @@ enum ( 'st', array( 'STR', 'DATE', 'MONEY' ) );
 // ROW_HEADER, ROW_NORMAL, ROW_FOOTER
 enum ( 'ROW_', array( 'ALL', 'HEADER', 'NORMAL', 'FOOTER' ) );
 
+enum( 'grt', array(
+	'HTML_TABLE',
+	'CSV'
+	));
+	
+define( 'CSV_INCLUDE_HEADER', true );
+
 load_library( 'html/tgsfHtmlTag', IS_CORE_LIB );
-
-class tgsfGridCol extends tgsfHtmlTag
-{
-	protected $_ro_sortable		= false;
-	protected $_ro_sort_type	= stSTR;
-	protected $_ro_caption		= '';
-	protected $_ro_fieldName	= '';
-	protected $_ro_headerCell	= null;
-	protected $_ro_footerCell	= null;
-	
-	protected $_renderFunc		= null;
-	
-	protected $_ro_url			= null;
-	protected $_ro_urlvars		= array();
-	protected $_ro_fields		= array();
-	protected $_ro_mailToField		= '';
-
-	//------------------------------------------------------------------------
-	public function __construct( $name )
-	{
-		$this->_ro_fields = (array)$name;
-		$this->_ro_fieldName = $this->_ro_fields[0];
-	}
-	//------------------------------------------------------------------------
-	/**
-	* Sets this column to be sortable
-	*/
-	public function sortable( $type = stSTR )
-	{
-		$this->ro_sort_type = $type;
-		$this->_ro_sortable = true;
-	}
-	//------------------------------------------------------------------------
-	/**
-	* Sets the caption on this column object.  If the ID is not set on the
-	* column, this sets the ID to clean_text( $caption )
-	* @param String The caption
-	* @return Object $this
-	*/
-	public function &caption( $caption )
-	{
-		$this->_ro_caption = $caption;
-		return $this;
-	}
-	//------------------------------------------------------------------------
-	/**
-	*
-	*/
-	public function &renderFunc( $callBack, $cellType = ROW_ALL )
-	{
-		if ( !is_array($callBack) )
-		{
-			throw new tgsfGridException( 'Callback must be an array.' );
-		}
-
-		$this->_renderFunc[$cellType] = $callBack;
-		return $this;
-	}
-	//------------------------------------------------------------------------
-	/**
-	* Assign a callback to a column
-	* @param String The name of the callback method
-	* @param Object The object to call the method on
-	* @param String [ROW_NORMAL] The cell type to execute the callback on (null, ROW_HEADER, ROW_NORMAL, ROW_FOOTER)
-	* @return Object $this
-	*/
-	public function &onRender( $callBack, &$obj, $cellType = ROW_NORMAL )
-	{
-		$this->_renderFunc[$cellType] = array( $obj, $callBack );
-		return $this;
-	}
-	//------------------------------------------------------------------------
-	/**
-	* Sets a url object on the column - this is set as the content of cells
-	* with the rendered content as the link text
-	* @param Object::tgsfUrl A url object used to create a link with the cell contents
-	*/
-	public function &url( $url, $urlVars )
-	{
-		if ( $url instanceof tgsfUrl )
-		{
-			$this->_ro_url = clone $url;
-		}
-		else
-		{
-			$this->_ro_url = URL( (string)$url );
-		}
-
-		$this->_ro_urlVars = (array)$urlVars;
-		return $this;
-	}
-	//------------------------------------------------------------------------
-	/**
-	* Sets a column up to generate a mailto link
-	*/
-	public function mailTo( $fieldName )
-	{
-		$this->_ro_mailToField = $fieldName;
-	}
-	//------------------------------------------------------------------------
-	/**
-	* Internal function to get the content of a cell
-	*/
-	protected function _getCellContent( $cell, &$row )
-	{
-		$fields = (array)$row;
-		
-		foreach( $this->_ro_fields as $fieldPart )
-		{
-			if ( array_key_exists( $fieldPart, $fields ) )
-			{
-				$cell->content( $fields[$fieldPart], APPEND_CONTENT );
-			}
-			else
-			{
-				$cell->content( $fieldPart, APPEND_CONTENT );
-			}
-		}
-		
-		if ( $this->_ro_url instanceof tgsfUrl )
-		{
-			foreach( $this->_ro_urlVars as $fieldName => $urlVar )
-			{
-				$this->_ro_url->setVar( $urlVar, $fields[$fieldName] );
-			}
-			$a = $this->_ro_url->anchorTag()->content( $cell->content );
-			$cell->content( $a );
-		}
-		elseif( ! empty( $this->_ro_mailToField ) )
-		{
-			$email = $fields[$this->_ro_mailToField];
-			$cell->content( '<a class="mailto" href="mailto:' . $email . '">' . $email . '</a>' );
-		}
-	}
-	//------------------------------------------------------------------------
-	/**
-	*
-	*/
-	protected function &_getCellObject( &$tr, $type )
-	{
-		if ( $type == ROW_HEADER )
-		{
-			$cell = $tr->_( 'th' );
-			$this->_ro_headerCell =& $cell;
-			$cell->content( $this->_ro_caption );
-		}
-		elseif ( $type == ROW_FOOTER )
-		{
-			$cell = $tr->_( 'td' );
-			$this->_ro_footerCell =& $cell;
-		}
-		else
-		{
-			$cell = $tr->_( 'td' );
-		}
-		
-		$cell->setAttributes( $this->attributes );
-
-		return $cell;
-	}
-	//------------------------------------------------------------------------
-	/**
-	*
-	*/
-	public function renderCell( &$row, $tr, $cellType = ROW_NORMAL )
-	{
-		$cell = $this->_getCellObject( $tr, $cellType );
-		
-		if ( $cellType != ROW_HEADER )
-		{
-			if ( $row === null )
-			{
-				throw new tgsfGridException( 'Grid Row may not be null for non-header rows.' );
-			}
-
-			$this->_getCellContent( $cell, $row );
-		}
-
-		if ( $this->_renderFunc !== null )
-		{
-			if ( isset($this->_renderFunc[ROW_ALL]) )
-			{
-				call_user_func( $this->_renderFunc[ROW_ALL], $this, $cell, $row, $cellType );
-			}
-		
-			if ( isset($this->_renderFunc[$cellType]) )
-			{
-				call_user_func( $this->_renderFunc[$cellType], $this, $cell, $row, $cellType );
-			}
-		}
-		
-		if ( ! $cell->content && !empty($this->empty_message) && $cellType == ROW_NORMAL )
-		{
-			$cell->content( $this->empty_message, false );
-		}
-		
-		return $cell;
-	}
-}
+load_library( 'html/tgsfGridCol', IS_CORE_LIB );
+load_library( 'html/tgsfGridRow', IS_CORE_LIB );
+load_library( 'html/tgsfGridGroup', IS_CORE_LIB );
+load_library( 'html/tgsfGridGroupFooterCell', IS_CORE_LIB );
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 /**
@@ -224,19 +36,31 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	abstract protected function _sort();
 	abstract protected function _loadRows();
 	/*abstract*/ protected function _onRow( &$tr, &$row ) {}
+	/*abstract*/ protected function _onGroup( &$tr, &$row ) {}
 	
-	protected	$_cols			= array();
-	protected	$_rows			= array();
-	protected	$_currentRow	= null;
-	protected	$_footer		= null;
+	protected	$_colDefs				= array();
+	protected	$_rows					= array();
+	protected	$_groups				= array();
+	protected	$_currentRow			= null;
+	protected	$_footer				= null;
+	protected	$_ro_renderHeaderRow	= true;
+	protected	$_ro_headerRow			= null;
 	public		$emptyMessage	= 'Nothing to show';
 	public		$altRowClasses	= array( '', 'alt' );
+	private		$_renderSetup			= false;
 	//------------------------------------------------------------------------
 	public function __construct()
 	{
 		$this->css_class( 'grid' );
 		parent::__construct( 'table' );
-		$this->_setup();
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function renderHeaderRow( $render = true )
+	{
+		$this->_ro_renderHeaderRow = $render;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -250,8 +74,26 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	{
 		$parts = func_get_args();
 		$col = new tgsfGridCol( $parts );
-		$this->_cols[] =& $col;
+		$this->_colDefs[] =& $col;
 		return $col;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function colCount()
+	{
+		return count( $this->_colDefs );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &addGroup()
+	{
+		$item =& new tgsfGridGroup();
+		$this->_groups[] =& $item;
+		return $item;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -265,7 +107,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	//------------------------------------------------------------------------
 	public function cellType( &$cell )
 	{
-		foreach( $this->_cols as $col )
+		foreach( $this->_colDefs as &$col )
 		{
 			if ( $cell == $col->headerCell ) return ROW_HEADER;
 			if ( $cell == $col->footerCell ) return ROW_FOOTER;
@@ -286,17 +128,55 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	/**
 	*
 	*/
+	protected function _renderPossibleGroup( $ix )
+	{
+		if ( $ix >= count( $this->_rows ) )
+		{
+			foreach( $this->_groups as &$group )
+			{
+				$group->renderFooter( $this, $this->_rows[$ix-1], $ix-1 );
+			}
+			return;
+		}
+		
+		foreach( $this->_groups as &$group )
+		{
+			if ( $ix == 0 )
+			{
+				$group->renderHeader( $this, $this->_rows[$ix], $ix );
+			}
+
+			if ( $group->groupChanged( $this->_rows[$ix], $ix ) )
+			{
+				if ( $ix > 0 )
+				{
+					$group->renderFooter( $this, $this->_rows[$ix-1], $ix-1 );
+				}
+				$group->renderHeader( $this, $this->_rows[$ix], $ix );
+			}
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
 	public function renderHeader()
 	{
-		$tr = $this->_( 'thead' )->_( 'tr' );
+		if ( $this->renderHeaderRow === false )
+		{
+			return;
+		}
+
+		$tr = $this->_( 'thead' )->_( 'tr' )->css_class( 'header' );
 		$row = null;
 
-		foreach( $this->_cols as $col )
+		foreach( $this->_colDefs as &$col )
 		{
 			$col->renderCell( $row, $tr, ROW_HEADER );
 		}
 		
 		$this->_onRow( $tr, $row );
+		$this->_ro_headerRow = clone $tr;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -309,7 +189,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 			$tr = $this->_( 'tfoot' )->_( 'tr' );
 			$row = (object)$this->_footer;
 			
-			foreach( $this->_cols as $col )
+			foreach( $this->_colDefs as &$col )
 			{
 				$col->renderCell( $row, $tr, ROW_FOOTER );
 			}
@@ -325,25 +205,29 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	{
 		if ( count( $this->_rows ) > 0 )
 		{
-			foreach( $this->_rows as $row )
+			$rowCnt = count( $this->_rows );
+			
+			for ( $ix = 0; $ix < $rowCnt; $ix++ )
 			{
-				$row = (object)$row;
+				$row = (object)$this->_rows[$ix];
 				$this->_currentRow =& $row;
-				$this->renderRow( $row );	
+				$this->_renderPossibleGroup( $ix );
+				$this->renderRow( $row );
 			}
+			$this->_renderPossibleGroup( $ix );
 		}
 		else
 		{
 			$tr = $this->_( 'tr' );
-			$tr->_( 'td' )->content( $this->emptyMessage, false )->addAttribute( 'colspan', count( $this->_cols ) )->css_class( 'empty' );
+			$tr->_( 'td' )->content( $this->emptyMessage, false )->addAttribute( 'colspan', count( $this->_colDefs ) )->css_class( 'empty' );
 		}
 	}
 	//------------------------------------------------------------------------
 	public function renderRow( &$row )
 	{
-		$tr = $this->_( 'tr' );
+		$tr = $this->_( 'tr' )->css_class( 'grouplevel' . count( $this->_groups ) );
 
-		foreach( $this->_cols as $col )
+		foreach( $this->_colDefs as &$col )
 		{
 			$col->renderCell( $row, $tr, ROW_NORMAL );
 		}
@@ -356,19 +240,70 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		$this->_onRow( $tr, $row );
 	}
 	//------------------------------------------------------------------------
-	public function render()
+	/**
+	* Renders a grid and returns the html as a string.
+	* @param ENUM::grt - The grid render type.  Supported types are: grtHTML_TABLE, grtCSV
+	*/
+	public function render( $format = grtHTML_TABLE, $csvIncludeHeader = false )
 	{
+		if ( empty( $this->_colDefs ) )
+		{
+			$this->_setup();
+		}
+
 		if ( empty( $this->_rows ) )
 		{
 			$this->_rows = $this->_loadRows();
 		}
+		if ( $this->_renderSetup === false )
+		{
+			$this->renderHeader();
+			$this->renderRows();
+			$this->renderFooter();
+			alternate(); // reset for next grid
+			$this->_renderSetup = true;
+		}
+		
+		switch( $format )
+		{
+		case grtHTML_TABLE:
+			return parent::render();
+			break;
 
-		$this->renderHeader();
-		$this->renderRows();
-		$this->renderFooter();
-		alternate(); // reset for next grid
+		case grtCSV:
+			$lines = array();
 
-		return parent::render();
+			$childCount = count( $this->_children );
+			
+			for ( $ix = 0; $ix < $childCount; $ix++ )
+			{
+				if ( $csvIncludeHeader === true )
+				{
+					$child =& $this->_ro_headerRow;
+					$ix--;
+					$csvIncludeHeader = false;
+				}
+				else
+				{
+					$child =& $this->_children[$ix];
+				}
+
+				if ( $child->tag == 'tr' )
+				{
+					$tagChildren = $child->child();
+					$fields = array();
+					foreach( $tagChildren as $subChild )
+					{
+						$fields[] = '"' . $subChild->unfilteredContent . '"';
+					}
+					if ( count( $fields ) )
+					{
+						$lines[] = implode( ',', $fields );	
+					}
+				}
+			}
+			return implode( "\n", $lines );
+		}
 	}
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
@@ -416,6 +351,17 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		if ( $cellType == ROW_NORMAL )
 		{
 			$cell->content( FORMAT()->date( $row->{$col->fieldName} ) );
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Formats a date time
+	*/
+	public function datetime( $col, $cell, $row, $cellType )
+	{
+		if ( $cellType == ROW_NORMAL )
+		{
+			$cell->content( FORMAT()->datetime( $row->{$col->fieldName} ) );
 		}
 	}
 	//------------------------------------------------------------------------

@@ -30,6 +30,17 @@ http://www.zackbloom.com/graph/
 Copyright (C) 2006-2007 Zack Bloom
 Licensed under the LGPL
 
+FPDF
+http://fpdf.org/
+This is bundled as a core library because we modify it slightly to extend tgsfClasses
+Bundled under the following license:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software to use, copy, modify, distribute, sublicense, and/or sell
+copies of the software, and to permit persons to whom the software is furnished
+to do so.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+
+
 tgsf also bundles some public domain javascript utility functions and jQuery plugins inside the tgsf_core_assets/js/utility.js file.
 the tgsf project has bundled these code snippets in good faith that they truly reside in the public domain.
 

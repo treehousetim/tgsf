@@ -110,6 +110,18 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	public function &alphanum_extended()
+	{
+		$this->_( vt_alphanum_extended );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &numeric()
+	{
+		$this->_( vt_numeric );
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	public function &required()
 	{
 		$this->_( vt_required );
@@ -177,9 +189,10 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function &future_date()
+	public function &future_date( $days = 1 )
 	{
-		$this->_( vt_future_date );
+		$rule =& $this->_( vt_future_date );
+		$rule->numDays = (int)$days;
 		return $this;
 	}
 	//------------------------------------------------------------------------
