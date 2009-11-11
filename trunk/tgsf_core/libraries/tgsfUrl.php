@@ -56,7 +56,7 @@ class tgsfUrl extends tgsfDataSource
 		
 		foreach ( $varArray as $name => $value )
 		{
-			$vars[] = $name . $this->_ro_equals . $value;
+			$vars[] = $name . $this->_ro_equals . urlencode( $value );
 		}
 		return $this->_ro_prefix . implode( $this->_ro_separator, $vars );
 	}

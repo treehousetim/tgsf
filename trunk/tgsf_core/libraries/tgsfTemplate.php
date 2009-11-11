@@ -9,13 +9,10 @@ for complete licensing information.
 
 function js( $jsFiles, $group = null )
 {
-	$loopFiles = array();
+	$jsFiles = (array)$jsFiles;
 	$groupFiles = array();
-	$files = array();
 
-	arrayify( $jsFiles, $loopFiles );
-
-	foreach ( $loopFiles as $jsFile )
+	foreach ( $jsFiles as $jsFile )
 	{
 		if ( ! is_local( $jsFile ) )
 		{
@@ -73,14 +70,11 @@ function css( $file, $local = true )
 */
 function css_import( $cssFiles, $group = null )
 {
+	$cssFiles = (array)$cssFiles;
 	$group = str_replace( '/', '_', $group );
-	$loopFiles = array();
 	$groupFiles = array();
-	$files = array();
 
-	arrayify( $cssFiles, $loopFiles );
-
-	foreach ( $loopFiles as $cssFile )
+	foreach ( $cssFiles as $cssFile )
 	{
 		if ( ! is_local( $cssFile ) )
 		{
@@ -280,7 +274,7 @@ function html_form_options( $options, $selecteds )
 		throw new tgsfHtmlException( 'Options for form fields must be in array format.' );
 	}
 
-	arrayify( $selecteds, $selected );
+	$selecteds = (array)$selecteds;
 
 	$out = '';
 	$atr = array();
@@ -295,7 +289,7 @@ function html_form_options( $options, $selecteds )
 		*/
 
 		$atr['value'] = $optVal;
-		if ( in_array( $optVal, $selected ) )
+		if ( in_array( $optVal, $selecteds ) )
 		{
 			$atr['selected'] = 'selected';
 		}

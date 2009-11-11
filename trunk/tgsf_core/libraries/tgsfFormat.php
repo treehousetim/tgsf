@@ -64,7 +64,7 @@ class tgsfFormat extends tgsfBase
 	/**
 	* Formats a date
 	*/
-	public function date( $text )
+	public function date( $text, $format = 'm/d/Y' )
 	{
 		$ts = strtotime( $text );
 		if ( $ts === false )
@@ -72,7 +72,23 @@ class tgsfFormat extends tgsfBase
 			return '';
 		}
 
-		return date( 'm/d/Y', $ts );
+		return date( $format, $ts );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function datetime( $text )
+	{
+		return $this->date( $text, 'm/d/Y H:i:s' );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function mysqlDate( $text )
+	{
+		return $this->date( $text, 'Y-m-d' );
 	}
 	//------------------------------------------------------------------------
 	/**

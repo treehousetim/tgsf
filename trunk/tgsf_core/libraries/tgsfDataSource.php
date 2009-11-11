@@ -98,6 +98,7 @@ class tgsfDataSource extends tgsfBase
 	* Remaps a variable from an old name into a new name.  This is non-destructive.
 	* Only variables named in the map are touched - existing variables in the datasource
 	* are left intact.
+	* format is $array['old_field'] = $newField or array( 'old'=>'new')
 	*/
 	public function remap( $map )
 	{

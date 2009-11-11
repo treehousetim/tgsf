@@ -149,10 +149,9 @@ class tgsfFormField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function &selected( $value )
+	public function &selected( $values )
 	{
-		$values = array();
-		arrayify( $value, $values );
+		$values = (array)$values;
 		$this->_selected = array_merge( $this->_selected, $values );
 		return $this;
 	}
@@ -170,9 +169,10 @@ class tgsfFormField extends tgsfBase
 	* @param String The name of the attribute
 	* @param String The value of the attribute
 	*/
-	public function setLabelAttribute( $name, $value )
+	public function &setLabelAttribute( $name, $value )
 	{
 		$this->_ro_labelAttributes[$name] = $value;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -206,9 +206,10 @@ class tgsfFormField extends tgsfBase
 	* @param String The name of the attribute
 	* @param String The value of the attribute
 	*/
-	public function setFieldAttribute( $name, $value )
+	public function &setFieldAttribute( $name, $value )
 	{
 		$this->_ro_fieldAttributes[$name] = $value;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**

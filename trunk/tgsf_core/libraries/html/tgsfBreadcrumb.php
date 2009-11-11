@@ -12,7 +12,14 @@ define( 'BC_RESET_SEGMENTS', false );
 //------------------------------------------------------------------------
 function &BREADCRUMB()
 {
-	return tgsfBreadcrumb::get_instance();
+	$args = func_get_args();
+	$instance =& tgsfBreadcrumb::get_instance();
+
+	if ( count( $args ) > 0 )
+	{
+		$instance->segments( $args );
+	}
+	return $instance;
 }
 //------------------------------------------------------------------------
 class tgsfBreadcrumbItem extends tgsfBase
@@ -38,6 +45,11 @@ class tgsfBreadcrumbItem extends tgsfBase
 		if ( $this->_ro_url == '' )
 		{
 			return $this->_ro_caption;
+		}
+		
+		if ( $this->_ro_url instanceof tgsfUrl )
+		{
+			return $this->_ro_url->anchorTag()->content( $this->_ro_caption );
 		}
 
 		return html_tag( 'a', array( 'href' => url( $this->_ro_url ) ), $this->_ro_caption );

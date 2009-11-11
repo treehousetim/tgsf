@@ -191,6 +191,14 @@ abstract class tgsfForm extends tgsfHtmlTag
 		return parent::renderTagOnly();
 	}
 	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function __toString()
+	{
+		return $this->render();
+	}
+	//------------------------------------------------------------------------
 	/*
 	* Renders a form
 	*@param Bool True = only return html
@@ -226,7 +234,10 @@ abstract class tgsfForm extends tgsfHtmlTag
 			$field->render( $container );
 		}
 
-	 	return parent::render();
+	 	$html = parent::render();
+		$this->_children = array();
+		$this->_ro_content = '';
+		return $html;
 	}
 	//------------------------------------------------------------------------
 	/**
