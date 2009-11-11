@@ -14,7 +14,7 @@ class queryParam extends tgsfBase
 	public $name;
 	public $value;
 	public $type;
-	
+
 	public function __construct( $name, $value, $type )
 	{
 		$this->name		= $name;
@@ -46,6 +46,8 @@ class query extends tgsfBase
 	protected $_params				= array();
 	protected $_paramTypes			= array();
 	protected $_currentParamType	= ptSTR;
+	protected $_ro_lastInsertId		= -1;
+	protected $_generated_sql       = '';
 
 	//------------------------------------------------------------------------
 
@@ -54,7 +56,7 @@ class query extends tgsfBase
 		$this->changeDB( $which );
 	}
 
-	//------------------------------------------------------------------------	
+	//------------------------------------------------------------------------
 	protected function _table()
 	{
 		return implode( ',', $this->_table );
@@ -68,7 +70,6 @@ class query extends tgsfBase
 	{
 		return ' FROM ' . implode( ',', $this->_fromList ) . ' ';
 	}
-
 	//------------------------------------------------------------------------
 	/**
 	* Returns a string containing the entire where clause
@@ -85,14 +86,14 @@ class query extends tgsfBase
 	protected function _join()
 	{
 		$out = array();
-		
+
 		foreach ( $this->_joinList as &$join )
 		{
 			$out[] = $join->generate();
 		}
 		return ' ' . implode( ' ', $out ) . ' ';
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* generates the select list (fields) when we render the query
@@ -101,6 +102,7 @@ class query extends tgsfBase
 	{
 		return 'SELECT ' . implode( ',', $this->_selectList ) . ' ';
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Generates the order by clause for select queries
@@ -111,9 +113,10 @@ class query extends tgsfBase
 		{
 			return 'ORDER BY ' . implode( ',', $this->_orderByList ) . ' ';
 		}
-		
+
 		return '';
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Generates the limit option for select, update, and delete queries
@@ -124,9 +127,10 @@ class query extends tgsfBase
 		{
 			return "LIMIT {$this->_limit} ";
 		}
-		
+
 		return '';
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* generates the update table for rendering the query
@@ -135,7 +139,6 @@ class query extends tgsfBase
 	{
 		return "UPDATE {$this->_updateTable} ";
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* generates the insert into for rendering the query
@@ -144,7 +147,7 @@ class query extends tgsfBase
 	{
 		return "INSERT INTO {$this->_insertTable} ";
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* returns the list of insert field names
@@ -153,7 +156,7 @@ class query extends tgsfBase
 	{
 		return '(' . implode( ',', $this->_insertList ) . ')';
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* returns the VALUES(...) portion of an insert query
@@ -164,10 +167,10 @@ class query extends tgsfBase
 		{
 			$o[] = ":{$field}";
 		}
-		
+
 		return ' VALUES(' . implode( ',', $o ) . ')';
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* returns the SET field=:field,field1=:field1 portion of an update query
@@ -232,14 +235,16 @@ class query extends tgsfBase
 		$this->_params				= array();
 		$this->_paramTypes			= array();
 		$this->_currentParamType	= ptSTR;
+
+		$this->_generated_sql       = '';
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a value to bind later on when the query is executed to this class
 	* this creates a queryParam object for storage of the 3 bits of data
 	* and stores it in the _params class variable
-	* @param String The name of the 
+	* @param String The name of the
 	*/
 	public function &bindValue( $name, $value, $type )
 	{
@@ -317,7 +322,7 @@ class query extends tgsfBase
 		{
 			$this->_whereList[] = $booleanOp . $name . ' LIKE :' . $name;
 			$val = $valuePrefix . trim( $ds->_( $name ) ) . $valuePostfix;
-			
+
 			$this->bindValue( $name, $val, ptSTR );
 		}
 
@@ -332,7 +337,7 @@ class query extends tgsfBase
 	}
 	// end of where public methods
 	//------------------------------------------------------------------------
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a table name to the from list for a select query
@@ -344,7 +349,7 @@ class query extends tgsfBase
 		$this->_table = $table;
 		return $this;
 	}
-	
+
 	// public delete methods
 	//------------------------------------------------------------------------
 	/**
@@ -357,7 +362,7 @@ class query extends tgsfBase
 		$this->_type = qtDELETE;
 		return $this;
 	}
-	
+
 	// public insert methods
 	//------------------------------------------------------------------------
 	/**
@@ -372,7 +377,7 @@ class query extends tgsfBase
 		$this->_table = $table;
 		return $this;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Used to create an insert query - pass in the list of field names
@@ -408,12 +413,12 @@ class query extends tgsfBase
 				}
 			}
 		}
-		
+
 		return $this;
 	}
 	// end of public insert methods
 	//------------------------------------------------------------------------
-	
+
 	// public select methods
 	//------------------------------------------------------------------------
 	/**
@@ -436,7 +441,7 @@ class query extends tgsfBase
 
 		return $this;
 	}
-	
+
 	/**
 	* A shortcut function that aliases ->select( 'count(*)' );
 	* @param String The field to put inside the count function
@@ -445,11 +450,11 @@ class query extends tgsfBase
 	{
 		return $this->select( 'count(' . $fieldList . ')' );
 	}
-	
-	// including joins in select method section because joins are typically 
+
+	// including joins in select method section because joins are typically
 	// used in selects, but this is in no way ignoring the fact that joins can be used
 	// in other types of queries
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Set a join for a select query
@@ -500,7 +505,7 @@ class query extends tgsfBase
 		$this->_table = $table;
 		return $this;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Used to create an update query - pass in the list of field names
@@ -514,7 +519,7 @@ class query extends tgsfBase
 	public function &set( $fields, $dupCheck = false )
 	{
 		$loopFields = (array)$fields;
-		
+
 		if ( $dupCheck === false )
 		{
 			foreach ( $loopFields as $field )
@@ -536,7 +541,7 @@ class query extends tgsfBase
 				}
 			}
 		}
-		
+
 		return $this;
 	}
 	// end of update public methods
@@ -568,6 +573,11 @@ class query extends tgsfBase
 		return $this;
 	}
 
+	public function &getSQL( &$sql )
+	{
+		$sql = $this->_generated_sql;
+		return $this;
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Generates the SQL for a query
@@ -575,7 +585,7 @@ class query extends tgsfBase
 	public function generate()
 	{
 		$out = '';
-		
+
 		switch ( $this->_type )
 		{
 		case qtSELECT:
@@ -590,7 +600,7 @@ class query extends tgsfBase
 
 			$out = $this->_update() . $this->_set() . $this->_where() . $this->_limit();
 			break;
-			
+
 		case qtINSERT:
 			if ( count( $this->_insertList ) == 0 )
 			{
@@ -599,15 +609,18 @@ class query extends tgsfBase
 
 			$out = $this->_insert() . $this->_insertList() . $this->_insertParams();
 			break;
-			
+
 		case qtDELETE:
 			$out = 'DELETE ' . $this->_from() . $this->_where() . $this->_limit();
 			break;
-		
+
 		default:
 			throw new tgsfDbException( 'Query has not been set up.' );
 		}
-		
+
+
+		$this->_generated_sql = $out;
+
 		return $out;
 	}
 	//------------------------------------------------------------------------
@@ -640,31 +653,37 @@ class query extends tgsfBase
 			throw new tgsfDbException( 'Error executing query - error is: ' . implode( "\n", $this->_stmHandle->errorInfo() ) );
 		}
 		$this->_executed = true;
+
+		if ( $this->_type == qtINSERT )
+		{
+			$this->_ro_lastInsertId = dbm()->lastInsertId();
+		}
 		return $this;
 	}
-	
+
 	//------------------------------------------------------------------------
-	
-	public function &log( $pk1 = '' )
+
+	public function &log( $pk1 = '', $event = '' )
 	{
-		/*
-		ob_start();
-		var_dump( $this );
-		$me = ob_get_contents();
-		ob_end_clean();
-		*/
-	
+		$login_id = null;
+		if ( function_exists( 'AUTH' ) )
+		{
+			$login_id = AUTH()->getLoginId();
+		}
+
 		$ds = new dbDataSource();
 		$ds->set( array(
-		    'log_table'  => $this->_table,
-		    'log_type'   => $this->_type,
-		    'log_pk1'    => $pk1,
-		    'log_sql'    => $this->generate(),
+			'log_login_id'	=> $login_id,
+		    'log_table'		=> $this->_table,
+		    'log_type'		=> $this->_type,
+		    'log_pk1'		=> $pk1,
+		    'log_sql'		=> $this->generate(),
+			'log_app_event'	=> $event,
 		    'log_params' => serialize( $this->_params )
 		) );
-	
+
 		$q = new query();
-	
+
 		$q->insert_into( 'db_log' )
 		  ->pt( ptSTR )
 		  ->insert_fields( array(
@@ -672,20 +691,26 @@ class query extends tgsfBase
 		    	'log_type',
 		    	'log_pk1',
 		    	'log_sql',
+				'log_app_event',
 		    	'log_params'
 		    ))
+
+		  ->pt( ptINT )
+		  ->insert_fields( array(
+				'log_login_id' ))
+
 		  ->autoBind( $ds )
 		  ->exec();
-	
+
 		return $this;
 	}
-	
+
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
 	//--------------------------- result methods -----------------------------
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
-	
+
 	/**
 	* Fetches the next row from a result set.  Leaving all parameters set to their defaults and simply calling
 	* ->fetch(); will return the next row from a query as an object.
@@ -699,7 +724,7 @@ class query extends tgsfBase
 		{
 			throw new tgsfDbException( 'Unable to fetch on a query that has not been executed.' );
 		}
-		
+
 		return $this->_stmHandle->fetch( $style, $cursor_orientation, $offset );
 	}
 	//------------------------------------------------------------------------
@@ -721,7 +746,7 @@ class query extends tgsfBase
 		$ds->set( $result );
 		return $ds;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Fetches all rows from a query result.
@@ -738,11 +763,11 @@ class query extends tgsfBase
 		{
 			return $this->_stmHandle->fetchAll( $style, $col );
 		}
-		
+
 		return $this->_stmHandle->fetchAll( $style );
-		
+
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -760,7 +785,7 @@ class query extends tgsfBase
 		{
 			throw new tgsfDbException( 'Unable to fetch_column on a query that has not been executed.' );
 		}
-		
+
 		return $this->_stmHandle->fetchColumn( $col );
 	}
 }
