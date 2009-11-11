@@ -68,18 +68,6 @@ function enum( $prefix, $items, $useValueForDefine = false )
 
 
 //------------------------------------------------------------------------
-function arrayify( &$in, &$out )
-
-* if the passed argument is already an array then nothing is done.
-* if the passed argument is not an array then an a
-
-* @param Mixed The variable to test for arrayness
-* @param Array The return variable 
-//------------------------------------------------------------------------
-
-
-
-//------------------------------------------------------------------------
 function is_local( $file )
 
 * Determines if a string is a local file based on whether or not it begins with http:// or https://

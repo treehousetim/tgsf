@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
 This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
@@ -9,13 +9,8 @@ $config['debug_mode']		= true;
 
 $config['live_host'] = 'example.com';
 $config['get_string']		= '/_/';
-$config['get_separator']	= '&amp;';
+$config['get_separator']	= '/';
 $config['get_equals']		= '/';
-
-// before proceeding, we make sure that we shouldn't do a perm redirect for adding a trailing slash
-// or to force no www on the hostname - force_www(); is the other option
-force_no_www();
-force_trailing_slash();
 
 //------------------------------------------------------------------------
 
