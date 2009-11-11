@@ -1,0 +1,126 @@
+Grids are tgsfHtmlTag objects, that have their tag set to 'table'
+
+A grid is stored in your application's grids folder.
+example:
+/application/grids/sampleGrid.php
+
+A grid is loaded using the load_grid api function.
+example:
+$myGrid = load_grid( 'sampleGrid' );
+
+A grid file returns an instance of a grid - just like models.
+A grid object should use the grid skeleton located in the grid.php skeleton
+
+
+
+Content Filtering
+-----------------
+
+When defining a column, you may define a content filter.
+Example:
+$this->addCol( 'amount_usd' )
+	->caption( 'Dollars' )
+	->contentFilter( 'formatUSD', $this );
+
+	To clear a filter:
+	$tag->contentFilter( null );
+
+
+Columns
+-------
+
+When you add a column, you are actually creating a new tgsfHtmlTag object with
+the tag set to 'td'.  As cells are created, cells in a column are created
+by cloning the column object.  The implications of this are that anything you
+set up on the column object will transfer to each individual grid cell.
+This includes ID's (obviously should not set ID's on columns), css classes,
+content filters, and other attributes.
+
+
+
+Groups
+------
+
+Grids support the notion of grouping.  Two different groupings are available.
+Break every n rows, or break on a field.
+
+Breaking every n rows simply repeats the very top header from the grid.
+This is to provide repeating header rows to enhance the user experience
+for very tall grids.
+
+Breaking every n rows:
+$this->addGroup()->breakRows( 20 );
+
+Breaking on a field only allows a single field to be used for detecting grouping changes.
+However, multiple fields may be output in a group header. Also, multiple field breaking
+groups may be defined.  Your data should be ordered correctly for this to work.
+
+Breaking on a field provides a lot more options than the n-row option.
+For starters, you can specify both header and footer information.
+
+->header allows you to specify the data that is output.  Any number of arguments
+may be passed.  At rendering time, each element that is passed is either
+detected as a field available in the data rows of the grid, or it is simply
+output as static text.
+
+->footer allows either static text or a function per each column.
+the function marker must be used, and the formatting must be followed.
+function cells should start with an open brace
+{
+Then the name of the function which is one of: sum, avg, mul.
+Then a colon, then a field name.  Look at this example.
+
+Breaking on a field:
+$group = $this->addGroup()
+	->breakField( 'first_name' )
+	->header( 'first_name', ', ', 'login_first_name' )
+	->footer( 'Total: ', '{sum:balance' );
+
+$group->footerFields[1]->contentFilter( 'formatBalance', $this );
+
+The last line is showing how we can set a content filter on on of the footer fields
+that is created by our ->footer function call.
+These are th tgsfHtmlTag objects and they are cloned just like other cells in a grid.
+This means that you can provide any settings on this object and it transfers to the
+finished grid.
+
+
+Group Header and Footer cells
+-----------------------------
+You can access the tag objects that are used to construct header and footers
+when grouping.
+
+The header cell is $group->cellTagHeader;
+The footer is different because it is made up of multiple cells.  Because of this
+2 things are exposed.  First the row is exposed. $group->rowTagFooter - the tr tag.
+Second the individual cells are exposed via footerFields[ix] where ix is the index
+of the column from the addGroup->footer() call.
+
+Example:
+
+$group = $this->addGroup()
+	->breakField( 'first_name' )
+	->header( 'first_name', ', ', 'login_first_name' )
+	->footer( 'Total: ', '{sum:balance' );
+	
+$group->cellTagHeader->style="background-color: red;";
+$group->rowTagFooter->style="font-size: 1.25em;";
+$group->rowTagHeader->style="font-size: 1.25em;";
+
+// cell tags in the footer row are accessed like this
+$group->footerFields[1]->contentFilter( 'formatBalance', $this );
+
+CSV Output
+----------
+When calling render you may specify a grid render type:
+grtHTML_TABLE
+grtCSV
+
+and optionally include the header (for grtCSV only )
+CSV_INCLUDE_HEADER
+
+CSV output defaults to not including the header row.
+Use CSV_INCLUDE_HEADER as a second param to render to include the header row.
+
+Unfiltered cell content is what is used for csv output - there is no way to
+specify using filtered output at this time.

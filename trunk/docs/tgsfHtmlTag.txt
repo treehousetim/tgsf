@@ -1,0 +1,66 @@
+Lots here.
+
+Content Filtering
+-----------------
+
+When creating a tag, you may define a content filter.
+Example:
+$tag = new tgsfHtmlTag( 'p' )
+	->contentFilter( 'nl2br' );
+	
+To clear a filter:
+
+$tag->contentFilter( null );
+	
+This is used extensively in grids. - See grid documentation.
+
+Adding Child Tags
+-----------------
+a child tag may be added by using one of 2 methods.
+
+->_
+->addTag
+
+_ is a shortcut method for addTag and should only be used where concise
+short syntax is desired.  Internally to the tgsfHtmlTag and tgsfGrid objects
+->addTag is used.
+
+->addTag accepts two different types of arguments.  If you pass a string to it
+it will create a new tag using that.  If you pass an existing tgsfHmtlTag
+object, it will use that instead.  Existing tag objects are cloned so that
+any changes made to the tag after being added won't carry back out to
+the original object.  ->addTag always returns the tag that has been
+inserted into the parent tgsfHtmlTag object.
+
+Our examples are using a vertically
+oriented object method chaining syntax - don't be alarmed, this works
+and (in our opinion) makes for pretty and easily read code.
+
+Example:
+$divTag = new tgsfHtmlTag( 'div' )
+	->css_class( 'my-div' )
+	->addTag( 'p' )
+		->content( 'my paragraph content' );
+		
+$tag = new tgsfHtmlTag( 'body' )
+	->addTag( $divTag )
+		->addTag( 'p' )
+			->content( 'this is the second paragraph in my one div' );
+
+echo $tag->render();		
+echo $divTag->render();
+
+This will output (actual output contains no new lines or tabs):
+Keep in mind that we clone the original $divTag so the extra p tag
+that is added after we add it to our body object doesn't exist
+in the original $divTag.
+
+<body>
+<div class="my-div">
+	<p>my paragraph content</p>
+	<p>this is the second paragraph in my one div</p>
+</div>
+</body>
+<div class="my-div">
+	<p>my paragraph content</p>
+</div>
