@@ -148,8 +148,9 @@ abstract class tgsfReport extends tgsfGrid
 			$table->style = 'width: 100%';
 			
 			$table
+			->css_class( 'report_container' )
 			->addTag( 'thead' )
-
+				->css_class( 'report_header' )
 				->addTag( 'tr' )
 					->addTag( 'th' )
 						->setAttribute( 'colspan', 2 )
