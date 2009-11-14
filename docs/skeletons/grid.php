@@ -88,7 +88,7 @@ class exampleGrid extends tgsfGrid
 	//------------------------------------------------------------------------
 	protected function _loadRows()
 	{
-		// typically you would load this from a query, but array based rows are allowed too.
+		// typically you would load this from a model, but array based rows are allowed too.
 		$model = load_model( 'example' );
 		$rows = $model->fetchAll();
 		return $rows;
