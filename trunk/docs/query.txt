@@ -43,3 +43,61 @@ function recExists( $id )
 }
 
 ?>
+
+Inserting
+---------
+$q = new query();
+$q->insert_into( 'my_clever_table' )
+	->insert_fields( 'field1', 'field2', 'field3' );
+	
+If you need to make sure you don't duplicate fields being inserted
+you can use the alternative syntax
+
+$q->insert_fields( array( 'field','field' ), qiDUP_CHECK );
+
+The define, qiDupCheck (query insert dup check) is a define that allows you to specify that you
+do want duplicate checking performed so you don't add a field more than once.
+
+
+
+Selecting
+---------
+
+$q = new query();
+
+$q->select()
+	->from( 'my_clever_table' );
+	
+Generates
+SELECT * FROM my_clever_table
+
+//------------------------------------------------------------------------
+
+$q->select()
+	->from( 'my_clever_table' )
+	->where( 'field=:field' );
+	
+Generates
+SELECT * FROM my_clever_table where 1=1 AND field=:field
+
+//------------------------------------------------------------------------
+Obviously you need to bind a value to the query and fetch a row.
+
+$row = $q->select()
+	->from( 'my_clever_table' )
+	->where( 'field=:field' )
+	->bindValue( 'field', 'value', ptSTR )
+	->exec()
+	->fetch();
+	
+Joins
+-----
+$q->select()
+	->from( 'my_clever_table' )
+	->join( 'my_dumb_table', 'my_clever_table.dumb_id = my_dumb_table.id', 'LEFT OUTER JOIN' )
+	->where( 'field=:field' )
+	->bindValue( 'field', 'value', ptSTR )
+	->exec();
+	
+Generates
+SELECT * FROM my_clever_table LEFT OUTER JOIN my_dumb_table ON (my_clever_table.dumb_id = my_dumb_table.id) where 1=1 AND field=:field

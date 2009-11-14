@@ -450,3 +450,15 @@ function alternate()
 
 	return $argCnt>0?$args[$current % $argCnt]:'';
 }
+//------------------------------------------------------------------------
+function urlMenu( $array )
+{
+	$ul = new tgsfHtmlTag( 'ul' );
+
+	foreach ( $array as $caption => $link )
+	{
+		$ul->_( 'li' )->content( $link->anchorTag( $caption ) );
+	}
+
+	return $ul->render();
+}

@@ -6,15 +6,6 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-enum( 'qt',
-	array(
-		'NONE'   => NULL,
-		'SELECT' => 'SELECT',
-		'INSERT' => 'INSERT',
-		'UPDATE' => 'UPDATE',
-		'DELETE' => 'DELETE'
-		)
-	);
 
 enum( 'FIELD_',
 	array(

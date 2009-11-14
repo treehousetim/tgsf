@@ -5,7 +5,19 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
+enum( 'qt',
+	array(
+		'NONE'   => NULL,
+		'STATIC' => 'STATIC',
+		'SELECT' => 'SELECT',
+		'INSERT' => 'INSERT',
+		'UPDATE' => 'UPDATE',
+		'DELETE' => 'DELETE'
+		)
+	);
 
+
+define( 'qiDUP_CHECK', true );
 /**
 * simple container class
 */
@@ -41,6 +53,7 @@ class query extends tgsfBase
 	protected $_joinList			= array();
 	protected $_fromList			= array();
 	protected $_setList				= array();
+	protected $_literalSet			= array();
 	protected $_insertList			= array();
 
 	protected $_params				= array();
@@ -174,13 +187,20 @@ class query extends tgsfBase
 	//------------------------------------------------------------------------
 	/**
 	* returns the SET field=:field,field1=:field1 portion of an update query
+	* if you use the table.field pattern, the parameter will become table_field
 	*/
 	protected function _set()
 	{
 		$tmp = array();
 		foreach ( $this->_setList as $item )
 		{
-			$tmp[] = $item . " = :{$item}";
+			$citem = clean_text( $item );
+			$tmp[] = $item . " = :{$citem}";
+		}
+
+		foreach ( $this->_literalSet as $str )
+		{
+			$tmp[] = $str;
 		}
 		return "SET " . implode( ',', $tmp );
 	}
@@ -230,6 +250,7 @@ class query extends tgsfBase
 		$this->_fromList			= array();
 		$this->_joinList			= array();
 		$this->_setList				= array();
+		$this->_literalSet			= array();
 		$this->_insertList			= array();
 
 		$this->_params				= array();
@@ -382,6 +403,8 @@ class query extends tgsfBase
 	/**
 	* Used to create an insert query - pass in the list of field names
 	* then use bind later on to bind a value or param into the query
+	* You can send a list of field names to this function ignoring the 2 params
+	* documented below.  No duplicate checking is performed when using this form.
 	* @param Mixed String/Array - either a string of a single field name
 	* or an array of fields
 	* @param Bool Check for and do not add duplicate field names.  setting this to true will slow things down
@@ -390,7 +413,16 @@ class query extends tgsfBase
 	*/
 	public function &insert_fields( $fields, $dupCheck = false )
 	{
-		$fields = (array)$fields;
+		if ( ! is_array( $fields ) && func_num_args() > 1 && is_bool( func_get_arg( 1 ) ) === false )
+		{
+			$fields = func_get_args();
+			$dupCheck = false;
+		}
+		else
+		{
+			$fields = (array)$fields;
+		}
+		
 
 		if ( $dupCheck === false )
 		{
@@ -505,11 +537,12 @@ class query extends tgsfBase
 		$this->_table = $table;
 		return $this;
 	}
-
 	//------------------------------------------------------------------------
 	/**
 	* Used to create an update query - pass in the list of field names
 	* then use bind later on to bind a value or param into the query
+	* You can send a list of field names to this function ignoring the 2 params
+	* documented below.  No duplicate checking is performed when using this form.
 	* @param Mixed String/Array - either a string of a single field name
 	* or an array of fields
 	* @param Bool Check for and do not add duplicate field names.  setting this to true will slow things down
@@ -518,11 +551,19 @@ class query extends tgsfBase
 	*/
 	public function &set( $fields, $dupCheck = false )
 	{
-		$loopFields = (array)$fields;
+		if ( ! is_array( $fields ) && func_num_args() > 1 && is_bool( func_get_arg( 1 ) ) === false )
+		{
+			$fields = func_get_args();
+			$dupCheck = false;
+		}
+		else
+		{
+			$fields = (array)$fields;
+		}
 
 		if ( $dupCheck === false )
 		{
-			foreach ( $loopFields as $field )
+			foreach ( $fields as $field )
 			{
 				$field = (string)$field;
 				$this->_setList[] = $field;
@@ -531,7 +572,7 @@ class query extends tgsfBase
 		}
 		else
 		{
-			foreach( $loopFields as $field )
+			foreach( $fields as $field )
 			{
 				$field = (string)$field;
 				if ( ! in_array( $field, $this->_setList ) )
@@ -542,6 +583,18 @@ class query extends tgsfBase
 			}
 		}
 
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Allows a literal string to be used when updating.
+	* example:
+	* $q->setLiteral( 'field=field+1' )
+	* @param String The text to literally put in the query
+	*/
+	public function &setLiteral( $str )
+	{
+		$this->_literalSet[] = $str;
 		return $this;
 	}
 	// end of update public methods
@@ -568,7 +621,7 @@ class query extends tgsfBase
 	{
 		foreach ( $this->_paramTypes as $field => $pt )
 		{
-			$this->bindValue( $field, $ds->_( $field ), $pt );
+			$this->bindValue( $field, $ds->$field, $pt );
 		}
 		return $this;
 	}
@@ -588,17 +641,21 @@ class query extends tgsfBase
 
 		switch ( $this->_type )
 		{
+		case qtSTATIC:
+			$out = $this->_staticQuery;
+			break;
+			
 		case qtSELECT:
 			$out = $this->_select() . $this->_from() . $this->_join() . $this->_where() . $this->_orderBy() . $this->_limit();
 			break;
 
 		case qtUPDATE:
-			if ( count( $this->_setList ) == 0 )
+			if ( ( count( $this->_literalSet ) > 0 || count( $this->_setList ) > 0 ) === false )
 			{
 				throw new tgsfDbException( "Can't Update when no field values have been set." );
 			}
 
-			$out = $this->_update() . $this->_set() . $this->_where() . $this->_limit();
+			$out = $this->_update() . $this->_join() . $this->_set() . $this->_where() . $this->_limit();
 			break;
 
 		case qtINSERT:
