@@ -115,29 +115,29 @@ class formTop extends tgsfFormTemplate
 	public function image( &$field, &$container )
 	{
 		$fld_container = $container->_( 'dt' );
-		$fld_container->addTag( $field->tag );
-		$fld_container->_( 'dd' )->content( '&nbsp;' );
+		$fld_container->content( '&nbsp;' );
+		$fld_container->_( 'dd' )->addTag( $field->tag );
 	}
 	//------------------------------------------------------------------------
 	public function button( &$field, &$container )
 	{
 		$fld_container = $container->_( 'dt' );
-		$fld_container->addTag( $field->tag );
-		$fld_container->_( 'dd' )->content( '&nbsp;' );
+		$fld_container->content( '&nbsp;' );
+		$fld_container->_( 'dd' )->addTag( $field->tag );
 	}
 	//------------------------------------------------------------------------
 	public function submit( &$field, &$container )
 	{
 		$fld_container = $container->_( 'dt' );
-		$fld_container->addTag( $field->tag );
-		$fld_container->_( 'dd' )->content( '&nbsp;' );
+		$fld_container->content( '&nbsp;' );
+		$fld_container->_( 'dd' )->addTag( $field->tag );
 	}
 	//------------------------------------------------------------------------
 	public function reset( &$field, &$container )
 	{
 		$fld_container = $container->_( 'dt' );
-		$fld_container->addTag( $field->tag );
-		$fld_container->_( 'dd' )->content( '&nbsp;' );
+		$fld_container->content( '&nbsp;' );
+		$fld_container->_( 'dd' )->addTag( $field->tag );
 	}
 	//------------------------------------------------------------------------
 	public function other( &$field, &$container )
