@@ -129,9 +129,10 @@ class tgsfUrl extends tgsfDataSource
 	/**
 	*
 	*/
-	public function &anchorTag()
+	public function &anchorTag( $caption = '' )
 	{
 		$a = new tgsfHtmlTag( 'a' );
+		$a->content( $caption );
 		$a->href = $this->__toString();
 		return $a;
 	}
