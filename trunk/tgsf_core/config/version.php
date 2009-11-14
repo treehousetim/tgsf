@@ -1,7 +1,7 @@
 <?php
 $major = 0;
-$minor = 0;
-$nano = 1;
+$minor = 9;
+$nano = 0;
 
 $build = 1;
 
