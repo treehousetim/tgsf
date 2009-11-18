@@ -51,8 +51,10 @@ class tgsfBreadcrumbItem extends tgsfBase
 		{
 			return $this->_ro_url->anchorTag()->content( $this->_ro_caption );
 		}
-
-		return html_tag( 'a', array( 'href' => url( $this->_ro_url ) ), $this->_ro_caption );
+		$a = new tgsfHtmlTag( 'a' );
+		$a->href = URL( $this->_ro_url );
+		$a->content( $this->_ro_caption );
+		return $a;
 	}
 }
 //------------------------------------------------------------------------
@@ -175,32 +177,27 @@ class tgsfBreadcrumb extends tgsfBase
 
 		if ( is_array( $items ) && count( $items ) > 0 )
 		{
+			$ul = new tgsfHtmlTag( 'ul' );
+			$ul->css_class( 'breadcrumb' );
+
 			if ( $this->_reverse )
 			{
 				$items = array_reverse( $items );
 			}
 
-			$liTags = '';
 			$itemCount = count( $items );
 			$ix = 0;
 		
 			foreach ( $items as $item )
 			{
-				$atr = array();
-				$class = getArrayFirstLastCssClass( $ix, $itemCount );
-				if ( $class != '' )
-				{
-					$atr['class'] = $class;
-				}
-				$liTags .= html_tag( 'li', $atr, $item->render( $ix ) );
+				$ul->addTag( 'li' )->css_class( getArrayFirstLastCssClass( $ix, $itemCount ) )->content( $item->render( $ix ) );
 				$ix++;
 			}
 
-			$liTags .= html_tag( 'li', array( 'class' => 'horz-ul-clear' ), ' ' );
+			$ul->addTag( 'li' )->css_class( 'horz-ul-clear' );
 
-			$atr = array();
-			$atr['class'] = 'breadcrumb';
-			$out = html_tag( 'ul', $atr, $liTags );
+
+			$out = $ul->render();
 		}
 		return $out;
 	}
