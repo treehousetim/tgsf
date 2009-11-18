@@ -1,0 +1,35 @@
+//------------------------------------------------------------------------
+
+js( $files, $group )
+
+//------------------------------------------------------------------------
+
+alternate()
+Call with a set of arguments and this function will return them based on a modulus of the quantity of invocations
+in other words, each time you call this function it will return the next item in the list of parameters.
+to reset, call with no arguments, or with different arguments
+
+example:
+echo alternate( 'one','two','three' ) . '<br>';
+echo alternate( 'one','two','three' ) . '<br>';
+echo alternate( 'one','two','three' );
+
+This outputs
+one
+two
+three
+
+//------------------------------------------------------------------------
+
+urlMenu( $list )
+
+This creates a menu using an unordered list with links in each list item.
+<ul class="url_menu">
+<li><a href... > </li>
+</ul>
+
+It returns the ul as a tgsfHtmlTag so you can further add visual changes or content changes.
+
+You pass it an array of URL objects:
+
+$menu['Click Here'] = URL( 'you_are_a_winner/view' );
