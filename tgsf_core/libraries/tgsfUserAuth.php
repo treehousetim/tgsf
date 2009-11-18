@@ -143,13 +143,29 @@ class tgsfUserAuth extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
-	* Returns true if the current user has the specified role, else false
+	* Returns true if the current user has at least the specified role, else false
 	*/
 	public function hasRole( $role )
 	{
 		if ( $this->loggedIn === true )
 		{
 			if ( $this->model->getAuthRole( $this->_ro_user ) >= $role )
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns true if the current user IS the specified role, else false
+	*/
+	public function isRole( $role )
+	{
+		if ( $this->loggedIn === true )
+		{
+			if ( $this->model->getAuthRole( $this->_ro_user ) == $role )
 			{
 				return true;
 			}
