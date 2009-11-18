@@ -169,7 +169,7 @@ class tvr_numeric extends tgsfValidateRule
 	public $errorMessage = ' must be a number';
 	public function execute( $fieldName, $ds )
 	{
-		$this->valid = preg_match('/^[0-9]+[.]?+[0-9]*$/', $ds->_( $fieldName ) );
+		$this->valid = preg_match('/^[0-9]*[.]?+[0-9]*$/', $ds->_( $fieldName ) );
 		return $this->valid;
 	}
 }
