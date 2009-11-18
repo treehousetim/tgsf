@@ -690,7 +690,7 @@ function enable_browser_cache( $file )
 //------------------------------------------------------------------------
 /**
 * Generates an extremely secure password hash (one way) using a salt
-* to prevent dictionary attacks against a comprimised database
+* to prevent dictionary attacks against a compromised database
 * @param String The clear text password
 * @param String The salt (actually a password string produced by this function)
 */
@@ -705,7 +705,7 @@ function hash_password( $clearText, $salt = null )
         $salt = substr( $salt, 0, SALT_LENGTH );
     }
     $hashed = $salt . sha1($salt . $clearText);
-	do_action( 'hash_password', $hashed, $salt, $clearText );
+	//do_action( 'hash_password', $hashed, $salt, $clearText );
 
 	// we should never be calling this before the plugin library has loaded
 	$hashed = do_filter( 'hash_password', $hashed, $clearText, $salt );
