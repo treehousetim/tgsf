@@ -43,9 +43,7 @@ function js( $jsFiles, $group = null )
 
 	}
 }
-
 //------------------------------------------------------------------------
-
 function css( $file, $local = true )
 {
 	$prefix = '';
@@ -55,9 +53,14 @@ function css( $file, $local = true )
 		$prefix = config( 'css_url' );
 		$suffix = '.css';
 	}
-	echo "\t" . '<link type="text/css" href="' . $prefix . $file . $suffix . '" rel="Stylesheet" />	' . "\n";
-}
+	
+	$tag = new tgsfHtmlTag( 'link' );
+	$tag->type = 'text/css';
+	$tag->href = $prefix . $file . $suffix;
+	$tag->rel = 'Stylesheet';
 
+	echo $tag;
+}
 //------------------------------------------------------------------------
 /**
 * Outputs one or more style tags with an @import rule
@@ -78,12 +81,11 @@ function css_import( $cssFiles, $group = null )
 	{
 		if ( ! is_local( $cssFile ) )
 		{
-			$atr = array();
-			$atr['type'] = 'text/css';
-			$content = '@import url(' . $cssFile . ');';
-			echo html_tag( 'style', $atr, $content );
-
-			echo "\t" . '<style type="text/css">@import url(' . $cssFile . ');</style>' . "\n";
+			$tag = new tgsfHtmlTag( 'style' );
+			$tag->type = 'text/css';
+			$tag->content( '@import url(' . $cssFile . ');' );
+			echo $tag;
+			unset( $tag );
 		}
 		else
 		{
@@ -106,11 +108,10 @@ function css_import( $cssFiles, $group = null )
 		$content = "<?php return array( '$group' => array( $contents ) );";
 
 		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
-
-		$atr = array();
-		$atr['type'] = 'text/css';
-		$content = '@import url(' . url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=' . $group . ');';
-		echo html_tag( 'style', $atr, $content ) . "\n";
+		$tag = new tgsfHtmlTag( 'style' );
+		$tag->type = 'text/css';
+		$tag->content( '@import url(' . url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=' . $group . ');' );
+		echo $tag;
 	}
 }
 //------------------------------------------------------------------------
@@ -138,9 +139,6 @@ function output_css_properties( $array )
 //------------------------------------------------------------------------
 function js_output_url_func()
 {
-	$atr = array();
-	$atr['type']	= 'text/javascript';
-
 	$content  = 'function url( url )';
 	$content .= '{ url=url.trim();';
 
@@ -152,7 +150,11 @@ function js_output_url_func()
 	$content .= "if(url=='/'){url=''};";
 	$content .= "return '" . current_base_url() . "' + url;";
 	$content .= '}';
-	echo html_tag( 'script', $atr, $content ) . "\n";
+	
+	$tag = new tgsfHtmlTag( 'script' );
+	$tag->type = 'text/javascript';
+	$tag->content( $content );
+	echo $tag;
 }
 //------------------------------------------------------------------------
 /**
@@ -200,11 +202,11 @@ function show_error( $message, $exception = null)
 //------------------------------------------------------------------------
 function favicon( $url, $type = 'image/jpeg' )
 {
-	$atr = array();
-	$atr['rel']		= 'icon';
-	$atr['href']	= $url;
-	$atr['type']	= $type;
-	echo html_tag( 'link', $atr );
+	$tag = new tgsfHtmlTag( 'link' );
+	$tag->rel = 'icon';
+	$tag->href = $url;
+	$tag->type = $type;
+	echo $tag;
 }
 //------------------------------------------------------------------------
 function html_inline_style( $content )
@@ -213,190 +215,26 @@ function html_inline_style( $content )
 	{
 		return;
 	}
-
-	$atr = array();
-	$atr['type']	= 'text/css';
-	echo html_tag( 'style', $atr, $content );
+	$tag = new tgsfHtmlTag( 'style' );
+	$tag->type = 'text/css';
+	$tag->content( $content );
+	echo $tag;
 }
 //------------------------------------------------------------------------
 function html_title( $title )
 {
-	$atr = array();
-	echo html_tag( 'title', $atr, $title );
+	$tag = new tgsfHtmlTag( 'title' );
+	$tag->content( $title );
+	echo $tag;
+
 }
 //------------------------------------------------------------------------
 function content_type( $type )
 {
-	$atr = array();
-	$atr['content']		= $type;
-	$atr['http-equiv']	= 'Content-Type';
-	echo html_tag( 'meta', $atr );
-}
-//------------------------------------------------------------------------
-function html_attributes( $attributes )
-{
-	$out = (string)$attributes;
-	if ( is_array( $attributes ) )
-	{
-		$out = count($attributes)?' ':'';
-
-		foreach( $attributes as $atr => $value )
-		{
-			$out .= " $atr=\"$value\"";
-		}
-	}
-
-	return $out;
-}
-//------------------------------------------------------------------------
-function html_tag( $tag, $attributes = '', $content = null )
-{
-	$atr = html_attributes( $attributes );
-
-	$out = "<{$tag}{$atr}";
-
-	if ( ! is_null( $content ) )
-	{
-		$out .= ">{$content}</{$tag}>";
-	}
-	else
-	{
-		$out .= '>';
-	}
-
-	return $out;
-}
-//------------------------------------------------------------------------
-function html_form_options( $options, $selecteds )
-{
-	if ( ! is_array( $options ) )
-	{
-		throw new tgsfHtmlException( 'Options for form fields must be in array format.' );
-	}
-
-	$selecteds = (array)$selecteds;
-
-	$out = '';
-	$atr = array();
-
-	foreach ( $options as $optVal => $caption )
-	{
-		/*
-		if ( is_int( $optVal ) )
-		{
-			$optVal = $caption;
-		}
-		*/
-
-		$atr['value'] = $optVal;
-		if ( in_array( $optVal, $selecteds ) )
-		{
-			$atr['selected'] = 'selected';
-		}
-		else
-		{
-			unset( $atr['selected'] );
-		}
-		$out .= html_tag( 'option', $atr, $caption );
-	}
-	return $out;
-}
-//------------------------------------------------------------------------
-function html_form_dropdown( $attributes, $options, $selectedValues = null )
-{
-	$out = '';
-	$optionHtml = html_form_options( $options, $selectedValues );
-	$out = html_tag( 'select', $attributes, $optionHtml );
-	return $out;
-}
-//------------------------------------------------------------------------
-function html_form_listbox( $attributes, $options, $selectedValues = null )
-{
-	return html_form_dropdown( $attributes, $options, $selectedValues );
-}
-//------------------------------------------------------------------------
-function html_form_text( $attributes )
-{
-	$attributes['type'] = 'text';
-
-	return html_tag( 'input', $attributes );
-}
-//------------------------------------------------------------------------
-function html_form_textarea( $attributes, $text )
-{
-	return html_tag( 'textarea', $attributes, $text );
-}
-//------------------------------------------------------------------------
-function html_form_checkbox( $attributes, $checked = false )
-{
-	if ( $checked )
-	{
-		$attributes['checked'] = 'CHECKED';
-	}
-	$attributes['type'] = 'checkbox';
-	return html_tag( 'input', $attributes );
-}
-//------------------------------------------------------------------------
-function html_form_radio( $attributes, $selected = false )
-{
-	if ( $selected )
-	{
-		$attributes['checked'] = 'CHECKED';
-	}
-
-	$attributes['type'] = 'radio';
-
-	return html_tag( 'input', $attributes );
-}
-//------------------------------------------------------------------------
-function html_form_hidden( $name, $value )
-{
-	$attributes['type'] = 'hidden';
-	$attributes['name'] = $name;
-	$attributes['value'] = $value;
-
-	return html_tag( 'input', $attributes );
-}
-//------------------------------------------------------------------------
-function html_form_file( $attributes )
-{
-	$attributes['type'] = 'file';
-
-	return html_tag( 'input', $attributes );
-
-}
-//------------------------------------------------------------------------
-function html_form_submit( $attributes )
-{
-	$attributes['type'] = 'submit';
-
-	return html_tag( 'input', $attributes );
-}
-//------------------------------------------------------------------------
-function html_form_reset( $attributes )
-{
-	$attributes['type'] = 'reset';
-
-	return html_tag( 'input', $attributes );
-}
-//------------------------------------------------------------------------
-function html_form_button( $attributes, $content = null )
-{
-	$attributes['type'] = 'button';
-
-	return html_tag( 'button', $attributes, $content );
-}
-//------------------------------------------------------------------------
-function html_form_password( $attributes )
-{
-	if ( isset( $attributes['value'] ) )
-	{
-		unset( $attributes['value'] );
-	}
-
-	$attributes['type'] = 'password';
-
-	return html_tag( 'input', $attributes );
+	$ct = new tgsfHtmlTag( 'meta' );
+	$ct->content = $type;
+	$ct->setAttribute( 'http-equiv', 'Content-Type' );
+	echo $ct;
 }
 //------------------------------------------------------------------------
 function brNotEmpty( $var )
@@ -451,14 +289,26 @@ function alternate()
 	return $argCnt>0?$args[$current % $argCnt]:'';
 }
 //------------------------------------------------------------------------
+/**
+* This creates a menu using an unordered list with links in each list item.
+* <ul class="url_menu">
+*	<li><a href... > </li>
+* </ul>
+* 
+* It returns the ul as a tgsfHtmlTag so you can further add visual changes or content changes.
+* You pass it an array of URL objects:
+* $menu['Click Here'] = URL( 'you_are_a_winner/view' );
+* @param Array The array of url objects
+*/
 function urlMenu( $array )
 {
 	$ul = new tgsfHtmlTag( 'ul' );
+	$ul->css_class( 'url_menu' );
 
 	foreach ( $array as $caption => $link )
 	{
 		$ul->_( 'li' )->content( $link->anchorTag( $caption ) );
 	}
 
-	return $ul->render();
+	return $ul;
 }

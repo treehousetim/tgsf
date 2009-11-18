@@ -106,6 +106,7 @@ class formTop extends tgsfFormTemplate
 		// 	$radio->addAttribute( 'value', $value, SINGLE_ATTR_ONLY );
 		// 	$radio->id( $id );
 		// 
+		// html_form_radio has been removed from the framework.
 		// 	$out .= html_tag( 'dd', '', html_form_radio( $atr ) . ' ' . html_tag( 'label', array('for'=>$id), $caption ) );
 		// }
 		// 
