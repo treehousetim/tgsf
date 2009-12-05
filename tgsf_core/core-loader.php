@@ -35,9 +35,6 @@ load_library( 'tgPlugin',			IS_CORE_LIB ); // the core class the plugin api func
 load_library( 'tgsfPlugin',			IS_CORE_LIB ); // the plugin api functions
 
 
-// load database config
-load_config( 'db' );
-
 // load order is important - config first, then get plugins as soon as possible
 
 // main config
