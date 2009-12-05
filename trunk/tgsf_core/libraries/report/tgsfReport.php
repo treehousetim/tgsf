@@ -33,7 +33,7 @@ abstract class tgsfReport extends tgsfGrid
 			$this->_ro_reportAppName = REPORT_APP_NAME;
 		}
 		
-		$this->_ro_reportDate = FORMAT()->datetime( 'now' );
+		$this->_ro_reportDate = gmdate( DT_FORMAT_SQL );
 		$this->css_class( 'report-grid' );
 		parent::__construct();
 		$this->_paramSetup();
