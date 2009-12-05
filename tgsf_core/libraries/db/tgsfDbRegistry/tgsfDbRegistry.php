@@ -124,9 +124,18 @@ class tgsfDbRegistry extends tgsfBase
 		            ->and_where( 'registry_group=:registry_group' )
 		            ->bindValue( 'registry_group', $group, ptSTR )
 		            ->exec()
-		            ->fetch_ds();
+		            ->fetchColumn();
 
-		return trim($result->_('registry_value'));
+
+		return trim($result);
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Alias to fetchValueForKey
+	*/
+	public function fetch( $key, $group )
+	{
+		return $this->fetchValueForKey( $key, $group );
 	}
 	//------------------------------------------------------------------------
 	function fetchByKey( $key, $group )
