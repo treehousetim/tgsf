@@ -16,6 +16,8 @@ enum( 'dsType',
 		)
 	);
 
+define( 'DS_IGNORE_DEFAULT', 'tgsf-ignore-default' );
+
 class tgsfDataSource extends tgsfBase
 {
 	private		$_data 				= array();
@@ -89,9 +91,46 @@ class tgsfDataSource extends tgsfBase
 	* an array nor an object, a tgsfException exception is thrown.
 	* @param Mixed (Array/Object) Do not pass a multi-dimensional array
 	*/
-	public function set( $source )
+	public function &set( $in )
 	{
+		if ( $in instanceof tgsfDataSource )
+		{
+			$source = $in->dataArray();
+		}
+		else
+		{
+			$source = $in;
+		}
+
 		$this->_set( $source );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Merges new fields into a datasource, overwriting existing ones with the supplied
+	* Passed value can be another datasource, an array, or an object whose properties you want to use
+	* @param Mixed The merge data
+	*/
+	public function &merge( $in )
+	{
+		if ( $in instanceof tgsfDataSource )
+		{
+			$source = $in->dataArray();
+		}
+		else
+		{
+			if ( is_array( $in ) || is_object( $in )  )
+			{
+				$source = (array)$in;
+			}
+			else
+			{
+				throw new tgsfException( 'When merging, value must be an array, an object or an instance of tgsfDataSource.' );
+			}
+		}
+
+		$this->_set( array_merge( $this->_data, (array)$source ) );
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -100,7 +139,7 @@ class tgsfDataSource extends tgsfBase
 	* are left intact.
 	* format is $array['old_field'] = $newField or array( 'old'=>'new')
 	*/
-	public function remap( $map )
+	public function &remap( $map )
 	{
 		if ( ! is_array( $map ) )
 		{
@@ -114,23 +153,26 @@ class tgsfDataSource extends tgsfBase
 			$this->_data[$new] = $data[$old];
 			unset( $this->_data[$old] );
 		}
+		
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* This completely resets the data that is available in the datasource.
 	* This only resets dsTypeAPP data sources - in other words, no database or GET/POST
 	*/
-	public function reset()
+	public function &reset()
 	{
 		$this->_ro_dataPresent = false;
 		$this->_data = array();
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Removes members of the datasource
 	* Does nothing if a member doesn't exist
 	*/
-	public function remove()
+	public function &remove()
 	{
 		if ( $this->_type == dsTypeAPP || $this->_type == dsTypeDB )
 		{
@@ -151,6 +193,8 @@ class tgsfDataSource extends tgsfBase
 		{
 			throw new tgsfException( 'Only Application and Database datasources allow members to be removed.' );
 		}
+		
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -160,6 +204,17 @@ class tgsfDataSource extends tgsfBase
 	public function isEmpty( $name )
 	{
 		return empty( $this->_data[$name] );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Checks to see if a particular data element exists.  this is different than empty
+	* because this will return true even if an element is empty as long as 
+	* it is present in the datasource
+	* @return bool true if exists
+	*/
+	public function exists( $name )
+	{
+		return array_key_exists( $name, (array)$this->_data );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -181,17 +236,43 @@ class tgsfDataSource extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Sets the current date when a field is empty
+	* @param String The field name
+	* @param String The date format string - defaults to DT_FORMAT_SQL
+	*/
+	public function &setCurDateOnEmpty( $field, $dateFormat = DT_FORMAT_SQL )
+	{
+		if ( $this->isEmpty( $field ) )
+		{
+			$this->setVar( $field, gmdate( $dateFormat ) );
+		}
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Manually get a member of the data source
 	*/
-	public function getVar( $varName, $default = 'tgsfignoredefault' )
+	public function getVar( $varName, $default = DS_IGNORE_DEFAULT )
 	{
 		if ( ! isset( $this->_data[$varName] ) )
 		{
-			return $default!='tgsfignoredefault'?$default:'';
+			return $default != DS_IGNORE_DEFAULT ? $default : '';
 
 		}
 
 		return $this->_data[$varName];
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Manually unset a member of the data source
+	*/
+	public function &unsetVar( $varName )
+	{
+		if ( array_key_exists( $varName, $this->_data ) )
+		{
+			unset( $this->_data[$varName] );
+		}
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -207,18 +288,26 @@ class tgsfDataSource extends tgsfBase
 	*/
 	public function dataObject()
 	{
-		return (object) $this->_data;
+		return (object)$this->_data;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* A shortcut function to get individual values
 	*/
-	public function _( $varName, $default = 'tgsfignoredefault' )
+	public function _( $varName, $default = DS_IGNORE_DEFAULT )
 	{
 		return $this->getVar( $varName, $default );
 	}
 	//------------------------------------------------------------------------
 	// multi-row datasource functions
+	//------------------------------------------------------------------------
+	/**
+	* For multi-row datasources returns the number of rows.
+	*/
+	public function rowCount()
+	{
+		return count( $this->_rows );
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Sets the rows for a multi-row datasource.  Also turns the multiRow read only parameter to true
@@ -234,6 +323,8 @@ class tgsfDataSource extends tgsfBase
 		$this->_ro_dataPresent	= true;
 		$this->_ro_multiRow		= true;
 		$this->_rows			= $rows;
+
+		return $this;
 	}
 
 	//------------------------------------------------------------------------
@@ -256,9 +347,10 @@ class tgsfDataSource extends tgsfBase
 		return true;
 	}
 	//------------------------------------------------------------------------
-	public function resetRows()
+	public function &resetRows()
 	{
 		reset( $this->_rows );
+		return $this;
 	}
 
 }
