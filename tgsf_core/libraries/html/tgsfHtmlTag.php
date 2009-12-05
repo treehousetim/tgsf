@@ -8,7 +8,7 @@ for complete licensing information.
 
 define( 'SINGLE_ATTR_ONLY', true );
 define( 'MULTI_ATTR', false );
-define( 'NON_TAG_CONTENT', '' );
+define( 'NON_TAG_NODE', '' );
 define( 'RENDER_OPEN_TAG_ONLY', true );
 define( 'APPEND_CONTENT', true );
 //------------------------------------------------------------------------
@@ -33,7 +33,7 @@ class tgsfHtmlTag extends tgsfBase
 	public function __construct( $tag )
 	{
 		$this->_ro_tag = $tag;
-		$this->_ro_contentOnly = $tag == NON_TAG_CONTENT;
+		$this->_ro_contentOnly = $tag == NON_TAG_NODE;
 	}
 	//------------------------------------------------------------------------
 	/**

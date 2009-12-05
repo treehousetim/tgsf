@@ -17,7 +17,7 @@ enum( 'grt', array(
 	'HTML_TABLE',
 	'CSV'
 	));
-	
+
 define( 'CSV_INCLUDE_HEADER', true );
 
 load_library( 'html/tgsfHtmlTag', IS_CORE_LIB );
@@ -37,7 +37,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	abstract protected function _loadRows();
 	/*abstract*/ protected function _onRow( &$tr, &$row ) {}
 	/*abstract*/ protected function _onGroup( &$tr, &$row ) {}
-	
+
 	protected	$_colDefs				= array();
 	protected	$_rows					= array();
 	protected	$_groups				= array();
@@ -45,12 +45,14 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	protected	$_footer				= null;
 	protected	$_ro_renderHeaderRow	= true;
 	protected	$_ro_headerRow			= null;
-	public		$emptyMessage	= 'Nothing to show';
-	public		$altRowClasses	= array( '', 'alt' );
+	public		$emptyMessage			= 'Nothing to show';
+	public		$altRowClasses			= array( '', 'alt' );
 	private		$_renderSetup			= false;
+	public		$timezone				= 'UTC';
 	//------------------------------------------------------------------------
 	public function __construct()
 	{
+		if ( function_exists( 'AUTH' ) ) $this->timezone = AUTH()->getLoginTimeZone();
 		$this->css_class( 'grid' );
 		parent::__construct( 'table' );
 	}
@@ -91,7 +93,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	*/
 	public function &addGroup()
 	{
-		$item =& new tgsfGridGroup();
+		$item = new tgsfGridGroup();
 		$this->_groups[] =& $item;
 		return $item;
 	}
@@ -112,7 +114,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 			if ( $cell == $col->headerCell ) return ROW_HEADER;
 			if ( $cell == $col->footerCell ) return ROW_FOOTER;
 		}
-		
+
 		return ROW_NORMAL;
 	}
 	//------------------------------------------------------------------------
@@ -138,7 +140,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 			}
 			return;
 		}
-		
+
 		foreach( $this->_groups as &$group )
 		{
 			if ( $ix == 0 )
@@ -174,7 +176,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		{
 			$col->renderCell( $row, $tr, ROW_HEADER );
 		}
-		
+
 		$this->_onRow( $tr, $row );
 		$this->_ro_headerRow = clone $tr;
 	}
@@ -185,15 +187,15 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	public function renderFooter()
 	{
 		if ( !is_null($this->_footer) || !empty($this->_footer) )
-		{	
+		{
 			$tr = $this->_( 'tfoot' )->_( 'tr' );
 			$row = (object)$this->_footer;
-			
+
 			foreach( $this->_colDefs as &$col )
 			{
 				$col->renderCell( $row, $tr, ROW_FOOTER );
 			}
-			
+
 			$this->_onRow( $tr, $row );
 		}
 	}
@@ -206,7 +208,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		if ( count( $this->_rows ) > 0 )
 		{
 			$rowCnt = count( $this->_rows );
-			
+
 			for ( $ix = 0; $ix < $rowCnt; $ix++ )
 			{
 				$row = (object)$this->_rows[$ix];
@@ -231,12 +233,12 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		{
 			$col->renderCell( $row, $tr, ROW_NORMAL );
 		}
-		
+
 		if ( count( $this->altRowClasses ) > 0 )
 		{
 			$tr->css_class( call_user_func_array( 'alternate', $this->altRowClasses ) );
 		}
-		
+
 		$this->_onRow( $tr, $row );
 	}
 	//------------------------------------------------------------------------
@@ -263,7 +265,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 			alternate(); // reset for next grid
 			$this->_renderSetup = true;
 		}
-		
+
 		switch( $format )
 		{
 		case grtHTML_TABLE:
@@ -274,7 +276,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 			$lines = array();
 
 			$childCount = count( $this->_children );
-			
+
 			for ( $ix = 0; $ix < $childCount; $ix++ )
 			{
 				if ( $csvIncludeHeader === true )
@@ -298,7 +300,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 					}
 					if ( count( $fields ) )
 					{
-						$lines[] = implode( ',', $fields );	
+						$lines[] = implode( ',', $fields );
 					}
 				}
 			}
@@ -308,6 +310,17 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
 	// COMMON FORMATTERS
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function abs( $col, $cell, $row, $cellType )
+	{
+		if ( $cellType == ROW_NORMAL )
+		{
+			$cell->content( abs( $cell->content ) );
+		}
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Just a wrapper for ucwords()
@@ -350,7 +363,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	{
 		if ( $cellType == ROW_NORMAL )
 		{
-			$cell->content( FORMAT()->date( $row->{$col->fieldName} ) );
+			$cell->content( FORMAT()->date( $row->{$col->fieldName}, DT_FORMAT_UI_DATE, $this->timezone ) );
 		}
 	}
 	//------------------------------------------------------------------------
@@ -361,7 +374,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	{
 		if ( $cellType == ROW_NORMAL )
 		{
-			$cell->content( FORMAT()->datetime( $row->{$col->fieldName} ) );
+			$cell->content( FORMAT()->datetime( $row->{$col->fieldName}, $this->timezone ) );
 		}
 	}
 	//------------------------------------------------------------------------

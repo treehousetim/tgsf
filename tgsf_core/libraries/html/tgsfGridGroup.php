@@ -46,7 +46,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 		$this->_ro_cellTagHeader = new tgsfHtmlTag( 'th' );
 		$this->_ro_rowTagHeader = new tgsfHtmlTag( 'tr' );
 		$this->_ro_rowTagFooter = clone $this->_ro_rowTagHeader;
-		
+
 		$this->_ro_rowTagHeader->css_class( 'group-header' );
 		$this->_ro_rowTagFooter->css_class( 'group-footer' );
 	}
@@ -65,7 +65,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 			{
 				throw new tgsfGridException( 'Group break field does not exist in the data row: ' . $this->_ro_breakField );
 			}
-			
+
 			foreach ( $this->_ro_footerFields as &$footerCell )
 			{
 				$footerCell->trackGroupValues( $row );
@@ -74,15 +74,15 @@ class tgsfGridGroup extends tgsfHtmlTag
 			$retVal=  $ix > 0 && $this->_ro_breakFieldValue != $fields[$this->_ro_breakField];
 			$this->_ro_breakFieldValue = $fields[$this->_ro_breakField];
 			break;
-		
+
 		case ggtXROWS:
 			$retVal = $ix > 0 && $ix % $this->_ro_breakRows == 0;
 			break;
 		}
-		
-		
 
-		
+
+
+
 		return $retVal;
 	}
 	//------------------------------------------------------------------------
@@ -129,7 +129,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 
 		foreach( $flds as $fld )
 		{
-			$cell =& new tgsfGridGroupFooterCell();
+			$cell = new tgsfGridGroupFooterCell();
 			$fld = trim( $fld );
 			if ( starts_with( $fld, '{' ) )
 			{
@@ -157,7 +157,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 		case ggtFIELD:
 			$this->ggtFieldHeader( $table, $row );
 			break;
-		
+
 		case ggtXROWS:
 			$this->ggtXRowsHeader( $table, $row );
 			break;
@@ -200,7 +200,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 		$cell->colspan = $table->colCount();
 
 		$fields = (array)$row;
-		
+
 		foreach( $this->_ro_headerFields as $fieldPart )
 		{
 			if ( array_key_exists( $fieldPart, $fields ) )
