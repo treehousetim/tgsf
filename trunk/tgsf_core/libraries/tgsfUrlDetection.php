@@ -23,7 +23,7 @@ function current_protocol()
 {
 	$protocol = 'http';
 
-	if ( ! empty( $_SERVER['https'] ) && $_SERVER['https'] === 'on' )
+	if ( array_key_exists( 'HTTPS', $_SERVER ) && $_SERVER['HTTPS'] === 'on' )
 	{
 		$protocol = 'https';
 	}
@@ -99,4 +99,9 @@ function current_base_url()
 	$url .= current_base_url_path();
 
 	return $url;
+}
+//------------------------------------------------------------------------
+function current_server_id()
+{
+	return strtoupper( md5( current_host() . current_base_url_path() ) );
 }
