@@ -67,6 +67,7 @@ class tgsfUserAuth extends tgsfBase
 	public function login( $ds )
 	{
 		$row = $this->model->login( $ds );
+
 		if ( $row !== false )
 		{
 			$this->_ro_user = $row;
@@ -79,16 +80,30 @@ class tgsfUserAuth extends tgsfBase
 		$this->logout();
 		return false;
 	}
+	
+	//------------------------------------------------------------------------
+	/*
+	 * Return the logged in users time zone
+	 */
+	public function getLoginTimeZone()
+	{
+		if ( ! $this->loggedIn ) return TZ_DEFAULT;
+		return $this->model->getLoginTimeZone( $this->_ro_user );
+	}
+	
 	//------------------------------------------------------------------------
 	/**
 	* Returns the logged in user's id
 	*/
 	public function getLoginId()
 	{
-		if ( ! is_null( $this->_ro_user ) )
+		if ( ! is_null( $this->_ro_user ) && $this->_ro_user !== false )
 		{
 			return $this->model->getAuthRecordId( $this->_ro_user );
 		}
+
+		$this->logout();
+
 		return null;
 	}
 	//------------------------------------------------------------------------
@@ -115,7 +130,7 @@ class tgsfUserAuth extends tgsfBase
 		{
 			$this->loginUrl->redirect();
 		}
-		
+
 		return $this;
 	}
 	//------------------------------------------------------------------------
