@@ -72,7 +72,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 	/* abstract */ public function onField( &$field ){}
 	/* abstract */ public function onSelectOption( &$field ){}
 	/* abstract */ public function onGroupContainer( &$container, $groupName ){}
-	
+
 	//------------------------------------------------------------------------
 
 	public function __construct()
@@ -101,6 +101,8 @@ abstract class tgsfForm extends tgsfHtmlTag
 			load_library( 'validate/tgsfValidateField',		IS_CORE_LIB );
 			load_library( 'validate/tgsfValidateRule',		IS_CORE_LIB );
 			$this->_validator = new tgsfValidate();
+			$this->_validator->setForm( $this );
+			$this->_setupValidate( $this->_validator );
 		}
 
 		return $this->_validator;
@@ -210,12 +212,11 @@ abstract class tgsfForm extends tgsfHtmlTag
 			$this->_setup();
 			$this->_ro_setup = true;
 		}
-		
+
 		if ( empty($this->_fields) )
 		{
 			throw new tgsfFormException( 'The form has no fields.' );
 		}
-
 
 		$curGroup = $this->_fields[0]->group;
 		$container = $this->_template->fieldContainer( $this, $curGroup );
@@ -229,7 +230,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 				$this->onGroupContainer( $container, $field->group );
 			}
 			$curGroup = $field->group;
-			
+
 			$field->setError( $this->errors );
 			$field->render( $container );
 		}
@@ -237,7 +238,21 @@ abstract class tgsfForm extends tgsfHtmlTag
 	 	$html = parent::render();
 		$this->_children = array();
 		$this->_ro_content = '';
+		//$html .= $this->renderJsValidation();
 		return $html;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function renderJsValidation()
+	{
+		$v = $this->_getValidator();
+
+		$s = new tgsfHtmlTag( 'script' );
+		$s->type = "text/javascript";
+		$v->jsOutput( $s );
+		return $s;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -256,21 +271,20 @@ abstract class tgsfForm extends tgsfHtmlTag
 			$this->_setup();
 			$this->_ro_setup = true;
 		}
-		
+
 		if ( $this->_ro_ds === null )
 		{
 			throw new tgsfFormException( 'The form has no datasource to validate with.' );
 		}
-		
+
 		$v = $this->_getValidator();
-		$this->_setupValidate( $v );
 
 		if ( $this->_validator->execute( $this->_ro_ds ) === false )
 		{
 			$this->errors = $this->_validator->errors;
 			$this->_ro_valid = false;
 		}
-		
+
 		$this->validateForm( $this->_ro_ds, $v );
 	}
 	//------------------------------------------------------------------------
@@ -294,7 +308,7 @@ abstract class tgsfFormTemplate extends tgsfBase
 	{
 		$container->addTag( $field->tag );
 	}
-	
+
 	abstract public function fieldContainer(  &$form, $group = '' );
 
 	abstract public function dropdown(	&$field, &$container );

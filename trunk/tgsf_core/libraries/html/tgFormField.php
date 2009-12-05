@@ -278,7 +278,7 @@ class tgsfFormField extends tgsfBase
 			case fftTextArea:
 				$tag->changeTag( 'textarea' );
 				$tag->removeAttribute( 'value' );
-				$tag->_( NON_TAG_CONTENT )->content( $this->_value ); // create a child for content only.
+				$tag->_( NON_TAG_NODE )->content( $this->_value ); // create a child for content only.
 				break;
 
 			case fftDropDown:
