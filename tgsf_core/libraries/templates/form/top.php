@@ -143,7 +143,7 @@ class formTop extends tgsfFormTemplate
 	//------------------------------------------------------------------------
 	public function other( &$field, &$container )
 	{
-		$container->_( NON_TAG_CONTENT )->content( $field->rawHTML );
+		$container->_( NON_TAG_NODE )->content( $field->rawHTML );
 	}
 }
 
