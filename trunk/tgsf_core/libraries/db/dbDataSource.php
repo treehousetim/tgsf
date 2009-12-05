@@ -74,23 +74,23 @@ class dbDataSource extends tgsfDataSource
 	* an array nor an object, a tgsfException exception is thrown.
 	* @param Mixed (Array/Object) Do not pass a multi-dimensional array
 	*/
-	public function set( $source )
+	public function &set( $source )
 	{
 		// We reset the table list if set is called
 		$this->_tableList = array();
-		parent::set( $source );
+		return parent::set( $source );
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Merge data
 	*/
-	public function merge( $in )
+	public function &merge( $in )
 	{
 		if ( $in instanceof tgsfDbDataSource )
 		{
 			$this->_tableList = array_merge( $this->_tableList, $in->getTableList() );
 		}
-		parent::merge( $in );
+		return parent::merge( $in );
 	}
 	//------------------------------------------------------------------------
 	/**
