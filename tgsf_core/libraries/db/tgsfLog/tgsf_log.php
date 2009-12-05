@@ -93,7 +93,7 @@ class tgsfLog extends tgsfBase
 		$message .= $error;
 		if ( is_null( $ds ) === false )
 		{
-			$message .= get_dump( $ds->getDataObject() );
+			$message .= get_dump( $ds->dataObject() );
 		}
 		
 		$this->log( $message, 'query' );
@@ -137,7 +137,7 @@ class tgsfLog extends tgsfBase
 		
 		$ds = tgsfDataSource::factory();
 		$ds->setVar( 'log_type',				$type );
-		$ds->setVar( 'log_datetime',			date( 'Y-m-d H:i:s' ) );
+		$ds->setVar( 'log_datetime',			date( DT_FORMAT_SQL ) );
 		$ds->setVar( 'log_remote_addr',			TGSF_CLI ? '127.0.0.1' : $_SERVER['REMOTE_ADDR'] );
 		$ds->setVar( 'log_message',				$message );
 		$ds->setVar( 'log_table',				$table );
