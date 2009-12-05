@@ -64,23 +64,34 @@ class tgsfFormat extends tgsfBase
 	/**
 	* Formats a date
 	*/
-	public function date( $text, $format = 'm/d/Y' )
+	public function date( $text, $format = DT_FORMAT_UI_DATE, $tz = 'UTC' )
 	{
-		$ts = strtotime( $text );
+		if ( empty( $text ) )
+		{
+			$ts = time();
+		}
+		else
+		{
+			$ts = strtotime( $text );
+		}
+		
 		if ( $ts === false )
 		{
 			return '';
 		}
-
-		return date( $format, $ts );
+		
+		$date = new Zend_Date( $ts, Zend_Date::TIMESTAMP );
+		$date->setTimezone( $tz );
+		
+		return $date->toString( $format );
 	}
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
-	public function datetime( $text )
+	public function datetime( $text, $tz = 'UTC' )
 	{
-		return $this->date( $text, 'm/d/Y H:i:s' );
+		return $this->date( $text, DT_FORMAT_UI_SHORT, $tz );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -88,7 +99,8 @@ class tgsfFormat extends tgsfBase
 	*/
 	public function mysqlDate( $text )
 	{
-		return $this->date( $text, 'Y-m-d' );
+		throw new tgsfException( 'mysqlDate() has been deprecated.' );
+		return $this->date( $text, DT_FORMAT_SQL_DATE );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -98,8 +110,8 @@ class tgsfFormat extends tgsfBase
 	{
 		setlocale( LC_MONETARY, 'en_US' );
 
-// money_format is NOT supported under windows
-// return money_format( '%n', (float)$amount );
+		// money_format is NOT supported under windows
+		// return money_format( '%n', (float)$amount );
 
         // english notation with thousands seperator
         return number_format($amount, 2, '.', ',');
