@@ -229,9 +229,9 @@ class dbManager extends tgsfBase
 	* Rolls back a transaction on the given named logical database connection
 	* @param String The logical name of the database server to connect to
 	*/
-	public function rollBack( $which = 'default' )
+	public function rollBack( $exception, $which = 'default' )
 	{
-		$this->getHandle( $which )->rollBack();
+		$this->getHandle( $which )->rollBack( $exception );
 	}
 	//------------------------------------------------------------------------
 	public function lastInsertId( $name = '', $which = 'default' )
