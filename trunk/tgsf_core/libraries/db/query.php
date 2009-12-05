@@ -47,20 +47,33 @@ class query extends tgsfBase
 	protected $_type				= qtNONE;
 	protected $_table				= '';
 	protected $_limit				= '';
+	
+	protected $_staticQuery			= '';
 
 	protected $_selectList			= array();
 	protected $_orderByList			= array();
+	protected $_groupByList			= array();
 	protected $_joinList			= array();
 	protected $_fromList			= array();
 	protected $_setList				= array();
 	protected $_literalSet			= array();
 	protected $_insertList			= array();
+	protected $_tableList			= array();
 
 	protected $_params				= array();
 	protected $_paramTypes			= array();
 	protected $_currentParamType	= ptSTR;
-	protected $_ro_lastInsertId		= -1;
+	protected $_ro_lastInsertId		= false;
+	protected $_ro_rowCount			= false;
 	protected $_generated_sql       = '';
+	
+	//------------------------------------------------------------------------
+	public static function &factory()
+	{
+		$c = __CLASS__;
+		$instance = new $c();
+		return $instance;
+	}
 
 	//------------------------------------------------------------------------
 
@@ -125,6 +138,20 @@ class query extends tgsfBase
 		if ( count( $this->_orderByList ) )
 		{
 			return 'ORDER BY ' . implode( ',', $this->_orderByList ) . ' ';
+		}
+
+		return '';
+	}
+	
+	//------------------------------------------------------------------------
+	/**
+	* Generates the group by clause for select queries
+	*/
+	public function _groupBy()
+	{
+		if ( count( $this->_groupByList ) )
+		{
+			return 'GROUP BY ' . implode( ',', $this->_groupByList ) . ' ';
 		}
 
 		return '';
@@ -244,6 +271,7 @@ class query extends tgsfBase
 		$this->_type				= qtNONE;
 		$this->_table				= '';
 		$this->_limit				= '';
+		$this->_staticQuery			= '';
 
 		$this->_selectList			= array();
 		$this->_orderByList			= array();
@@ -252,14 +280,23 @@ class query extends tgsfBase
 		$this->_setList				= array();
 		$this->_literalSet			= array();
 		$this->_insertList			= array();
+		$this->_tableList			= array();
 
 		$this->_params				= array();
 		$this->_paramTypes			= array();
 		$this->_currentParamType	= ptSTR;
+		$this->_ro_rowCount			= false;
+		$this->_ro_lastInsertId		= false;
 
 		$this->_generated_sql       = '';
 	}
-
+	//------------------------------------------------------------------------
+	public function &static_query( $query )
+	{
+		$this->_type = qtSTATIC;
+		$this->_staticQuery = $query;
+		return $this;
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Adds a value to bind later on when the query is executed to this class
@@ -274,12 +311,6 @@ class query extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function &bindDate( $name, $value )
-	{
-		$value = date( 'Y-m-d', strtotime( $value ) );
-		return $this->bindValue( $name, $value, ptDATE );
-	}
-	//------------------------------------------------------------------------
 	public function &bindValDs( $name, $ds, $type )
 	{
 		return $this->bindValue( $name, $ds->_( $name ), $type );
@@ -289,6 +320,20 @@ class query extends tgsfBase
 	{
 		$this->_params = array();
 		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns the query params as a datasource
+	*/
+	public function paramsAsDs()
+	{
+		$ds = tgsfDataSource::factory();
+		foreach ( $this->_params as $name => $param )
+		{
+			$ds->setVar( $name, $param->value );
+		}
+		
+		return $ds;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -366,6 +411,7 @@ class query extends tgsfBase
 	*/
 	public function &from( $table )
 	{
+		$this->_tableList[] = $table;
 		$this->_fromList[] = $table;
 		$this->_table = $table;
 		return $this;
@@ -422,7 +468,7 @@ class query extends tgsfBase
 		{
 			$fields = (array)$fields;
 		}
-		
+
 
 		if ( $dupCheck === false )
 		{
@@ -498,6 +544,7 @@ class query extends tgsfBase
 	*/
 	public function &join( $table, $clause, $type = 'LEFT OUTER JOIN' )
 	{
+		$this->_tableList[] = $table;
 		$this->_joinList[] = new queryJoin( $type, $table, $clause );
 		return $this;
 	}
@@ -508,6 +555,15 @@ class query extends tgsfBase
 	public function &order_by( $clause )
 	{
 		$this->_orderByList[] = $clause;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &group_by( $field )
+	{
+		$this->_groupByList[] = $field;
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -644,9 +700,9 @@ class query extends tgsfBase
 		case qtSTATIC:
 			$out = $this->_staticQuery;
 			break;
-			
+
 		case qtSELECT:
-			$out = $this->_select() . $this->_from() . $this->_join() . $this->_where() . $this->_orderBy() . $this->_limit();
+			$out = $this->_select() . $this->_from() . $this->_join() . $this->_where() . $this->_orderBy() . $this->_groupBy() . $this->_limit();
 			break;
 
 		case qtUPDATE:
@@ -682,6 +738,18 @@ class query extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Returns the generated sql
+	*/
+	public function sql()
+	{
+		if ( $this->_generated_sql == '' )
+		{
+			$this->generate();
+		}
+		return $this->_generated_sql;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Prepares the query so it's ready for execution.
 	*/
 	public function prepare()
@@ -703,10 +771,19 @@ class query extends tgsfBase
 
 		$this->_doBindValues( $this->_stmHandle );
 		$success = $this->_stmHandle->execute();
+		$this->_ro_rowCount = $this->_stmHandle->rowCount();
 
 		if ( $success === false )
 		{
-			log_query_error( $this->_stmHandle->errorInfo() . PHP_EOL . $this->generate() );
+			if ( function_exists( 'LOGGER' ) )
+			{
+				LOGGER()->queryError( $this->sql(), $this->_stmHandle->errorInfo(), $this->paramsAsDs() );
+			}
+			else
+			{
+				log_query_error( $this->_stmHandle->errorInfo() . PHP_EOL . $this->generate() . get_dump( $this->paramsAsDs()->dataObject() ) );
+			}
+
 			throw new tgsfDbException( 'Error executing query - error is: ' . implode( "\n", $this->_stmHandle->errorInfo() ) );
 		}
 		$this->_executed = true;
@@ -795,6 +872,7 @@ class query extends tgsfBase
 	public function &fetch_ds( $cursor_orientation = PDO::FETCH_ORI_NEXT, $offset = 0 )
 	{
 		$ds = new dbDataSource();
+		$ds->setTables( $this->_tableList );
 		$result = $this->fetch( PDO::FETCH_ASSOC, $cursor_orientation, $offset );
 		if ( $result === false )
 		{
@@ -832,6 +910,7 @@ class query extends tgsfBase
 	public function &fetchAll_ds( $style = PDO::FETCH_OBJ, $col = 0 )
 	{
 		$ds = new dbDataSource();
+		$ds->setTables( $this->_tableList );
 		$ds->setRows( $this->fetchAll( $style, $col ) );
 		return $ds;
 	}
