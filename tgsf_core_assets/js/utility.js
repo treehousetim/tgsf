@@ -32,3 +32,31 @@ disabled: function(h) {
 },
 toggleDisabled: function() { return this.filterDisabled().each(function(){this.disabled=!this.disabled});}
 });
+
+//------------------------------------------------------------------------
+/*
+The following code was written by Tim Gallagher and is subject to the same conditions as the rest of tgsf
+*/
+jQuery.fn.extend({
+	setLabelError : function( message )
+		{
+			var id = $(this).attr('id');
+			var label = $( "label[for='" + id + "']" );
+			label.addClass( 'errorCaption' );
+			
+			var spans = label.children( 'span' );
+			var span;
+
+			if ( spans.length == 0 )
+			{
+				label.append( '<span class="error_message">' + message + "</span>" );
+			}
+			else
+			{
+				// not right
+				/* spans[0].html( message );
+				spans[0].addClass( 'error_message' ); */
+			}
+		}
+	}
+);
