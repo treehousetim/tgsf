@@ -10,11 +10,11 @@ If you need to use a database for application detection, you'll need to add a ca
 
 load_database_libraries();
 
-We recommend using a logical name for your app detection database and then passing that to the query constructor
+We recommend using a logical name for your app detection database and then passing that to the query factory.
 in the app_detector.php file.
 
 dbm()->useSetup( new dbSetup( 'user', 'password', 'db_name' ), 'app_detection' );
-$q = new query( 'app_detection' );
+$q = query::factory( 'app_detection' );
 
 
 This way applications can set up their own default database connections and all their queries work as expected.
