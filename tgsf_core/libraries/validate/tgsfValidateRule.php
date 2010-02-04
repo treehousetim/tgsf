@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -15,6 +15,7 @@ abstract class tgsfValidateRule extends tgsfBase
 
 	//------------------------------------------------------------------------
 	abstract public function execute( $fieldName, $ds );
+	public function jsCode() { return ''; }
 	//------------------------------------------------------------------------
 	/**
 	* The constructor - accepts a validation field object
@@ -81,6 +82,14 @@ abstract class tgsfValidateRule extends tgsfBase
 	{
 		return $this->errorMessage( $msg );
 	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the javascript code for 
+	*/
+	public function getJs()
+	{
+		return $this->jsCode();
+	}
 }
 
 //------------------------------------------------------------------------
@@ -95,6 +104,19 @@ class tvr_alpha extends tgsfValidateRule
 	{
 		$this->valid = preg_match( '/^[a-z\s]+$/i', $ds->_( $fieldName ) );
 		return $this->valid;
+	}
+	//------------------------------------------------------------------------
+	public function jsCode()
+	{
+		$code = <<< alphaJS
+
+		if ( $( this ).value().match( /^[a-z\s]+$/ ) == false )
+		{
+			valid = false;
+			errorMsg = " and $this->errorMessage";
+		}
+alphaJS;
+		return $code;
 	}
 }
 //------------------------------------------------------------------------
@@ -128,6 +150,20 @@ class tvr_required extends tgsfValidateRule
 		$value = $ds->_( $fieldName );
 		$this->valid = trim( (string)$value ) != '';
 		return $this->valid;
+	}
+	//------------------------------------------------------------------------
+	public function jsCode()
+	{
+		$code = <<< alphaJS
+
+		if ( $( this ).val().trim() == '' )
+		{
+			valid = false;
+			//errorMsg = " and $this->errorMessage";
+			$(this).setLabelError( '$this->errorMessage' )
+		}
+alphaJS;
+		return $code;
 	}
 }
 //------------------------------------------------------------------------
@@ -169,7 +205,7 @@ class tvr_numeric extends tgsfValidateRule
 	public $errorMessage = ' must be a number';
 	public function execute( $fieldName, $ds )
 	{
-		$this->valid = preg_match('/^[0-9]*[.]?+[0-9]*$/', $ds->_( $fieldName ) );
+		$this->valid = preg_match('/^[+-]?[0-9]*[.]?+[0-9]*$/', $ds->_( $fieldName ) );
 		return $this->valid;
 	}
 }
@@ -180,7 +216,18 @@ class tvr_clean extends tgsfValidateRule
 	public $errorMessage = ' must only contain letters, spaces, numbers, dashes, underscores and periods';
 	public function execute( $fieldName, $ds )
 	{
-		$this->valid = preg_match( '/^[0-9a-z._\- ]+$/i', $value );
+		$this->valid = preg_match( '/^[0-9a-z.,_\-\' ]+$/i', $ds->_( $fieldName ) );
+		return $this->valid;
+	}
+}
+//------------------------------------------------------------------------
+class tvr_clean_question extends tgsfValidateRule
+{
+	public $emptyValueValid = true;
+	public $errorMessage = ' must only contain letters, spaces, numbers, dashes, underscores, periods, commas, slashes and question marks';
+	public function execute( $fieldName, $ds )
+	{
+		$this->valid = preg_match( '/^[\/\'0-9a-z._\-? ]+$/i', $ds->_( $fieldName ) );
 		return $this->valid;
 	}
 }
@@ -259,13 +306,33 @@ class tvr_neq extends tgsfValidateRule
 	}
 }
 //------------------------------------------------------------------------
+class tvr_email extends tgsfValidateRule
+{
+	// loose validation - matches any characters before and after an @
+	public $emptyValueValid = true;
+	public $errorMessage = ' must be a valid email address';
+	public function execute( $fieldName, $ds )
+	{
+		$this->valid = preg_match( '/^.+@.+$/i', $ds->_( $fieldName ) );
+		return $this->valid;
+	}
+}
+//------------------------------------------------------------------------
 class tvr_date extends tgsfValidateRule
 {
-	public $emptyValueValid = true;
+	public $emptyValueValid = false;
 	public $errorMessage = ' must be a valid date';
 	public function execute( $fieldName, $ds )
 	{
-		$pieces = preg_split( '%[-/.]%i', trim( $ds->_( $fieldName ) ) );
+		$value = trim( $ds->_( $fieldName ) );
+
+		if ( $value == '' )
+		{
+			$this->valid = true;
+			return true;
+		}
+
+		$pieces = preg_split( '%[-/.]%i', $value );
 
 		if ( count( $pieces ) != 3 )
 		{
@@ -291,19 +358,23 @@ class tvr_date extends tgsfValidateRule
 		return $this->valid;
 	}
 }
+
 //------------------------------------------------------------------------
+/*
+ * Ensure a date is is a specific number of days in the future
+ */
 class tvr_future_date extends tvr_date
 {
 	public function execute( $fieldName, $ds )
 	{
 		$this->errorMessage = ' must be a valid date ' . (int)$this->numDays . ' day(s) after today';
-		
-		$this->valid = parent::execute( $fieldName, $ds );
+
+		parent::execute( $fieldName, $ds );
 		
 		if ( $this->valid )
 		{
-			$date = strtotime( $ds->_( $fieldName ) );
-			$now = strtotime( date('Y-m-d', strtotime('+' . (int)$this->numDays . ' day') ) );
+			$date = strtotime( tz_gmdate_start( DT_FORMAT_SQL, tz_strtotime( $ds->{$fieldName}, $this->tz ), $this->tz ) );
+			$now  = strtotime( tz_gmdate_start( DT_FORMAT_SQL, time() + ( intval( $this->numDays ) * DT_TIME_DAY ), $this->tz ) );
 			$this->valid = $date >= $now;
 		}
 		

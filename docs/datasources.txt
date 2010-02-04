@@ -1,15 +1,62 @@
-the datasource object supports many features:
+#summary Built in DataSources simplify $_GET and $_POST
 
-GET()
-POST()
+= Introduction =
+tgsf makes several built-in singleton datasource objects available to you. These are exposed using global, uppercase, procedural functions.
+ * GET()
+ * POST()
+ * URL() _non singleton - uses global function to return new instance_
+ * CLI()
 
-are both singleton functions that return datasources.
+Using these is not required, but their use will simplify your development efforts considerably.
 
-in order to work with a GET() or POST() datasource, you need to clone it.
-this is to prevent a script from overriding them globally.
 
-to get a piece of data from a datasource, use one of these 3 methods:
+==Working with the GET and POST datasources==
+To start off with, let's explore how to use the GET and POST data sources.  These are special types of data sources due to the way that PHP handles GET and POST variables.
 
-echo $ds->varname;
-echo $ds->getVar( 'varname', 'Default Value' );
-echo $ds->_( 'varname', 'Default Value' );
+GET and POST are implemented as singleton classes along with a corresponding uppercase function name to get the singleton instance.
+
+So, you can do this in your scripts:
+{{{
+<?php
+
+if ( POST()->dataPresent )
+{
+    // logic here
+}
+
+if ( GET()->dataPresent )
+{
+    // logic here
+}
+}}}
+
+Working with Get or Post data is simple:
+{{{
+<?php
+$userModel = load_model( 'user' );
+
+if ( POST()->dataPresent && POST()->exists( 'user_id' ) )
+{
+    $record = $userModel->fetchById( POST()->user_id );
+    // work with record here.
+}
+}}}
+
+====Keep in mind that GET() and POST() do not allow modifying their contents. Using ->setVar on GET() or POST() datasources will cause an exception to be thrown. You should clone if you need to modify.====
+
+{{{
+<?php
+// will cause an exception
+GET()->setVar( 'user_id', 123 );
+
+// how to do it
+$ds = clone GET();
+$ds->setVar( 'user_id', 123 );
+?>
+}}}
+
+==Working with the CLI datasource==
+Please view the [CliDatasource CLI] documentation page.
+
+==Working with the URL datasource==
+Please view the [UrlDatasource URL] documentation page.

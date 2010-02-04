@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -29,6 +29,9 @@ enum( 'fft',
 		'Static'	=> 'statictext'
 		)
 	);
+define( 'FORM_AUTOCOMPLETE_ON', true );
+define( 'FORM_AUTOCOMPLETE_OFF', false );
+
 load_library( 'html/tgsfHtmlTag', IS_CORE_LIB );
 //------------------------------------------------------------------------
 /**
@@ -45,6 +48,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 	protected	$_ro_valid		= true;
 	protected	$_groupName		= '_main';
 	protected	$_ro_setup		= false;
+	protected	$_ro_autocomplete	= false;
 	//------------------------------------------------------------------------
 	public		$errors			= array();
 	/**
@@ -79,6 +83,19 @@ abstract class tgsfForm extends tgsfHtmlTag
 	{
 		parent::__construct( 'form' );
 		$this->setAttribute( 'method', 'POST' );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function autocomplete( $on = true )
+	{
+		$this->removeAttribute( 'autocomplete' );
+		$this->_ro_autocomplete = $on;
+		if ( $on === false )
+		{
+			$this->addAttribute( 'autocomplete', 'off' );
+		}
 	}
 	//------------------------------------------------------------------------
 	protected function useTemplate( $template, $core = true )
@@ -262,6 +279,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 	protected function forceValid( $value )
 	{
 		$this->_ro_valid = $value;
+		$this->errors = array();
 	}
 	//------------------------------------------------------------------------
 	public function validate()
@@ -286,6 +304,8 @@ abstract class tgsfForm extends tgsfHtmlTag
 		}
 
 		$this->validateForm( $this->_ro_ds, $v );
+		
+		return $this->_ro_valid;
 	}
 	//------------------------------------------------------------------------
 	/**

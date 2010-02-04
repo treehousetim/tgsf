@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -106,6 +106,44 @@ class tgsfCli extends tgsfDataSource
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Returns the count of the number of times the process shows up in a process list
+	* *nix ONLY
+	* This is restricted to detecting the controller that is currently running, but not any additional arguments
+	* Returns false on windows
+	*/
+	public function processRunCount( $controller = '' )
+	{
+		if ( PHP_OS == 'Windows' )
+		{
+			return false;
+		}
+
+		if ( empty( $controller ) )
+		{
+			$controller = $this->controller;
+		}
+
+		$count = 0;
+		$command = 'ps -af | grep controller=' . $controller;
+
+		$lines = array();
+		exec( $command, $lines );
+
+		foreach( $lines as $line )
+		{
+			if ( preg_match( '/cli\\.php[\\s]+--controller=(.*)/im', $line, $pieces ) )
+			{
+				if ( trim( $pieces[1] ) == trim( $controller ) )
+				{
+					$count++;
+				}
+			}
+		}
+		return $count;
+	}
+
+	//------------------------------------------------------------------------
+	/**
 	* Converts a CLI parsed object into a string - formatted like a url
 	*/
 	public function __toString()
@@ -116,7 +154,7 @@ class tgsfCli extends tgsfDataSource
 
 		foreach( $items as $key => $value )
 		{
-			if ( strtolower( $key ) != 'controller' )
+			if ( strtolower( $key ) != 'controller' && $key != 'unnamed' )
 			{
 				$out[] = $key . '/' . $value;
 			}
@@ -149,33 +187,36 @@ class tgsfCli extends tgsfDataSource
 	/**
 	* disallow resetting this if we're still a CLI type
 	*/
-	public function reset()
+	public function &reset()
 	{
 		if ( $this->_type == dsTypeCLI )
 		{
 			throw new tgsfException( 'Resetting a CLI datasource is disallowed.' );
 		}
 		parent::reset();
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Manually set a member of the data source
 	*/
-	public function setVar( $varName, $varValue )
+	public function &setVar( $varName, $varValue )
 	{
 		if ( $this->_type == dsTypeCLI )
 		{
 			throw new tgsfException( 'You may not use setVar on CLI datasources - Maybe you could use the remap function instead.' );
 		}
 		parent::setVar( $varName, $varValue );
+		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function set( $source )
+	public function &set( $source, $merge = false )
 	{
 		if ( $this->_type == dsTypeCLI )
 		{
 			throw new tgsfException( 'You may not use set on CLI datasources.' );
 		}
-		parent::set( $source );
+		parent::set( $source, $merge );
+		return $this;
 	}
 }

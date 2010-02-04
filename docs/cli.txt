@@ -1,0 +1,89 @@
+#summary How to use the CLI() global function.
+
+= Introduction =
+tgsf Supports running scripts from the command line. The global singleton function CLI() provides access to command line parameters and a process run count function.
+
+==Security==
+Keep in mind that tgsf sandboxes all cli controllers in a folder that is different from the web controllers.  This means that there is no way to trick tgsf into serving up CLI controllers by invoking any special urls in a browser.  However, the cli controller .php files do reside in the web root.  To prevent direct script access, you are encouraged to utilize two security methods.  First, make sure you use the most current .htaccess file from the full distribution (not just core updates).  This uses .htaccess level security to prevent direct url attempts to load scripts without loading the index.php front-controller.   Second, make sure you do the following at the top of your source files.
+{{{
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
+}}}
+
+==Details==
+
+The Command Line interface is designed to incorporate into the MVC framework in a way that is similar to how controllers are invoked using a web server/browser.  There are a few differences to note:
+
+*Differences*
+  * Controllers are located in application/cli
+  * If you are using server_id config files, CLI invocations of tgsf have a different server_id that is created via `md5 ( __FILE__ . PHP_OS )`  This makes it possible to have a CLI specific config file with an alternate (perhaps more privileged) database configuration.
+  * All config files are loaded with the exception of 
+    * config_web.php
+    * user_agent.php
+
+To make working with the CLI easier, a global function, CLI(), is exposed (just like GET() and POST() ) that returns a datasource object.
+
+===Accessing Arguments===
+Arguments may be passed to your script using many different formats.  It's easiest to simply show an example.
+*Example*
+{{{
+	php cli.php --controller=cli_var_dump -abc -a=test --test="php is great" --z --tim monkey
+
+	Output:
+
+	URL = test/_/a/test/b/1/c/1/test/php is great/z/1/tim/1/
+
+	controller                    string(4) "test"
+	a                             string(4) "test"
+	b                             int(1)
+	c                             int(1)
+	test                          string(12) "php is great"
+	z                             int(1)
+	tim                           int(1)
+	unnamed                       array(1) {
+	  [0]=>
+	  string(6) "monkey"
+	}
+}}}
+
+===Cloning===
+Just like GET() and POST(), CLI() must be cloned if you want to modify the variables stored within.
+{{{
+<?php
+//an exception will be thrown
+CLI()->setVar( 'user_id', 123 );
+
+//do this instead
+$ds = clone CLI();
+$ds->setVar(' user_id', 123 );
+?>
+}}}
+
+===CLI URL's===
+A pseudo URL is generated from the CLI datasource only as a way to provide a single way of looking at script invocations.
+To access the url, simply cast CLI() to a string.
+{{{
+<?php
+echo (string) CLI();
+?>
+}}}
+
+_Any unnamed variables passed on the command line will not be displayed in the pseudo URL<br>
+Having a URL does *NOT* imply that a CLI controller is accessible through a web server._
+
+== *nix only==
+If you are running on a system that has access to both grep and the ps command line tools you can use the following function:
+
+{{{
+<?php
+if	( CLI()->processRunCount() > 1 || CLI()->processRunCount( 'otherscript' ) > 0 )
+{
+	echo 'Exiting due to other scripts running.' . PHP_EOL;
+	exit();
+}
+?>
+}}}
+
+This executes the following code on your system:
+{{{
+ps -af | grep controller=command-line-controller
+}}}

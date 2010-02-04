@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -15,7 +15,6 @@ enum( 'qt',
 		'DELETE' => 'DELETE'
 		)
 	);
-
 
 define( 'qiDUP_CHECK', true );
 /**
@@ -68,10 +67,10 @@ class query extends tgsfBase
 	protected $_generated_sql       = '';
 	
 	//------------------------------------------------------------------------
-	public static function &factory()
+	public static function &factory( $which = 'default' )
 	{
 		$c = __CLASS__;
-		$instance = new $c();
+		$instance = new $c( $which );
 		return $instance;
 	}
 
@@ -349,6 +348,15 @@ class query extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	// where public methods
+	//------------------------------------------------------------------------
+	/**
+	* Adds static text to the where stack
+	* @param String The text to add
+	*/
+	public function staticWhere( $str )
+	{
+		$this->_whereList[] = $str;
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Adds an AND section to the where clause
@@ -681,7 +689,15 @@ class query extends tgsfBase
 		}
 		return $this;
 	}
-
+	//------------------------------------------------------------------------
+	/**
+	* creates and returns a new unionized query
+	*/
+	public function union( $type = 'ALL' )
+	{
+		throw new tgsfException( 'Not Implemented' );
+	}
+	//------------------------------------------------------------------------
 	public function &getSQL( &$sql )
 	{
 		$sql = $this->_generated_sql;
@@ -702,7 +718,7 @@ class query extends tgsfBase
 			break;
 
 		case qtSELECT:
-			$out = $this->_select() . $this->_from() . $this->_join() . $this->_where() . $this->_orderBy() . $this->_groupBy() . $this->_limit();
+			$out = $this->_select() . $this->_from() . $this->_join() . $this->_where() . $this->_groupBy() . $this->_orderBy() . $this->_limit();
 			break;
 
 		case qtUPDATE:
@@ -837,6 +853,117 @@ class query extends tgsfBase
 		  ->exec();
 
 		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Outputs debugging information for a query after executing
+	*/
+	public function &debug()
+	{
+		$eol = str_repeat( "\n", 2 );
+		
+		if ( in_debug_mode() || TGSF_CLI === true )
+		{
+			echo "<pre>\n";
+			echo "-------------------------------\n";
+			echo 'QUERY DEBUG' . $eol;
+			
+			if ( $this->_type == qtINSERT )
+			{
+				echo 'Last Insert ID: ' . $this->_ro_lastInsertId . $eol;
+			}
+			
+			echo 'Row Count: ' . $this->_ro_rowCount . $eol;
+			
+			$query = $this->sql();
+			
+			foreach( $this->_params as $param )
+			{
+				if ( $param->type == PDO::PARAM_STR || $param->type == PDO::PARAM_LOB )
+				{
+					$value = "'" . $param->value . "'";
+				}
+				else
+				{
+					if ( $param->value === null )
+					{
+						$value = 'NULL';
+					}
+					elseif( is_bool( $param->value ) && $param->type == PDO::PARAM_BOOL )
+					{
+						$value = $param->value?'TRUE':'FALSE';
+					}
+					else
+					{
+						$value = $param->value;
+					}
+				}
+				
+				$query = str_replace( ':' . $param->name, $value, $query );
+			}
+			
+			echo $this->sql() . $eol;
+			echo $query . $eol;
+			echo 'Param Values' . $eol;
+			$this->paramsAsDs()->debug();
+			echo "-------------------------------\n";
+			echo "</pre>" . $eol;
+		}
+
+		return $this;
+	}
+	
+	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	//--------------------------- filter methods -----------------------------
+	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	
+	//------------------------------------------------------------------------
+	/**
+	* Outputs debugging information for a query after executing
+	*/
+	public function &filter( $callback )
+	{
+		$args = func_get_args();
+
+		if ( is_array( $args ) )
+		{
+			array_shift( $args );
+		}
+		else
+		{
+			$args = array();
+		}
+
+		array_unshift( $args, $this );
+
+		call_user_func_array( $callback, $args );
+		return $this;
+	}
+	
+	//------------------------------------------------------------------------
+	
+	public function filterSetIf( &$q, $bool, $pt, $key, $value = false )
+	{
+		if ( $bool === true )
+		{
+			switch ( $this->_type )
+			{
+				case qtINSERT:
+					$q->pt( $pt )->insert_fields( $key );
+					break;
+					
+				case qtUPDATE:
+				default:
+					$q->pt( $pt )->set( $key );
+			}
+			
+			if ( $value !== false )
+			{
+				$q->bindValue( $key, $value, $pt );
+			}
+		}
 	}
 
 	//------------------------------------------------------------------------

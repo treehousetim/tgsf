@@ -1,11 +1,12 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
+define( 'REPORT_EOL', "\n" );
 define( 'EXT', '.php' );
 define( 'PHP', '.php' );
 
@@ -33,6 +34,26 @@ define( 'SALT_LENGTH', 40 );
 //------------------------------------------------------------------------
 // used when redirecting - used in tgsfUrl.php
 define( 'DO_NOT_EXIT', false );
+//------------------------------------------------------------------------
+define( 'GET_DUMP_HTML', true );
+//------------------------------------------------------------------------
+define( 'IMAGE_URL_ABSOLUTE', true );
+define( 'IMAGE_URL_RELATIVE', false );
+//------------------------------------------------------------------------
+function current_server_id()
+{
+	if ( TGSF_CLI )
+	{
+		return strtoupper( md5 ( __FILE__ . PHP_OS ) );
+	}
+
+	return strtoupper( md5( current_host() . current_base_url_path() ) );
+}
+//------------------------------------------------------------------------
+function show_current_server_id_parts()
+{
+	 echo __FILE__ . PHP_OS;
+}
 //------------------------------------------------------------------------
 //
 /**
@@ -196,7 +217,7 @@ function &load_cloned_object( $path, $name )
 
 	if ( ! in_array( $file, array_keys( $masterObjects ) ) )
 	{
-		$obj = require_once( $file );
+		$obj = include( $file );
 
 		if ( ! is_object( $obj ) )
 		{
@@ -275,7 +296,7 @@ function force_no_www( $checkFor = true )
 	if ( starts_with( $_SERVER['HTTP_HOST'], 'www.' ) )
 	{
 		$config['host_www'] = false;
-		location_301( $_SERVER['REQUEST_URI'] );
+		URL( $_SERVER['REQUEST_URI'] )->permRedirect();
 	}
 }
 //------------------------------------------------------------------------
@@ -288,13 +309,14 @@ function force_www()
 	$config['host_www'] = true;
 	if ( ! starts_with( current_host(), 'www.' ) )
 	{
-		location_301( $_SERVER['REQUEST_URI'] );
+		URL( $_SERVER['REQUEST_URI'] )->permRedirect();
 	}
 }
 //------------------------------------------------------------------------
 function force_trailing_slash()
 {
 	define( 'tgTrailingSlash', true );
+
 	if ( empty( $_SERVER['REDIRECT_QUERY_STRING'] ) && ! empty( $_SERVER['REDIRECT_URL'] ) && strlen( $_SERVER['REDIRECT_URL'] ) && substr( $_SERVER['REDIRECT_URL'], -1 ) != '/' )
 	{
 		$page = tgsf_parse_url();
@@ -323,6 +345,21 @@ function force_trailing_slash()
 	 	header( "HTTP/1.1 301 Moved Permanently" );
 	    header( 'Location: ' . $url );
 	    exit();
+	}
+}
+//------------------------------------------------------------------------
+function force_https()
+{
+	if ( TGSF_CLI === true )
+	{
+		return;
+	}
+
+	if ( current_has_ssl() == false )
+	{
+		header( "HTTP/1.1 301 Moved Permanently" );
+	    header( 'Location: ' . current_https_url() );
+		exit();
 	}
 }
 //------------------------------------------------------------------------
@@ -385,9 +422,9 @@ function image( $file, $core = false )
 	return $root . $file;
 }
 //------------------------------------------------------------------------
-function image_url( $file, $absolute = false )
+function image_url( $file, $absolute = false, $core = false )
 {
-	$loc = url_path( 'assets/images' );
+	$loc = url_path( 'assets/images', $core );
 
 	if ( $absolute )
 	{
@@ -746,6 +783,29 @@ function randomCode ( $length = 4, $useNumbers = true, $useLower = false, $useSp
 	return $code;
 }
 //------------------------------------------------------------------------
+/**
+* Sends the headers to force a browser to start a download.
+* @param String the filename the browser should save the file as
+* @param String the file data
+* @param String The content-type to send to the browser - defaults to text/plain
+*/
+function sendDownload( $filename, $data, $type = 'text/plain' )
+{
+	header( 'Cache-Control: must-revalidate' );
+	header( 'Pragma: must-revalidate' );
+
+	header( 'Content-Description: File Transfer' );
+ 	header( 'Content-Disposition: attachment; filename=' . $filename );
+	header( 'Content-Type: ' . $type );
+	echo $data;
+	exit();
+}
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+// log functions
+//------------------------------------------------------------------------
 function log_exception( $e, $tgsfLogError = false )
 {
 	$out  = $e->getMessage() . PHP_EOL;
@@ -780,11 +840,15 @@ function log_error( $message )
 //------------------------------------------------------------------------
 function general_log( $message, $file = 'general_log.txt' )
 {
+	$date = new DateTime();
+	$cst = new DateTimeZone( 'America/Chicago' );
+	$date->setTimezone( $cst );
+
 	$file = clean_text( $file, '_', "." );
 	$file = path( 'logs', IS_CORE_PATH ) . $file;
 
 	$out = PHP_EOL . '------------------------------------------------------------------------' . PHP_EOL;
-	$out .= date( 'Y/m/d H:i:s' ) . PHP_EOL;
+	$out .= $date->format( 'Y-m-d H:i:s T' ) . PHP_EOL;
 	$out .= '----------------------' . PHP_EOL;
 	$out .= $message . PHP_EOL;
 
@@ -972,6 +1036,47 @@ function clean_text( $subject, $replace = '_', $extraAllowedChars = '' )
 	return preg_replace( '/[^a-z0-9' . $extraAllowedChars . ']+/sim', $replace, $subject );
 }
 //------------------------------------------------------------------------
+function zeroPad( $value, $places )
+{
+	$value = rtrim( substr( $value, 0, $places ), " \n\r0" );
+	if ( empty( $value ) )
+	{
+		return str_repeat( '0', $places );
+	}
+
+	if ( strlen( $value ) < $places )
+	{
+		$value = $value . str_repeat( '0', $places - strlen( $value ) );
+	}
+	
+	return $value;
+}
+//------------------------------------------------------------------------
+function truncateNumberFormat( $value, $places )
+{
+	$neg = '';
+	if ( $value < 0 && $value > -1 )
+	{
+		$neg = '-';
+	}
+
+	$vals = preg_split( '/\\./', (string)$value );
+
+	if ( $places == 0 )
+	{
+		return $neg . number_format( $vals[0] );
+	}
+
+	if ( ! empty( $vals[1] ) )
+	{
+		return $neg . number_format( $vals[0] ) . '.' . zeroPad( $vals[1], $places );
+	}
+	else
+	{
+		return $neg . number_format( $vals[0] ) . '.' . zeroPad( 0, $places );
+	}
+}
+//------------------------------------------------------------------------
 function get_dump( &$var, $formatHTML = false )
 {
 	$prefix = '';
@@ -990,9 +1095,73 @@ function get_dump( &$var, $formatHTML = false )
 //------------------------------------------------------------------------
 function memory_stats()
 {
-	//echo number_format( memory_get_usage() ) . '<br>';
-	//echo number_format( memory_get_peak_usage() ) . '<br><br>';
-
-	fb( number_format(memory_get_usage()), 'Mem Usage', FirePHP::INFO );
-	fb( number_format(memory_get_peak_usage()), 'Mem Usage (Peak)', FirePHP::INFO );
+	if ( ! headers_sent() )
+	{
+		fb( number_format(memory_get_usage()), 'Mem Usage', FirePHP::INFO );
+		fb( number_format(memory_get_peak_usage()), 'Mem Usage (Peak)', FirePHP::INFO );
+	}
 }
+//------------------------------------------------------------------------
+function tz_convert_string_to_utc( $text, $tz = 'UTC' )
+{
+	return tz_strtotime( $text, $tz );
+}
+//------------------------------------------------------------------------
+/*
+ * Convert a date string for a specific timezone into a timestamp
+ * @param Str The date string
+ * @param Str The timezone of the date string
+ * @return Int The timestamp result
+ */
+function tz_strtotime( $text, $tz = 'UTC' )
+{
+	if ( empty( $text )  ) return time();
+
+	$ts = strtotime( $text . ' ' . $tz );
+
+	return $ts;
+}
+//------------------------------------------------------------------------
+/*
+ * DEPENDENCY: Zend_Date
+ * Convert a timestamp into a date string with a specific timezone
+ * @param Str The date format to return
+ * @param Int The timestamp to offset and stringify
+ * @param Str The timezone to use for the return date string
+ * @return Str The formatted date string for specified timezone
+ */
+function tz_date( $format, $ts, $tz = 'UTC' )
+{
+	// force ts to be a timestamp (integer) - if not an int we force a strtotime
+	$ts = is_int( $ts )?$ts:strtotime($ts);
+
+	$date = new Zend_Date( $ts, Zend_Date::TIMESTAMP );
+	$date->setTimezone( $tz );
+	
+	return $date->toString( $format );
+}
+
+//------------------------------------------------------------------------
+/*
+* $ts is expected to be a time stamp.  You can pass a string, but the string
+* must already be in UTC - the timezone here is only used for output
+* not for translating a passed $ts string
+*/
+function tz_gmdate_start( $format, $ts, $tz )
+{
+	$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_START, $ts, $tz ), $tz );
+	return gmdate( $format, $ts );
+}
+
+//------------------------------------------------------------------------
+/*
+* $ts is expected to be a time stamp.  You can pass a string, but the string
+* must already be in UTC - the timezone here is only used for output
+* not for translating a passed $ts string
+*/
+function tz_gmdate_end( $format, $ts, $tz )
+{
+	$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_END, $ts, $tz ), $tz );
+	return gmdate( $format, $ts );
+}
+//------------------------------------------------------------------------

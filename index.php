@@ -1,6 +1,6 @@
 <?php
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -12,8 +12,14 @@ if ( get_magic_quotes_gpc() == 1 )
 	die( 'You must turn magic quotes off.<br>http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc' );
 }
 
+// remove for production
+if ( file_exists( 'sync-core.php' ) )
+{
+	include( 'sync-core.php' );
+}
+
 define( 'TGSF_CLI',			false							);
-define( 'BASEPATH',			dirname( __FILE__ ) . '/'		);
+define( 'BASEPATH',			dirname(  __FILE__ ) . '/'		);
 define( 'CORE_PATH',		BASEPATH . 'tgsf_core/'			);
 define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 

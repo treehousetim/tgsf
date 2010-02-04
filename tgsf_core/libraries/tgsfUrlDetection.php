@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -35,6 +35,11 @@ function current_has_www()
 {
 	list( $host ) = explode( ':', $_SERVER['HTTP_HOST'] );
 	return starts_with( $host, 'www.' );
+}
+//------------------------------------------------------------------------
+function current_has_ssl()
+{
+	return current_protocol() == 'https';
 }
 //------------------------------------------------------------------------
 function current_domain()
@@ -78,7 +83,7 @@ function current_port()
 		$port = $_SERVER['SERVER_PORT'];
 	}
 
-	if ( $port == '80' )
+	if ( $port == '80' || $port = '443' )
 	{
 		$port = '';
 	}
@@ -93,15 +98,17 @@ function current_port()
 //------------------------------------------------------------------------
 function current_base_url()
 {
-	$url  = current_protocol() . '://';
-	$url .= current_host();
-	$url .= current_port() . '/';
-	$url .= current_base_url_path();
-
-	return $url;
+	return current_protocol() . '://' .
+	current_host() .
+	current_port() . '/' .
+	current_base_url_path();
 }
 //------------------------------------------------------------------------
-function current_server_id()
+function current_https_url()
 {
-	return strtoupper( md5( current_host() . current_base_url_path() ) );
+	return 'https://' .
+	current_host() .
+	current_port() . '/' .
+	$_SERVER['REQUEST_URI'];
+	
 }

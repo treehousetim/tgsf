@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license
 for complete licensing information.
@@ -15,12 +15,26 @@ define( 'tgsfRoleSuperAdmin', 100 );
 
 function &AUTH( $model = null )
 {
-	return tgsfUserAuth::get_instance( $model );
+	if ( TGSF_CLI === true )
+	{
+		return tgsfUserAuthCLI::get_instance( $model );
+	}
+	else
+	{
+		return tgsfUserAuth::get_instance( $model );
+	}
 }
 //------------------------------------------------------------------------
 function AUTH_is_configured()
 {
-	return tgsfUserAuth::$configured;
+	if ( TGSF_CLI === true )
+	{
+		return tgsfUserAuthCLI::$configured;
+	}
+	else
+	{
+		return tgsfUserAuth::$configured;
+	}
 }
 //------------------------------------------------------------------------
 class tgsfUserAuth extends tgsfBase
@@ -56,6 +70,11 @@ class tgsfUserAuth extends tgsfBase
 				$this->_ro_user	= $this->model->getForAuth( $_SESSION['record_id'] );
 			}
 		}
+		else
+		{
+			$this->logout();
+		}
+
 		self::$configured = true;
 	}
 	//------------------------------------------------------------------------
@@ -214,5 +233,90 @@ class tgsfUserAuth extends tgsfBase
 	public function __clone()
 	{
 		throw new tgsfException( 'Cloning a singleton (userAuth) is not allowed. Use the AUTH() function to get its instance.' );
+	}
+}
+//------------------------------------------------------------------------
+class tgsfUserAuthCLI extends tgsfUserAuth
+{
+	private static	$_instance			= null;
+	public static $configured			= false;
+	//------------------------------------------------------------------------
+	protected function __construct( $model )
+	{
+		$this->model = $model;
+		self::$configured = true;
+	}
+	//------------------------------------------------------------------------
+	public function login( $ds )
+	{
+		return false;
+	}
+	//------------------------------------------------------------------------
+	public function getLoginTimeZone()
+	{
+		return TZ_DEFAULT;
+	}
+	
+	//------------------------------------------------------------------------
+	/**
+	* Returns the logged in user's id
+	*/
+	public function getLoginId()
+	{
+		return null;
+	}
+	//------------------------------------------------------------------------
+	public function logout()
+	{
+	}
+	//------------------------------------------------------------------------
+	public function &requireLogin()
+	{
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &minRole( $minRole )
+	{
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns true if the current user has at least the specified role, else false
+	*/
+	public function hasRole( $role )
+	{
+		return false;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns true if the current user IS the specified role, else false
+	*/
+	public function isRole( $role )
+	{
+		return false;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Static function that returns the singleton instance of this class.
+	*/
+	public static function &get_instance( $model )
+	{
+		if ( self::$_instance === null )
+		{
+			if ( is_null( $model ) )
+			{
+				throw new tgsfException( 'A model is required when calling AUTH for the first time.' );
+			}
+
+			$c = __CLASS__;
+			self::$_instance = new $c( $model );
+		}
+
+		return self::$_instance;
+	}
+	//------------------------------------------------------------------------
+	public function __clone()
+	{
+		throw new tgsfException( 'Cloning a singleton (userAuthCLI) is not allowed. Use the AUTH() function to get its instance.' );
 	}
 }

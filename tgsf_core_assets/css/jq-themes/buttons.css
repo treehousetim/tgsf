@@ -50,11 +50,21 @@ button.ui-button
 	right:auto;
 }
 
+button.ui-button-icon-left .ui-icon
+{
+	left: -1.75em;
+}
+
 .ui-button-icon-right .ui-icon
 {
 	left:auto;
 	margin-left:0;
 	right:0.2em;
+}
+
+button.ui-button-icon-right .ui-icon
+{
+	right: -1.75em;
 }
 
 .ui-button-icon-solo

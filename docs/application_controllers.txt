@@ -1,0 +1,80 @@
+#summary Overview of Controllers
+
+= Contents =
+<wiki:toc max_depth="3" />
+
+== Important Security Note ==
+Always use the standard header at the top of your php files to avoid direct execution of your controllers.
+{{{
+<?php defined( 'BASEPATH' ) or die( 'Restricted' );
+}}}
+
+== Creating Controllers ==
+Creating controllers is as simple as creating a file. Like many other MVC frameworks available, tgsf utilizes a special folder that contains your controllers. This folder is named controllers and is located in the application folder. Simply create a file in that folder "my_page.php" and at which point the url www.example.com/my_page is available.
+
+==CLI Controllers==
+[CliDatasource Click Here For More Information about CLI]
+
+== Default Controllers ==
+For default controllers, tgsf works the same way as most traditional PHP development. For sake of familiarity and simplicity, tgsf uses index.php - it checks to see if an index.php file exists. If it does, then that becomes the controller that is loaded. The global variable $page still contains the url that is being loaded.
+
+Example: Given the following folder structure:
+{{{
+/application
+    /controllers
+        /users
+            index.php <<
+}}}
+
+The url www.example.com/users will load the index.php controller inside the users folder.
+
+So what happens when you have a folder with index.php and a controller with the same name as a folder? Preference is always given to a file over a folder with an index.php file. This means that you can have a "parent" controller at a level closer to root with the same name as a folder and still have urls go into the folder, but the default controller will not be users/index.php
+
+Example: Given the following folder structure:
+{{{
+/controllers
+    users.php
+    /users
+        index.php
+        profile.php
+        rest_api.php
+}}}
+
+The url www.example.com/users will load controllers/users.php but the url www.example.com/users/profile will load the /controllers/users/profile.php file. You can access the index file using www.example.com/users/index but that looks odd and should be avoided in practice.
+
+
+
+== Passing Variables to Controllers ==
+tgsf allows the use of HTTP GET style variable passing.  For example, this url is perfectly valid.
+{{{http://example.com/controller/?example=Wowzers}}}
+
+It should go without saying that `$_GET['example']` will contain the text "Wowzers"
+
+There is an alternative syntax for passing variables.  It includes a special controller to variable separator since controllers can be deeply nested in sub-folders.  Consider then, this example url:
+{{{http://example.com/sub/subsub/controller/_/example/Wowzers}}}
+
+In this instance, `$_GET['example']` will contain "Wowzers"
+
+Combining the two (not recommended):
+{{{http://example.com/sub/subsub/controller/_/example/Wowzers/?example=Zippy}}}
+
+`$_GET['example']` = 'Zippy'
+We always give precedence to any existing `$_GET` variable and won't overwrite it.
+Also, tgsf always attempts to set the underscored variable name.
+
+For this url:
+http://example.com/sub/subsub/controller/_/example/Wowzers?example=Zippy
+{{{
+$_GET['example'] = 'Zippy'
+$_GET['_example'] = 'Wowzers'
+}}}
+
+And for this url:
+http://example.com/sub/subsub/controller/_/example/Wowzers
+
+{{{
+$_GET['example'] = 'Wowzers'
+$_GET['_example'] = 'Wowzers'
+}}}
+
+Keep in mind that tgsf will not set the value from the url if you have passed HTTP GET style variables after the ? with the same name, including the underscored version of it.  Your life will be easier if you don't mix url variable passing with HTTP GET variable passing, but if you do mix, make sure you use unique variable names.

@@ -1,103 +1,288 @@
-Defines (/tgsf_core/libraries/db/enum.php)
+#summary The query object
+<wiki:toc max_depth="3" />
 
-param types:
-ptBOOL
-ptNULL
-ptINT
-ptSTR
-ptLOB
-ptDECIMAL
-ptFLOAT
-ptDEC
-ptFLT
-
-
-methods:
-paramType is from list above
-pt( paramType )
-	sets the param type for future calls to set (for updates) or insert_fields (for inserts)
-	returns the query object for method chaining.
-
-
-examples:
-$ds = tgsfDataSource::factory();
-// set ds here or use another datasource that's already set
-
+==Instantiating==
+Instantiation can be through either direct instantiation or via a static factory method.
+Both methods accept a logical database connection name.
+<br>
+*Example*
+{{{
+<?php
 $q = new query();
-$q->insert_into( 'user' );
-$q->pt( ptSTR )->insert_fields( array( 'user_email', 'user_first_name' ) );
-$q->pt( ptINT )->insert_fields( array( 'user_id' ) );
-$q->autoBind( $ds ); // automatically binds using the ->pt calls above to set the type
+$q = query::factory();
+
+$q = new query( 'logical_database_name' );
+$q = query::factory( 'logical_database_name' );
+?>
+}}}
+
+==Method Chaining==
+Using the query factory along with multi-line-chains you can instantiate and return all in a single statement.
+<br>
+*Example*
+{{{
+<?php
+function example()
+{
+    return query::factory
+        ->select( '*' )
+        ->from( 'user' )
+        ->where( 'user_id=:user_id' )
+        ->bindValue( 'user_id', 123, ptINT )
+        ->exec()
+?>
+}}}
+==Class Variables==
+==lastInsertId==
+Contains the last auto increment value from mysql.
+
+==Common Methods==
+===select===
+Invoking `->select()` creates a `select * query`.  Multiple calls to `->select()` may be issued with different field lists to select.
+<br>
+*Example*
+{{{
+<?php
+echo query::factory()
+    ->select( 'field1,field2' )
+    ->select( 'field3,field4' )
+    ->from( 'user' )
+	->generate();
+?>
+}}}
+*Output*
+{{{
+select field1,field2,field3,field4 from user
+}}}
 
 
-counting rows as t/f result
+===count===
+Use count in place of select to create a `select count(*)` query;  You may pass a field to count to have it replace the *
+<br>
+*Example*
+{{{
+<?php
+echo query::factory()
+    ->count()
+    ->from( 'user' )
+	->generate();
+?>
+}}}
+*Output*
+{{{
+select count(*) from user
+}}}
+
+===from===
+Specifies the from table for selects
+<br>
+*Example*
+{{{
+<?php
+echo query::factory()
+    ->select()
+    ->from( 'user' )
+	->generate();
+?>
+}}}
+*Output*
+{{{
+select * from user
+}}}
+
+===insert_into===
+*Example*
+{{{
+<?php
+echo query::factory()
+    ->insert_into( 'user' )
+    ->insert_fields( 'field1', 'field2' )
+	->generate();
+?>
+}}}
+*Output*
+{{{
+insert into user (field1,field2) values( :field1,:field2 )
+}}}
+===insert_fields===
+Used when inserting records (see insert_into above).  insert_fields has several ways of calling it.<br>
+ # `->insert_fields( 'f1','f2' ) //preferred`
+ # `->insert_fields( array( 'f1','f2' ) )`
+ # `->insert_fields( array( 'f1','f2','f3' ), qiDUP_CHECK )`
+That last form uses an array of field names then the qiDUP_CHECK constant to enforce duplicate field name checking when adding fieldnames to your query.  Duplicate field checking is off by default for performance reasons (lots and lots of loops).  You can also just pass in any number of arguments to the method and each one will be treated as a field name - this does not allow the enforcing of duplicate checking so if you need that use an array and the qiDUP_CHECK constant.
+<br>
+*Example*
+{{{
+<?php
+echo query::factory()
+    ->insert_into( 'user' )
+    ->insert_fields( 'field1', 'field2' )
+	->generate();
+?>
+}}}
+*Output*
+{{{
+insert into user (field1,field2) values( :field1,:field2 )
+}}}
+===bindValue===
+Use bind value to bind a value to a named parameter in your query.  See the list of param types on this page for the complete list.
+<br>
+*Example*
+{{{
+<?php
+$field1Value = 'example';
+$field2Value = 123;
+
+echo query::factory()
+    ->insert_into( 'user' )
+    ->insert_fields( 'field1', 'field2' )
+    ->bindValue( 'field1', $field1Value, ptSTR )
+    ->bindValue( 'field2', $field2Value, ptINT )
+?>
+}}}
+===autoBind===
+Automatically binds parameters to your query.  This only works for *insert_fields* and *set* since these are the only methods that automatically create parameters for you.  Any parameters in a where clause must be manually bound to your query.
+You must use `->pt( param_type )` in conjunction with autoBind.
+<br>
+*Example*
+{{{
+<?php
+$ds = tgsfDataSource::factory()
+    ->setVar( 'field1', 'example' )
+    ->setVar( 'field2', 123 );
+
+echo query::factory()
+    ->insert_into( 'user' )
+    ->pt( ptSTR )
+    ->insert_fields( 'field1' )
+    ->pt( ptINT )
+    ->insert_fields( 'field2' )
+    ->autoBind( $ds )
+	->generate();
+?>
+}}}
+
+===pt===
+pt is used in conjunction with auto-binding datasources to queries.  If you are going to manually bind variables to your query don't bother using this.  This only works for *insert_fields* and *set* since these are the only methods that automatically create parameters for you.
+<br>
+*Example*
+{{{
+<?php
+$ds = tgsfDataSource::factory()
+    ->setVar( 'field1', 'example' )
+    ->setVar( 'field2', 123 );
+
+query::factory()
+    ->insert_into( 'user' )
+    ->pt( ptSTR )
+    ->insert_fields( 'field1' )
+    ->pt( ptINT )
+    ->insert_fields( 'field2' )
+    ->autoBind( $ds )
+    ->exec();
+?>
+}}}
+===debug===
+When `$config['debug_mode'] = true;` is in your config file or when running under CLI, invoking debug will provide you with a detailed description of a query.
+===where===
+Creates an AND clause on your query.  Text is static - you are highly encouraged to use bound parameters.  Call more than once to add more where clauses.  and_where is an alias to where
+<br>
+*Example*
+{{{
+<?php
+$row = query::factory()
+    ->select()
+    ->from( 'user' )
+    ->where( 'id=:id' )
+    ->where( 'type=:type' )
+	->bindValue( 'id', 123, ptINT )
+	->bindValue( 'type', 'admin', ptSTR )
+    ->exec()
+	->fetch();
+?>
+}}}
+===join===
+join( '_table_', '_join_clause_', _$type_ )<br>
+Type defaults to "LEFT OUTER JOIN"
+<br>
+*Example*
+{{{
+<?php
+echo query::factory()
+    ->select()
+    ->from( 'user' )
+    ->join( 'user_clubs', 'user.id=user_clubs.user_id' )
+    ->where( 'id=:id' )
+    ->bindValue( 'id', 123, ptINT )
+    ->generate();
+?>
+}}}
+*Output*
+{{{
+-------------------------------
+QUERY DEBUG
+
+Row Count: 
+
+SELECT *  FROM user   LEFT OUTER JOIN user_clubs ON ( user.id=user_clubs.user_id )   WHERE 1=1 AND id=:id 
+
+SELECT *  FROM user   LEFT OUTER JOIN user_clubs ON ( user.id=user_clubs.user_id )   WHERE 1=1 AND id=123 
+
+Param Values
+
+id                            int(123)
+
+-------------------------------
+}}}
+===limit===
+===group_by===
+
+===order_by===
+===prepare===
+Allows you to prepare a query for use in a loop for repeated execution.  Simply bind new values to your query's parameters on each iteration of the loop and call `->exec()`
+===set===
+===set_literal===
+===static_query===
+Allows you to use the query class to execute a hand-written query.
+<br>
+*Example*
+{{{
+<?php
+query::factory()
+    ->static_query( 'UPDATE user set alt_id=user.id+1' )
+    ->exec();
+?>
+}}}
+===exec===
+Executes the query on the database server.
+
+==Param types:==
+  * ptBOOL
+  * ptNULL
+  * ptINT
+  * ptSTR
+  * ptLOB
+  * ptDECIMAL
+  * ptDATE
+  * ptDATETIME
+  * ptFLOAT
+  * ptDEC
+  * ptFLT
+
+==Real World Examples==
+===counting rows as t/f result===
+<br>
+*Example*
+{{{
 <?php
 
 function recExists( $id )
 {
 	// count is a shortcut to ->select( count('*') ) and count may be passed a string to use in place of '*'
-	$q = new query();
-	$q->count()->from( 'table' )->where( 'table_id=:table_id' );
-	$q->bindValue( 'table_id', $id, ptINT ); // see above for param types
-	return $q->exec()->fetchColumn(0) > 0;
+	return query::factory()
+	    ->count()->from( 'table' )->where( 'table_id=:table_id' )
+	    ->bindValue( 'table_id', $id, ptINT ); // see above for param types
+		->exec()->fetchColumn(0) > 0;
 }
 
 ?>
-
-Inserting
----------
-$q = new query();
-$q->insert_into( 'my_clever_table' )
-	->insert_fields( 'field1', 'field2', 'field3' );
-	
-If you need to make sure you don't duplicate fields being inserted
-you can use the alternative syntax
-
-$q->insert_fields( array( 'field','field' ), qiDUP_CHECK );
-
-The define, qiDupCheck (query insert dup check) is a define that allows you to specify that you
-do want duplicate checking performed so you don't add a field more than once.
-
-
-
-Selecting
----------
-
-$q = new query();
-
-$q->select()
-	->from( 'my_clever_table' );
-	
-Generates
-SELECT * FROM my_clever_table
-
-//------------------------------------------------------------------------
-
-$q->select()
-	->from( 'my_clever_table' )
-	->where( 'field=:field' );
-	
-Generates
-SELECT * FROM my_clever_table where 1=1 AND field=:field
-
-//------------------------------------------------------------------------
-Obviously you need to bind a value to the query and fetch a row.
-
-$row = $q->select()
-	->from( 'my_clever_table' )
-	->where( 'field=:field' )
-	->bindValue( 'field', 'value', ptSTR )
-	->exec()
-	->fetch();
-	
-Joins
------
-$q->select()
-	->from( 'my_clever_table' )
-	->join( 'my_dumb_table', 'my_clever_table.dumb_id = my_dumb_table.id', 'LEFT OUTER JOIN' )
-	->where( 'field=:field' )
-	->bindValue( 'field', 'value', ptSTR )
-	->exec();
-	
-Generates
-SELECT * FROM my_clever_table LEFT OUTER JOIN my_dumb_table ON (my_clever_table.dumb_id = my_dumb_table.id) where 1=1 AND field=:field

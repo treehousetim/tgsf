@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -222,14 +222,8 @@ class tgsfFormField extends tgsfBase
 		if ( $this->_ro_tag === null )
 		{
 			$tag = new tgsfHtmlTag( 'input' );
-			$tag->setAttributes( $this->_ro_fieldAttributes );
 			$this->_ro_tag =& $tag;
-			
-			$tag->addAttribute( 'name', $this->_name, SINGLE_ATTR_ONLY );
-			$tag->id( $this->_name );
-			$tag->value( $this->value );
-			$tag->css_class( $this->_type );
-		
+					
 			switch ( $this->_type )
 			{
 			case fftText:
@@ -308,8 +302,19 @@ class tgsfFormField extends tgsfBase
 				$tag->content( $this->_value );
 				break;
 			}
+			
+			$this->_ro_fieldAttributes = array_merge( $this->_ro_fieldAttributes, $tag->attributes );
+			
+			$tag->setAttributes( $this->_ro_fieldAttributes );
+			
+			if ( ! $tag->hasAttribute( 'name'	) || $tag->name			== '' ) $tag->addAttribute( 'name', $this->_name );
+			if ( ! $tag->hasAttribute( 'id'		) || $tag->id			== '' ) $tag->id( $this->_name );
+			if ( ! $tag->hasAttribute( 'value'	) || $tag->value		== '' ) $tag->value( $this->value );
+			if ( ! $tag->hasAttribute( 'class'	) || $tag->class	== '' ) $tag->css_class( $this->_type );
+			
 			$this->form->onField( $this->_ro_tag );
 		}
+				
 		return $this->_ro_tag;
 	}
 	//------------------------------------------------------------------------

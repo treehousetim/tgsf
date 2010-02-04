@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -363,6 +363,10 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	{
 		if ( $cellType == ROW_NORMAL )
 		{
+			if ( empty( $row->{$col->fieldName} ) )
+			{
+				return;
+			}
 			$cell->content( FORMAT()->date( $row->{$col->fieldName}, DT_FORMAT_UI_DATE, $this->timezone ) );
 		}
 	}

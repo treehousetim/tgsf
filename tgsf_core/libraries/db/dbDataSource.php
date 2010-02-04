@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -53,9 +53,10 @@ class dbDataSource extends tgsfDataSource
 	* Sets the table list for this datasource - used later by $this->hasTable
 	* @param Array/String The table(s) that are the source of the data in this ds
 	*/
-	public function setTables( $list )
+	public function &setTables( $list )
 	{
 		$this->_tableList = (array)$list;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**

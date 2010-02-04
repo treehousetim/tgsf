@@ -1,4 +1,4 @@
-#This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+#This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 #Please view license.txt in /tgsf_core/legal/license.txt or
 #http://tgWebSolutions.com/opensource/tgsf/license.txt
 #for complete licensing information.
@@ -19,7 +19,7 @@ pg="--no-p --no-g"
 delete=
 rsync_options=-Pav
 rsync_local_path=../
-rsync_server_string=progchat@progchat.com
-rsync_server_path="~/public_html/tgwebsolutions/mm/"
+rsync_server_string=ssdev1@204.232.232.154
+rsync_server_path="/home/dev.silversaver.com/"
 
 rsync $rsync_options $dryrun $delete $exclude $c $pg $rsync_local_path $rsync_server_string:$rsync_server_path

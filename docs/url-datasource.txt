@@ -1,0 +1,103 @@
+#summary How to use the URL() global function.
+<wiki:toc max_depth="3" />
+= Introduction =
+tgsf uses a special type of datasource to represent URL's.  URL's and datasources both have variables, using an object to represent a url provides the possibility of different parts of your code being able to add variables in according to their need.  While datasources are inherently non-visual (disconnected from html output), the URL() object provides a method that returns an anchor tag.  However, as you'll see, even this is partially non-visual.  Let's jump right in with some examples to illustrate things.
+
+==URL Strings==
+Since tgsf supports zero-configuration sub folder installations, using PHP to generate URL's make your code more portable.  This allows developers to put a full tgsf installation in a sub-folder on their dev server yet have the live site in the root and both will _just work_ with no configuration necessary on either system.
+<br><br>
+Generating a URL string is easy.  The following examples will assume our host is example.com and we're using a sub-folder of _tgsf_.
+{{{
+<?php
+echo URL( 'admin/login' );
+?>
+}}}
+*Output*
+{{{
+http://example.com/tgsf/admin/login/
+}}}
+
+==URL Strings With Variables==
+Keep in mind that URL() returns a datasource - this means that the way you're already working with datasource doesn't change.  If you need to read, modify, or add variables to a URL just use the normal datasource methods.
+
+{{{
+<?php
+echo URL( 'admin/login' )->setVar( 'user_id', 123 )->setVar( 'sub_id', 456 );
+?>
+}}}
+*Output*
+{{{
+http://example.com/tgsf/admin/login/_/user_id/123/sub_id/456/
+}}}
+
+==Local vs. Non Local Url's==
+If you have a url you want to redirect to that is not a local url use this code
+{{{
+<?php
+echo URL( 'http://example.com/test' ); // wrong
+echo '<br>' . PHP_EOL;
+echo URL( 'http://example.com/test' )->notLocal();
+?>
+}}}
+*Output*
+{{{
+http://localhost/tgsf/http://example.com/test/
+http://example.com/test
+}}}
+
+
+==Other Uses==
+
+===Redirecting===
+URL() can also be used to redirect - in fact is is the preferred method of redirecting.
+Calling `->redirect` creates a 303 based redirect.
+<br><br>
+*Example 1*
+{{{
+<?php
+URL( 'admin/home' )->redirect(); // execution stops here
+URL( 'admin/home' )->setVar( 'message', '12' )->redirect(); // execution stops here
+URL( 'admin/home' )->setVar( 'message', '12' )->redirect( DO_NOT_EXIT ); // execution does NOT stop here
+?>
+}}}
+
+Calling `->permRedirect` creates a 301 permanent redirect.
+<br><br>
+*Example 2*
+{{{
+<?php
+URL( 'admin/home' )->permRedirect(); // execution stops here
+URL( 'admin/home' )->setVar( 'message', '12' )->permRedirect(); // execution stops here
+URL( 'admin/home' )->setVar( 'message', '12' )->permRedirect( DO_NOT_EXIT ); // execution does NOT stop here
+?>
+}}}
+
+===Anchor Tags===
+URL() can also be used to create a new anchor tag. This is implemented by returning a [TgsfHtmlTag tgsfHtmlTag] object.
+<br><br>
+*Example 1*
+{{{
+<?php
+echo URL( 'login' )->anchorTag( 'Caption' );
+?>
+}}}
+*Output*
+{{{
+<a href="http://example.com/tgsf/login/">Caption</a>
+}}}
+
+<br><br>
+*Example 2*
+_This is a simple expansion on the [TgsfHtmlTag tgsfHtmlTag] returned object.
+{{{
+<?php
+echo URL( 'login' )
+    ->anchorTag( 'Caption' )
+        ->css_class( 'nav-link );
+?>
+}}}
+*Output*
+{{{
+<a href="http://localhost/tgsf/login/" class="nav-link">Caption</a>
+}}}
+

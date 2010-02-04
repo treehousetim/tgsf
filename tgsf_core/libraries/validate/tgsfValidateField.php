@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -67,14 +67,32 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function jsOutput( $formFind, &$script )
+	{
+		$code = $formFind . '#' . $this->fieldName . '"' . " ).blur( function() {\n";
+		$code .= "\tvar errorMsg = '';\n";
+		$code .= "\tvar valid = true;\n";
+		
+		foreach( $this->_rules as &$rule )
+		{
+			 $code .= "\t" . $rule->getJs() . "\n";
+		}
+		$code .= '});';
+
+		$script->content( $code, APPEND_CONTENT );
+	}
+	//------------------------------------------------------------------------
 	public function execute( &$ds, &$errors )
 	{
 		foreach ( $this->_rules as &$rule )
 		{
 			if ( $rule->emptyValueValid === true )
 			{
-				$value = $ds->_( $this->fieldName );
-				if ( empty( $value ) )
+				$value = trim( $ds->_( $this->fieldName ) );
+				if ( $value == '' || empty( $value ) )
 				{
 					$rule->valid = true;
 				}
@@ -154,6 +172,12 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	public function &clean_question ()
+	{
+		$this->_( vt_clean_question );
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	public function &gt( $value )
 	{
 		$rule =& $this->_( vt_gt );
@@ -189,10 +213,17 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function &future_date( $days = 1 )
+	public function &future_date( $days = 1, $tz = TZ_DEFAULT )
 	{
 		$rule =& $this->_( vt_future_date );
 		$rule->numDays = (int)$days;
+		$rule->tz = $tz;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &email()
+	{
+		$rule =& $this->_( vt_email );
 		return $this;
 	}
 	//------------------------------------------------------------------------
