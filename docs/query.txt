@@ -33,8 +33,173 @@ function example()
 ?>
 }}}
 ==Class Variables==
-==lastInsertId==
+===lastInsertId===
 Contains the last auto increment value from mysql.
+
+==Selecting==
+*Example*
+{{{
+<?php
+query::factory()
+    ->select()
+    ->from( 'user' )
+    ->debug();
+}}}
+*Output*
+{{{
+-------------------------------
+QUERY DEBUG
+
+Row Count: 
+
+SELECT *  FROM user    WHERE 1=1 
+
+SELECT *  FROM user    WHERE 1=1 
+
+Param Values
+
+
+-------------------------------
+}}}
+==Inserting==
+*Example*
+{{{
+<?php
+query::factory()
+    ->insert_into( 'user' )
+    ->insert_fields( 'username' )
+    ->bindValue( 'username', 'example', ptSTR )
+    ->exec()
+    ->debug();
+
+}}}
+*Output*
+{{{
+-------------------------------
+QUERY DEBUG
+
+Last Insert ID: 123
+
+Row Count: 
+
+INSERT INTO user (username) VALUES(:username)
+
+INSERT INTO user (username) VALUES('example')
+
+Param Values
+
+username                      string(7) "example"
+
+-------------------------------
+}}}
+
+==Updating==
+*Example*
+{{{
+<?php
+query::factory()
+    ->update( 'user' )
+    ->set( 'username' )
+    ->bindValue( 'username', 'example', ptSTR )
+    ->where( 'user.id=:user_id' )
+    ->bindValue( 'user_id', 123, ptINT )
+    ->exec()
+    ->debug();
+
+}}}
+*Output*
+{{{
+-------------------------------
+QUERY DEBUG
+
+Row Count: 
+
+UPDATE user   SET username = :username WHERE 1=1 AND user.id=:user_id 
+
+UPDATE user   SET username = 'example' WHERE 1=1 AND user.id=123 
+
+Param Values
+
+username                      string(7) "example"
+user_id                       int(123)
+
+-------------------------------
+}}}
+
+==Deleting==
+*Example*
+{{{
+<?php
+query::factory()
+    ->delete_from( 'user' )
+    ->where( 'user.id=:user_id' )
+    ->bindValue( 'user_id', 122, ptINT )
+    ->exec()
+    ->debug();
+
+}}}
+*Output*
+{{{
+-------------------------------
+QUERY DEBUG
+
+Row Count: 
+
+DELETE  FROM user  WHERE 1=1 AND user.id=:user_id 
+
+DELETE  FROM user  WHERE 1=1 AND user.id=122 
+
+Param Values
+
+user_id                       int(122)
+
+-------------------------------
+}}}
+
+==Where Clauses and binding parameters==
+===Param types:===
+  * ptBOOL
+  * ptNULL
+  * ptINT
+  * ptSTR
+  * ptLOB
+  * ptDECIMAL
+  * ptDATE
+  * ptDATETIME
+  * ptFLOAT
+  * ptDEC
+  * ptFLT
+
+*Example*
+{{{
+<?php
+query::factory()
+    ->select()
+    ->from( 'user' )
+    ->where( 'id=:id' )
+    ->bindValue( 'id', 123, ptINT )
+    ->exec()
+    ->debug();
+}}}
+*Output*
+{{{
+-------------------------------
+QUERY DEBUG
+
+Row Count: 
+
+SELECT *  FROM user    WHERE 1=1 AND id=:id 
+
+SELECT *  FROM user    WHERE 1=1 AND id=123 
+
+Param Values
+
+id                            int(123)
+
+-------------------------------
+}}}
+
+
 
 ==Common Methods==
 ===select===

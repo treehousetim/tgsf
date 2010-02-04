@@ -11,3 +11,4 @@ build
 /tgsf_core/3rd_party/Zend/*
 /app_detector.php
 /app_detector_cli.php
+/test

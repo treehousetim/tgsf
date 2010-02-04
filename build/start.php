@@ -36,19 +36,15 @@ $fullFolder = 'tgsf-' . $versionString;
 
 runRsync( $coreFolder, 'rs_exclude_core.txt' );
 createZip( $coreFolder, $coreFolder );
-//remove_dir( $coreFolder );
 
 runRsync( $fullFolder, 'rs_exclude_full.txt' );
 createZip( $fullFolder, $fullFolder );
-//remove_dir( $fullFolder );
+
 
 echo "\n" . 'Uploading to Google Code';
 
 uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass, 'Featured' );
-//uploadToGoogleCode( 'GZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
-
 uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass, 'Featured' );
-//uploadToGoogleCode( 'GZIP - Full Framework', 'tgsf', $fullFolder . '.tar.gz', $gcUser, $gcPass, 'Featured' );
 
 
 //------------------------------------------------------------------------
