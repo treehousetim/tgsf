@@ -8,3 +8,5 @@ build
 /sync-core.php
 /tgsf_core/logs/*
 /tgsf_core/3rd_party/Zend/*
+/application/config/server_id/example.php
+/test

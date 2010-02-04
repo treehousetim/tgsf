@@ -39,14 +39,18 @@ $config['server_id'] = current_server_id();
 //------------------------------------------------------------------------
 switch ( $config['server_id'] )
 {
-// example server id
-case 'EB8AE43870617E9449060FB0F4A5AF93':
-case '2FE2E706A46369037D7F84A40E30A7AC': // localhost/tgsf
+// example server id - http://localhost/tgsf
+case '2FE2E706A46369037D7F84A40E30A7AC':
 
 // some configs work for more than one server id - this happens to be for CLI
 // on Tim's development machine
 case '72A14737F8C84D562C5BB0BBBF117D76':
+	load_config( 'server_id/example' ); // not distributed
+	break;
+
+case 'EB8AE43870617E9449060FB0F4A5AF93':
 	load_config( 'server_id/server1' );
+	break;
 
 //another server
 case 'AB93040B5D3662A9AB70222DB35C2982':
