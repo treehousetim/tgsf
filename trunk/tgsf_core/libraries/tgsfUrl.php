@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -25,6 +25,8 @@ class tgsfUrl extends tgsfDataSource
 	protected	$_ro_separator;
 	protected	$_ro_equals;
 	protected	$_ro_local;
+	protected	$_ro_anchorTag;
+	protected	$_ro_addTrailingSlash = false;
 
 	//------------------------------------------------------------------------
 	/**
@@ -35,10 +37,19 @@ class tgsfUrl extends tgsfDataSource
 		$this->isLocal();
 
 		$url = trim( $url, "\t\n\r /\\" ); // remove leading/trailing whitespace and slashes( back and forward)
-
 		$this->_ro_core = (bool)$core;
-		$this->_ro_url = $url;
+		
+		$this->_ro_addTrailingSlash = ( defined( 'tgTrailingSlash' ) && tgTrailingSlash === true ) && config( 'get_string' ) != '?';
 
+		if ( strpos( $url, '?' ) !== false )
+		{
+			$this->_ro_addTrailingSlash = false;
+		}
+
+		$this->_ro_url = $url;
+		$this->_ro_anchorTag = new tgsfHtmlTag( 'a' );
+		$this->_ro_anchorTag->href = $this->__toString();
+		
 		parent::__construct( dsTypeAPP );
 	}
 	//------------------------------------------------------------------------
@@ -56,7 +67,11 @@ class tgsfUrl extends tgsfDataSource
 		
 		foreach ( $varArray as $name => $value )
 		{
-			$vars[] = $name . $this->_ro_equals . urlencode( $value );
+			// array / __tgsf_vars issue
+			if ( ! is_array( $value ) )
+			{
+				$vars[] = $name . $this->_ro_equals . urlencode( $value );
+			}
 		}
 		return $this->_ro_prefix . implode( $this->_ro_separator, $vars );
 	}
@@ -81,7 +96,7 @@ class tgsfUrl extends tgsfDataSource
 		
 		$url = $this->_ro_url . $this->getUrlVars();
 
-		if ( defined( 'tgTrailingSlash' ) && tgTrailingSlash === true )
+		if ( $this->_ro_addTrailingSlash )
 		{
 			$url .= '/';
 		}
@@ -90,8 +105,11 @@ class tgsfUrl extends tgsfDataSource
 		{
 			$url = '';
 		}
-		
-		$url = current_base_url() . $url;
+
+		if ( TGSF_CLI === false )
+		{
+			$url = current_base_url() . $url;
+		}
 
 		$url = do_filter( 'generate_url', $url );
 
@@ -131,10 +149,13 @@ class tgsfUrl extends tgsfDataSource
 	*/
 	public function &anchorTag( $caption = '' )
 	{
-		$a = new tgsfHtmlTag( 'a' );
-		$a->content( $caption );
-		$a->href = $this->__toString();
-		return $a;
+		//$tag = clone $this->_ro_anchorTag;
+		$tag = $this->_ro_anchorTag;
+		
+		$tag->content( $caption );
+		$tag->href = $this->__toString();
+
+		return $tag;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -143,6 +164,12 @@ class tgsfUrl extends tgsfDataSource
 	*/
 	public function &redirect( $exit = true )
 	{
+		if ( TGSF_CLI === true )
+		{
+			if ( $exit ) exit();
+			return $this;
+		}
+
 		header( "HTTP/1.1 303 See Other" );
 
 		$urlStr = $this->__toString();
@@ -168,6 +195,12 @@ class tgsfUrl extends tgsfDataSource
 	*/
 	public function &permRedirect( $exit = true )
 	{
+		if ( TGSF_CLI === true )
+		{
+			if ( $exit ) exit();
+			return $this;
+		}
+
 		header( "HTTP/1.1 301 Moved Permanently" );
 		$urlStr = $this->__toString();
 

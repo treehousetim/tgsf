@@ -24,9 +24,8 @@ $build++;
 $out = "<?php\n";
 $out .= '$major = ' . $major . ";" . PHP_EOL;
 $out .= '$minor = ' . $minor . ";" . PHP_EOL;
-$out .= '$nano = ' . $nano . ";" . PHP_EOL . PHP_EOL;
 $out .= '$build = ' . $build . ";" . PHP_EOL . PHP_EOL;
-$out .= '$versionString = "{$major}.{$minor}.{$nano}.{$build}";' . PHP_EOL;
+$out .= '$versionString = "{$major}.{$minor}.{$build}";' . PHP_EOL;
 $out .= "define( 'TGSF_VERSION', \$versionString );" . PHP_EOL;
 
 file_put_contents( $versionFile, $out );

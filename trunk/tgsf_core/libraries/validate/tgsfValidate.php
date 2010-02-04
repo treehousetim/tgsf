@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -21,11 +21,13 @@ enum( 'vt_',
 		'max_len',
 		'int',
 		'clean',
+		'clean_question',
 		'gt',
 		'lt',
 		'gte',
 		'lte',
 		'neq',
+		'email',
 		'date',
 		'future_date',
 		'match_field',
@@ -46,10 +48,12 @@ define( 'FORCE_INVALID', false );
 
 class tgsfValidate extends tgsfBase
 {
-	protected $_fields		= array();
-	protected $_ds			= null;
-	protected $_ro_errors	= array();
-	protected $_ro_valid	= true;
+	protected	$_fields		= array();
+	protected	$_ds			= null;
+	protected	$_ro_errors	= array();
+	protected	$_ro_valid	= true;
+	
+	public		$form;
 	//------------------------------------------------------------------------
 	/**
 	* an alias to addField
@@ -72,6 +76,15 @@ class tgsfValidate extends tgsfBase
 		}
 		
 		return $this->_fields[$name];
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the form object on this validator
+	* @param Object::tgsfForm The form this validator operates on
+	*/
+	public function setForm( &$form )
+	{
+		$this->form =& $form;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -107,6 +120,27 @@ class tgsfValidate extends tgsfBase
 			throw new tgsfException( 'No validation rule exists for field "' . $name . '" when calling getField' );
 		}
 		return $this->_fields[$name];
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Adds javascript validation output to the supplied script tag.
+	*/
+	public function jsOutput( &$script )
+	{
+		$formFind = '$( "#' . $this->form->id . ' ';
+		
+		$validationFunctions =& $script->addTag( NON_TAG_NODE );
+		$formSubmitFunction =& $script->addTag( NON_TAG_NODE );
+		
+		$formSubmitFunction->content( $formFind . "\").submit( function() {\n", APPEND_CONTENT );
+		
+		foreach( $this->_fields as &$field )
+		{
+			$field->jsOutput( $formFind, $validationFunctions );
+			$formSubmitFunction->content( "\t" . $formFind . ' #' . $field->fieldName . "\").blur();\n", APPEND_CONTENT );
+		}
+		
+		$formSubmitFunction->content( "})", APPEND_CONTENT );
 	}
 	//------------------------------------------------------------------------
 	/**

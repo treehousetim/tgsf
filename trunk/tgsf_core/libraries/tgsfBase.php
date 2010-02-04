@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -100,7 +100,7 @@ function fatalErrorBacktrace()
 {
 	$msg = 'Fatal Error.  An administrator has been notified with the details.';
 	
-	if ( in_debug_mode() )
+	if ( in_debug_mode() && TGSF_CLI === false )
 	{
 		fb( $msg, FirePHP::ERROR );
 	}
@@ -116,7 +116,7 @@ function fatalErrorBacktrace()
 
 	foreach ( $t as $lineInfo )
 	{
-		if ( in_debug_mode() )
+		if ( in_debug_mode() && TGSF_CLI === false )
 		{
 			fb( $lineInfo, $lineInfo['function'] . '() : ' . basename($lineInfo['file']) . ' : ' . $lineInfo['line'], FirePHP::INFO );
 		}
@@ -161,7 +161,7 @@ function fatalErrorBacktrace()
 	exit();
 }
 //------------------------------------------------------------------------
-set_error_handler( create_function( '$a, $b, $c, $d', 'if ( $a==2) { fatalErrorBacktrace(); }; throw new ErrorException( $b, 0, $a, $c, $d ); return false;' ), E_ALL );
+set_error_handler( create_function( '$a, $b, $c, $d', 'if ( $a==E_ERROR ) { fatalErrorBacktrace(); }; throw new ErrorException( $b, 0, $a, $c, $d ); return false;' ), E_ALL );
 //------------------------------------------------------------------------
 // end ask at nilpo dot com code
 //------------------------------------------------------------------------

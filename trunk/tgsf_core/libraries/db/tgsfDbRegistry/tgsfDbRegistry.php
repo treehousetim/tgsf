@@ -1,7 +1,7 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license
 for complete licensing information.
@@ -154,14 +154,14 @@ class tgsfDbRegistry extends tgsfBase
 	//------------------------------------------------------------------------
 	function fetchAllByGroup( $group )
 	{
-		$q = new query();
-
-		$results = $q->select()
-		             ->from( $this->tableName )
-		             ->where( 'registry_group=:registry_group' )
-		             ->bindValue( 'registry_group', $group, ptSTR )
-		             ->exec()
-		             ->fetchAll();
+		$results = query::factory()
+		 	->select()
+			->from( $this->tableName )
+			->where( 'registry_group=:registry_group' )
+			->order_by( 'registry_group,registry_key' )
+			->bindValue( 'registry_group', $group, ptSTR )
+			->exec()
+			->fetchAll();
 
 		$data = array();
 		foreach ( $results as $result )
@@ -171,7 +171,8 @@ class tgsfDbRegistry extends tgsfBase
 				'group' => $result->registry_group,
 				'value' => trim( $result->registry_value ),
 				'label' => $result->registry_label,
-				'desc'  => $result->registry_desc
+				'desc'  => $result->registry_desc,
+				'input_size' => $result->registry_input_size
 			);
 
 			$data[$result->registry_key] = (object)$_data;
@@ -182,12 +183,12 @@ class tgsfDbRegistry extends tgsfBase
 	//------------------------------------------------------------------------
 	function fetchAll()
 	{
-		$q = new query();
-
-		$results = $q->select()
-		             ->from( $this->tableName )
-		             ->exec()
-		             ->fetchAll();
+		$results = query::factory()
+			->select()
+			->from( $this->tableName )
+			->order_by( 'registry_group,registry_key' )
+			->exec()
+			->fetchAll();
 
 		$data = array();
 		foreach ( $results as $result )
@@ -199,7 +200,8 @@ class tgsfDbRegistry extends tgsfBase
 				'group' => $result->registry_group,
 				'value' => trim( $result->registry_value ),
 				'label' => $result->registry_label,
-				'desc'  => $result->registry_desc
+				'desc'  => $result->registry_desc,
+				'input_size' => $result->registry_input_size
 			);
 
 			$data[$result->registry_group][$result->registry_key] = (object)$_data;

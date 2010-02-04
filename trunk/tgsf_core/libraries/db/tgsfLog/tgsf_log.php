@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -56,7 +56,7 @@ class tgsfLog extends tgsfBase
 	* Logs an exception
 	* @param Object An exception object
 	*/
-	public function exception( $e, $message = '' )
+	public function exception( $e, $message = '', $type = 'exception' )
 	{
 		if ( $message != '' )
 		{
@@ -79,7 +79,7 @@ class tgsfLog extends tgsfBase
 		{
 			$message = do_filter( 'log_exception', $message, $e );
 		}
-		$this->log( $message, 'exception' );
+		$this->log( $message, $type );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -153,20 +153,19 @@ class tgsfLog extends tgsfBase
 		$ds->setVar( 'log_env',					get_dump( $_ENV ) );
 		$ds->setVar( 'log_files',				get_dump( $_FILES ) );
 		$ds->setVar( 'log_argv',				get_dump( $argv ) );
-
-		$q = new query();
-		$q->insert_into( $this->tableName );
-		$q->pt( ptSTR )->insert_fields( array(
+		try
+		{
+			$q = new query();
+			$q->insert_into( $this->tableName );
+			$q->pt( ptSTR )->insert_fields( array(
 				'log_type','log_remote_addr','log_message',
 				'log_table','log_table_record_key','log_url',
 				'log_get','log_post','log_cookie','log_session',
 				'log_server','log_env','log_files','log_argv','log_user_id' ) );
 
-		$q->pt( ptDATETIME )->insert_fields( 'log_datetime' );
-		$q->autoBind( $ds );
+			$q->pt( ptDATETIME )->insert_fields( 'log_datetime' );
+			$q->autoBind( $ds );
 
-		try
-		{
 			$q->exec();
 		}
 		catch ( Exception $e )

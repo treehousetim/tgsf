@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -311,4 +311,89 @@ function urlMenu( $array )
 	}
 
 	return $ul;
+}
+//------------------------------------------------------------------------
+function tgsfJqAjaxInputTimeout( $input, $message, $turl, $delay = 500 )
+{
+	if ( ! $turl instanceof tgsfUrl )
+	{
+		$url = URL( $turl );
+	}
+	else
+	{
+		$url = $turl;
+	}
+
+	// jquery code taken from: http://jqueryfordesigners.com/using-ajax-to-validate-forms/
+	ob_start();
+	?>
+	<script type="text/javascript">
+	
+	$(document).ready(
+	function ()
+	{
+		var messageElement = $('<?= $message ?>');
+
+		$('<?= $input ?>').keyup(
+		function ()
+		{
+			var t = this; 
+			if (this.value != this.lastValue)
+			{
+				if ( this.timer )
+				{
+					clearTimeout(this.timer);
+				}
+				
+				messageElement.removeClass( 'error' ).html('<img src="<?= image_url( 'ajax-loader.gif', IMAGE_URL_RELATIVE, IS_CORE ) ?>"> checking...');
+
+				this.timer = setTimeout(function ()
+				{
+					$.ajax({
+						url: '<?= $url ?>',
+						data: 'action=tgsfAjaxInputTimeout&fieldValue=' + t.value,
+						dataType: 'json',
+						type: 'post',
+						success:
+							function ( j )
+							{
+								if ( j.error == true )
+								{
+									messageElement.addClass( 'error' );
+								}
+								messageElement.html( j.msg );
+							}
+					});
+				}, <?= $delay ?> );
+
+				this.lastValue = this.value;
+			}
+		});
+	});
+	</script>
+	<?php
+	
+	return ob_get_clean();
+}
+//------------------------------------------------------------------------
+/**
+*
+*/
+function debugMarker( $text )
+{
+	if ( config( 'debug_mode' ) || TGSF_CLI == true )
+	{
+		if ( TGSF_CLI )
+		{
+			echo $text;
+		}
+		else
+		{
+			echo '<p>' . $text . '</p>';
+		}
+	}
+	else
+	{
+		//echo '<!--' . $text . '-->';
+	}
 }

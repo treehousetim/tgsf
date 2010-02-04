@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -16,7 +16,8 @@ for complete licensing information.
 // grid group type
 enum( 'ggt', array (
 	'XROWS',	// groups are defined by x number of rows
-	'FIELD'		// groups are defined by 1 or more fields
+	'FIELD',	// groups are defined by 1 or more fields
+	'CUSTOM'	// a rendering func is defined
 	));
 
 // grid group row type
@@ -39,6 +40,8 @@ class tgsfGridGroup extends tgsfHtmlTag
 	protected $_ro_rowTagHeader		= null;
 	protected $_ro_rowTagFooter		= null;
 	protected $_ro_cellTagHeader	= null;
+	
+	protected $_headerRenderFunc		= null; 
 
 	//------------------------------------------------------------------------
 	public function __construct()
@@ -61,6 +64,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 		switch ( $this->_ro_type )
 		{
 		case ggtFIELD:
+		case ggtCUSTOM:
 			if ( array_key_exists( $this->_ro_breakField, $fields ) === false )
 			{
 				throw new tgsfGridException( 'Group break field does not exist in the data row: ' . $this->_ro_breakField );
@@ -107,6 +111,33 @@ class tgsfGridGroup extends tgsfHtmlTag
 	}
 	//------------------------------------------------------------------------
 	/**
+	*
+	*/
+	public function &renderFuncHeader()
+	{
+		$vars = func_get_args();
+		$callback = null;
+		
+		if ( count( $vars == 1 ) )
+		{
+			$callback = $vars[0];
+		}
+		elseif ( count( $vars == 2 ) )
+		{
+			$callback = array( $vars[1], $vars[0] );
+		}
+		
+		if ( is_callable( $callback ) == false )
+		{
+			throw new tgsfException( 'When calling renderFuncHeader on a grid group, you must pass a valid callback.' );
+		}
+		$this->_ro_type = ggtCUSTOM;
+		$this->headerRenderFunc = $callback;
+
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* This sets the content on the header cell of a group.
 	* Group headers are made up of a single cell.
 	* pass multiple parameters to this method to set up the content.
@@ -131,6 +162,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 		{
 			$cell = new tgsfGridGroupFooterCell();
 			$fld = trim( $fld );
+
 			if ( starts_with( $fld, '{' ) )
 			{
 				if ( strpos( $fld, ':' ) === false )
@@ -138,14 +170,14 @@ class tgsfGridGroup extends tgsfHtmlTag
 					throw new tgsfGridException( 'When adding a grid group with a footer, footer functions must specify their field using this format. "{function:field"' );
 				}
 
-				list( $func, $field ) = explode( ':', trim( $fld, ' {}' ) );
+				list( $func, $field ) = explode( ':', trim( $fld, '{}' ) );
 				$cell->func( $func, $field );
 			}
 			else
 			{
 				$cell->text( $fld );
 			}
-			$this->_ro_footerFields[] =& $cell;
+			$this->_ro_footerFields[] = $cell;
 		}
 		return $this;
 	}
@@ -161,6 +193,10 @@ class tgsfGridGroup extends tgsfHtmlTag
 		case ggtXROWS:
 			$this->ggtXRowsHeader( $table, $row );
 			break;
+
+		case ggtCUSTOM:
+			call_user_func( $this->_headerRenderFunc, $table, $row, $ix );
+			break;
 		}
 	}
 	//------------------------------------------------------------------------
@@ -171,9 +207,12 @@ class tgsfGridGroup extends tgsfHtmlTag
 	{
 		$tr =& $table->addTag( $this->_ro_rowTagFooter );
 
+		$ix = 0;
 		foreach ( $this->_ro_footerFields as &$cell )
 		{
+			$ix++;
 			$cell->setContent();
+			$cell->css_class( 'col-' . $ix );
 			$tr->addTag( $cell );
 		}
 	}

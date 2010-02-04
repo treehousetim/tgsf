@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -77,5 +77,21 @@ class model extends table
 		         ->where( $_field . '=:' . $_field )
 		         ->bindValue( $_field, $id, ptINT )
 		         ->exec();
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns the current date time for use with queries.
+	*/
+	public function cur_datetime()
+	{
+		return gmdate( DT_FORMAT_SQL );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns the date for the supplied timestamp for use with queries
+	*/
+	public function datetime( $ts )
+	{
+		return gmdate( DT_FORMAT_SQL, $ts );
 	}
 }

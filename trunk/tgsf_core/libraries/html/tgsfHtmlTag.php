@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -26,6 +26,8 @@ class tgsfHtmlTag extends tgsfBase
 	protected $_ro_contentOnly			= false;
 	protected $empty_message    		= null;
 	protected $_ro_contentFilter		= null;
+	protected $_beforeTags				= array();
+	protected $_afterTags				= array();
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -34,6 +36,11 @@ class tgsfHtmlTag extends tgsfBase
 	{
 		$this->_ro_tag = $tag;
 		$this->_ro_contentOnly = $tag == NON_TAG_NODE;
+	}
+	//------------------------------------------------------------------------
+	public static function factory( $tag )
+	{
+		return new tgsfHtmlTag( $tag );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -120,7 +127,53 @@ class tgsfHtmlTag extends tgsfBase
 		$this->_children[] = $item;
 		return $item;
 	}
-	//--------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	/**
+	* If supplied tag is an existing tgsfHtmlTag object, it is cloned and added
+	* to this tag as a before tag sibling element.
+	* If it is a string, a new tag is created
+	* Either way, the sibling tag is returned (this might be a clone of a supplied tag object)
+	* @param Mixed tgsfHtmlTag/String Either the type of tag or an existing tag object
+	*/
+	public function &beforeTag( $tag )
+	{
+		if ( $tag instanceof tgsfHtmlTag )
+		{
+			$item = clone $tag;
+		}
+		else
+		{
+			$item = new tgsfHtmlTag( (string)$tag );
+		}
+		$item->parent = $this->parent;
+
+		$this->_beforeTags[] = $item;
+		return $item;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* If supplied tag is an existing tgsfHtmlTag object, it is cloned and added
+	* to this tag as an after tag sibling element.
+	* If it is a string, a new tag is created
+	* Either way, the sibling tag is returned (this might be a clone of a supplied tag object)
+	* @param Mixed tgsfHtmlTag/String Either the type of tag or an existing tag object
+	*/
+	public function &afterTag( $tag )
+	{
+		if ( $tag instanceof tgsfHtmlTag )
+		{
+			$item = clone $tag;
+		}
+		else
+		{
+			$item = new tgsfHtmlTag( (string)$tag );
+		}
+		$item->parent = $this->parent;
+
+		$this->_afterTags[] = $item;
+		return $item;
+	}
+	//------------------------------------------------------------------------
 	/**
 	* Returns true/false if element has items in the _children array
 	*/
@@ -252,7 +305,7 @@ class tgsfHtmlTag extends tgsfBase
 	public function &contentFilter( $callBack, $object = null )
 	{
 		$cb = array( $object, $callBack );
-				
+
 		if ( is_callable( $cb ) )
 		{
 			$this->_ro_contentFilter =& $cb;
@@ -318,8 +371,15 @@ class tgsfHtmlTag extends tgsfBase
 			}
 			$atrString .= " $key=\"$val\"";
 		}
+
+		$out = '';
 		
-		$out = "<{$htmlTag->tag}{$atrString}";
+		foreach( $htmlTag->_beforeTags as $tag )
+		{
+			$out .= $tag->render();
+		}
+
+		$out .= "<{$htmlTag->tag}{$atrString}";
 		if ( in_array( $htmlTag->tag, array( 'input', 'br', 'hr', 'embed' ) ) === false )
 		{
 			if ( $openTagOnly == false )
@@ -344,6 +404,11 @@ class tgsfHtmlTag extends tgsfBase
 		else
 		{
 			$out .= '>';
+		}
+		
+		foreach( $htmlTag->_afterTags as $tag )
+		{
+			$out .= $tag->render();
 		}
 		
 		return $out;

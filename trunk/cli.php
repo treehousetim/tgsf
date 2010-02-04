@@ -1,6 +1,6 @@
 <?php
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -44,15 +44,13 @@ try
 	// load the core libraries and whatnot
 	require_once CORE_PATH . 'core-loader.php';
 
-	content_buffer();
-
 	$page = CLI()->controller;
 
 	require resolve_cli_controller( $page );
-
-	end_buffer();
 }
 catch ( Exception $e )
 {
+	
+	echo $e->getMessage();
 	show_error( 'An error occurred and was logged.', $e );
 }

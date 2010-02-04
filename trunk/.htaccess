@@ -9,16 +9,21 @@ Options -Indexes
 RewriteEngine on
 
 <IfModule mod_rewrite.c>
+	RewriteRule ^application/cli/					- [F]
 	RewriteRule ^application/config/				- [F]
 	RewriteRule ^application/controllers/			- [F]
 	RewriteRule ^application/forms/					- [F]
 	RewriteRule ^application/grids/					- [F]
 	RewriteRule ^application/libraries/				- [F]
 	RewriteRule ^application/models/				- [F]
+	RewriteRule ^application/reports/				- [F]
 	RewriteRule ^application/plugins/				- [F]
+	RewriteRule ^application/searches/				- [F]
 	RewriteRule ^application/views/					- [F]
-	
+	RewriteRule ^cli.php							- [F]
+
 	RewriteRule ^tgsf_core/config/					- [F]
+	RewriteRule ^tgsf_core/legal/					- [F]
 	RewriteRule ^tgsf_core/libraries/				- [F]
 	RewriteRule ^tgsf_core/logs/					- [F]
 	RewriteRule ^tgsf_core/plugins/					- [F]
@@ -27,7 +32,6 @@ RewriteEngine on
 	RewriteRule ^tgsf_core/3rd_party/Zend/			- [F]
 	
 	RewriteRule ^tgsf_core/tgSimpleFramework.php	- [F]
-	RewriteRule ^tgsf_core_assets/minify_groups/	- [F]
 	RewriteRule ^tgsf_core_assets/minify_groups/	- [F]
 	
 	RewriteCond %{REQUEST_FILENAME} !-f

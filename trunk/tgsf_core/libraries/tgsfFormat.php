@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -115,6 +115,14 @@ class tgsfFormat extends tgsfBase
 
         // english notation with thousands seperator
         return number_format($amount, 2, '.', ',');
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function last_four( $data, $chr = '*' )
+	{
+		return $this->obfuscate( $data, 4, $chr );
 	}
 	//------------------------------------------------------------------------
 	/**

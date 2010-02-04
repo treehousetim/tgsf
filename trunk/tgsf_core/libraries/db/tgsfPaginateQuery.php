@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -13,6 +13,7 @@ class tgsfPaginateQuery extends query
 	protected $_ro_curPage; // defaults in constructor
 	protected $_ro_resultsPer; // defaults in constructor
 	protected $_ro_totalResults; // set in the exec function
+	protected $_ro_enforceLimit = true;
 	
 	protected $_selectList	= array();
 	
@@ -25,6 +26,14 @@ class tgsfPaginateQuery extends query
 			$this->_ro_resultsPer = GET()->_( 'per', 10 );
 			$this->_ro_totalResults = GET()->_( 'latot', 0 );
 		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function enforceLimit( $value )
+	{
+		$this->_ro_enforceLimit = $value;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -104,7 +113,12 @@ class tgsfPaginateQuery extends query
 		{
 			$this->getPagCount();
 		}
-		$this->limit( ( $this->_ro_curPage * $this->_ro_resultsPer ) - $this->_ro_resultsPer . ", {$this->_ro_resultsPer}" );
+
+		if ( $this->enforceLimit )
+		{
+			$this->limit( ( $this->_ro_curPage * $this->_ro_resultsPer ) - $this->_ro_resultsPer . ", {$this->_ro_resultsPer}" );
+		}
+
 		return parent::exec();
 	}
 }

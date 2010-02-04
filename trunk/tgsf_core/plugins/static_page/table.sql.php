@@ -4,7 +4,7 @@
 
 /*
 
-CREATE TABLE static_page_pages
+CREATE TABLE page
 (
 	page_slug		VARCHAR( 255 ) NOT NULL ,
 	page_title		VARCHAR( 255 ) NOT NULL ,

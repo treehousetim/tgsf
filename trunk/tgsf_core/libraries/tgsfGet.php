@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -54,33 +54,36 @@ class tgsfGet extends tgsfDataSource
 	/**
 	* disallow resetting this if we're still a get type
 	*/
-	public function reset()
+	public function &reset()
 	{
 		if ( $this->_type == dsTypeGET )
 		{
 			throw new tgsfException( 'Resetting a GET datasource is disallowed.' );
 		}
 		parent::reset();
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Manually set a member of the data source
 	*/
-	public function setVar( $varName, $varValue )
+	public function &setVar( $varName, $varValue )
 	{
 		if ( $this->_type == dsTypeGET )
 		{
 			throw new tgsfException( 'You may not use setVar on GET datasources - Maybe you could use the remap function instead.' );
 		}
 		parent::setVar( $varName, $varValue );
+		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function set( $source )
+	public function &set( $source, $merge = false )
 	{
 		if ( $this->_type == dsTypeGET )
 		{
 			throw new tgsfException( 'You may not use set on GET datasources.' );
 		}
-		parent::set( $source );
+		parent::set( $source, $merge );
+		return $this;
 	}
 }

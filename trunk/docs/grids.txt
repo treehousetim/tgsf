@@ -16,7 +16,9 @@ A grid object should use the grid skeleton located in the grid.php skeleton
 Content Filtering
 -----------------
 
-When defining a column, you may define a content filter.
+When defining a column, you may define a content filter.  This is a function
+of the base tgsfHtmlTag class.
+
 Example:
 $this->addCol( 'amount_usd' )
 	->caption( 'Dollars' )

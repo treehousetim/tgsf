@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -38,13 +38,8 @@ load_library( 'tgsfPlugin',			IS_CORE_LIB ); // the plugin api functions
 // load order is important - config first, then get plugins as soon as possible
 
 // main config
+load_config( 'version', IS_CORE );
 load_config( 'config' );
-
-if ( TGSF_CLI === false )
-{
-	load_config( 'config_web' );
-	load_config( 'user_agent' );
-}
 
 if ( config( 'debug_mode' ) === true )
 {
@@ -59,6 +54,12 @@ do_action( 'plugins_loaded' );
 
 do_action( 'load_library_config' );
 load_config( 'libraries' );
+
+if ( TGSF_CLI === false )
+{
+	load_config( 'config_web' );
+	load_config( 'user_agent' );
+}
 
 do_action( 'core_load_complete' );
 do_action( 'app_loaded' );

@@ -1,9 +1,7 @@
 <?php
 $major = 0;
 $minor = 9;
-$nano = 0;
-
 $build = 1;
 
-$versionString = "{$major}.{$minor}.{$nano}.{$build}";
+$versionString = "{$major}.{$minor}.{$build}";
 define( 'TGSF_VERSION', $versionString );

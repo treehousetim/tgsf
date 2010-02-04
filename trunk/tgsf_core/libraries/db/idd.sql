@@ -1,0 +1,6 @@
+CREATE TABLE idd
+(
+idd_id VARCHAR(255),
+idd_nextid BIGINT UNSIGNED  NOT NULL,
+PRIMARY KEY (idd_id)
+) ENGINE=InnoDB;

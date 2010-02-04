@@ -1,3 +1,13 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-?><h1>An error has occurred</h1>
-<p><?php echo $message; ?>
+<?php defined( 'BASEPATH' ) or die( 'Restricted' ); 
+/*
+This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+Please view license.txt in /tgsf_core/legal/license.txt or
+http://tgWebSolutions.com/opensource/tgsf/license.txt
+for complete licensing information.
+*/
+?>
+
+<h2><?= $windowTitle ?></h2>
+
+<?= $errorMessage ?>
+<?= $exceptionMessage ?>

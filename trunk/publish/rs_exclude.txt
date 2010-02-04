@@ -7,3 +7,9 @@ minify_groups
 /docs
 /project-docs
 .htaccess
+sync-core.php
+rs_sync_exclude.txt
+rx_sync_include.txt
+/application/config/db.php
+/info.php
+/demo.sh

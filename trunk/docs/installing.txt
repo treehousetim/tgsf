@@ -1,0 +1,28 @@
+#summary How to Install tgsf
+
+= Contents =
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+Installing tgsf is straightforward.  To start off, simply download the full package and unzip it.  This will create a folder containing tgsf.  Move or upload the contents of this folder to your web server.
+
+=Configuration=
+Very little configuration is necessary to get started.  You will want to review the main config file - especially the portion relating to server id's.  You will also need to create a config/server_id/_yourserver_.php file.
+
+==.htaccess==
+Make sure you utilize the .htaccess file that is distributed with tgsf.  It should not need any changes (even for sub folders) and contributes significantly to the securing of your site.
+
+==database==
+If you will be integrating with a database, make sure you provide a connection in your main config or a server_id config file.
+<br>
+*Example*
+{{{
+<?php
+load_database_libraries();
+dbm()->useSetup( new dbSetup( 'user', 'password', 'db-name' ) );
+?>
+}}}
+
+==Dates==
+Take a look at the application/config/datetime.php config file.  You will want to enable nearly every function in this file if you will be supporting multiple time-zones in your web app/site.

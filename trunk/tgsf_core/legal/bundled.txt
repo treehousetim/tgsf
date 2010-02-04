@@ -7,29 +7,40 @@ These are:
 jQuery
 http://jquery.com
 Dual licensed under MIT and GPL V2 licenses.
-
+//------------------------------------------------------------------------
 jQuery UI.
 http://jqueryui.com/home
 Dual licensed like the jQuery library.
-
+//------------------------------------------------------------------------
+jqvm
+http://code.google.com/p/jqvm/
+Licensed under the MIT license
+//------------------------------------------------------------------------
 minify
 http://code.google.com/p/minify/
 Licensed under the new BSD license
-
+//------------------------------------------------------------------------
 YUI Reset CSS
 http://developer.yahoo.com/yui/reset/
 Licensed under the BSD license
-
+//------------------------------------------------------------------------
 FirePHP
 http://www.firephp.org/
 Copyright (c) 2006-2009, Christoph Dorn
 All rights reserved.
-
+//------------------------------------------------------------------------
 Zack Bloom's advgraph - PHP Advanced Graphing Class
 http://www.zackbloom.com/graph/
 Copyright (C) 2006-2007 Zack Bloom
 Licensed under the LGPL
-
+//------------------------------------------------------------------------
+Live field checking jQuery code
+Written by: Remy Sharp of Left Logic
+taken from:
+http://jqueryfordesigners.com/using-ajax-to-validate-forms/
+Included here based on this:
+"If this web site helps in some way, then it’s done it’s job. Thanks for reading."
+//------------------------------------------------------------------------
 FPDF
 http://fpdf.org/
 This is bundled as a core library because we modify it slightly to extend tgsfClasses
@@ -39,6 +50,15 @@ of this software to use, copy, modify, distribute, sublicense, and/or sell
 copies of the software, and to permit persons to whom the software is furnished
 to do so.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+//------------------------------------------------------------------------
+lwrte
+http://code.google.com/p/lwrte/
+Lightweight RTE - jQuery Plugin, version 1.2
+Copyright (c) 2009 Andrey Gayvoronsky - http://www.gayvoronsky.com
+Licensed under the MIT license.
+http://en.wikipedia.org/wiki/MIT_License
+http://www.opensource.org/licenses/mit-license.php
+
 
 
 tgsf also bundles some public domain javascript utility functions and jQuery plugins inside the tgsf_core_assets/js/utility.js file.
