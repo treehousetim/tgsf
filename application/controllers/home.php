@@ -23,6 +23,7 @@ include view( 'header' );
 <p>You should not put your content directly in controllers like we've done with our sample home page.  Please use views instead of putting HTML output directly in your controller.  You'll be happier, we'll be happier, and everyone else will be happier and will give you a hearty thump on the back and congratulate you.</p>
 <br>
 <p>You really should view the document in tgsf_core/legal/bundled.txt</p>
+<p>You can <?= URL( 'examples' )->anchorTag( 'view examples.' ); ?></p>
 
 
 <?php
