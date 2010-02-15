@@ -15,7 +15,8 @@ html_title( $windowTitle . ' - ' . config( 'siteName' ) );
 css_import(
 	array(
 		css_path( '/', IS_CORE_PATH ) . 'yuiZero.css',
-		css_path() . 'site.css'
+		css_path() . 'site.css',
+		css_path() . 'grids.css'
 	), 'core' );
 
 if ( isset( $extraCss ) && is_array( $extraCss ) )
