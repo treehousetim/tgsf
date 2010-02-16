@@ -42,6 +42,8 @@ class tgsfGridGroup extends tgsfHtmlTag
 	protected $_ro_cellTagHeader	= null;
 	
 	protected $_headerRenderFunc		= null; 
+	
+	protected $_onRenderFieldGroup	= null;
 
 	//------------------------------------------------------------------------
 	public function __construct()
@@ -98,6 +100,24 @@ class tgsfGridGroup extends tgsfHtmlTag
 		$this->_ro_type = ggtFIELD;
 		$this->_ro_breakField = $field;
 		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* the function you use for the callback must accept
+	* $cell, $row, $gridGroup
+	*/
+	public function onRenderFieldGroup( $callBack, $object = null )
+	{
+		$cb = array( $object, $callBack );
+
+		if ( is_callable( $cb ) )
+		{
+			$this->_onRenderFieldGroup =& $cb;
+		}
+		else
+		{
+			$this->_onRenderFieldGroup = $callBack;
+		}
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -182,6 +202,19 @@ class tgsfGridGroup extends tgsfHtmlTag
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	public function &addFooterCell( $obj )
+	{
+		$this->_ro_footerFields[] = $obj;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function getFooterCell( $ix )
+	{
+		return $this->_ro_footerFields[$ix];
+	}
+	//------------------------------------------------------------------------
 	public function renderHeader( &$table, &$row, $ix )
 	{
 		switch ( $this->_ro_type )
@@ -250,6 +283,11 @@ class tgsfGridGroup extends tgsfHtmlTag
 			{
 				$cell->content( $fieldPart, APPEND_CONTENT );
 			}
+		}
+		
+		if ( is_callable( $this->_onRenderFieldGroup ) )
+		{
+			call_user_func( $this->_onRenderFieldGroup, $cell, $row, $this );
 		}
 	}
 	//------------------------------------------------------------------------

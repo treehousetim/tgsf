@@ -14,7 +14,6 @@ function &IDD( $table = null )
 	return tgsfIDD::get_instance( $table );
 }
 //------------------------------------------------------------------------
-// why not extend model?
 class tgsfIDD extends tgsfBase
 {
 	/* Region: Singleton */

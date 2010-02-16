@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -70,7 +70,14 @@ class tgsfSession extends tgsfBase
 			ini_set( 'session.cache_expire',			config( 'session/page-cache-expire'	) );
 			ini_set( 'session.hash_function',			config( 'session/hash_function'		) );
 			ini_set( 'session.hash_bits_per_character',	config( 'session/hash_bits'			) );
-			ini_set( 'session.cookie_domain',			config( 'session/cookie_domain'		) );
+			if ( config( 'session/cookie_domain' ) != 'localhost' )
+			{
+				ini_set( 'session.cookie_domain',			config( 'session/cookie_domain'		) );
+			}
+			else
+			{
+				ini_set( 'session.cookie_domain', null );
+			}
 			ini_set( 'session.cookie_path',				config( 'session/cookie_path'		) );
 			ini_set( 'session.cache_limiter',			config( 'session/cache_limiter'		) );
 			ini_set( 'session.cookie_httponly', 		config( 'session/httponly'			) );

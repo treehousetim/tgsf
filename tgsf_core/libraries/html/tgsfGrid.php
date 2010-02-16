@@ -33,7 +33,7 @@ load_library( 'html/tgsfGridGroupFooterCell', IS_CORE_LIB );
 abstract class tgsfGrid extends tgsfHtmlTag
 {
 	abstract protected function _setup();
-	abstract protected function _sort();
+	/*abstract*/ protected function _sort(){}
 	abstract protected function _loadRows();
 	/*abstract*/ protected function _onRow( &$tr, &$row ) {}
 	/*abstract*/ protected function _onGroup( &$tr, &$row ) {}
@@ -123,7 +123,14 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	*/
 	public function &setFooter( $data )
 	{
-		$this->_footer = (object)$data;
+		if ( $data instanceof tgsfHtmlTag )
+		{
+			$this->_footer = $data;
+		}
+		else
+		{
+			$this->_footer = (object)$data;
+		}
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -188,15 +195,22 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	{
 		if ( !is_null($this->_footer) || !empty($this->_footer) )
 		{
-			$tr = $this->_( 'tfoot' )->_( 'tr' );
-			$row = (object)$this->_footer;
-
-			foreach( $this->_colDefs as &$col )
+			if ( $this->_footer instanceof tgsfHtmlTag )
 			{
-				$col->renderCell( $row, $tr, ROW_FOOTER );
+				$this->addTag( $this->_footer );
 			}
+			else
+			{
+				$tr = $this->addTag( 'tfoot' )->_( 'tr' );
+				$row = (object)$this->_footer;
 
-			$this->_onRow( $tr, $row );
+				foreach( $this->_colDefs as &$col )
+				{
+					$col->renderCell( $row, $tr, ROW_FOOTER );
+				}
+
+				$this->_onRow( $tr, $row );
+			}
 		}
 	}
 	//------------------------------------------------------------------------

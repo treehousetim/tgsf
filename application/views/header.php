@@ -11,6 +11,10 @@ echo config( 'doctype' );
 echo '<head>';
 content_type( config( 'content-type' ) );
 html_title( $windowTitle . ' - ' . config( 'siteName' ) );
+css_import(
+	array(
+		css_path() . 'print.css'
+		), 'print' );
 
 css_import(
 	array(
@@ -30,8 +34,10 @@ js(
 	array(
 		jquery_path()				. 'jquery.js',
 		jquery_path()				. 'jquery-ui.js',
+		js_path( 'tgsf', IS_CORE_PATH )	. 'tgsf.js',
+		js_path( 'tgsf', IS_CORE_PATH )	. 'url.js',
 		//js_path()					. 'site.js',
-		jquery_path()				. 'newsticker.js',
+		//jquery_path()				. 'newsticker.js',
 		js_path( '', IS_CORE_PATH )	. 'utility.js'
 	), 'core' );
 

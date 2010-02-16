@@ -75,7 +75,7 @@ class staticPage
 				if ( $(this).val() )
 				{
 					$("input#_page_slug").attr( 'disabled', 'disabled' );
-					$.getJSON( url( '<?= $ajaxController; ?>/_/page/' + $(this).val() ), function(json)
+					$.getJSON( URL( '<?= $ajaxController . config( 'get_string' ); ?>page<?= config( 'get_equals' ); ?>' + $(this).val() ), function(json)
 					{
 						if ( !json.error )
 						{

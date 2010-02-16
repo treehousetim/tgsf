@@ -27,6 +27,8 @@ class tgsfGridGroupFooterCell extends tgsfHtmlTag
 	protected $_ro_funcField	= '';
 	protected $_ro_text			= '';
 	protected $_ro_funcValues	= array();
+	
+	protected $_onRender		= null;
 
 	//------------------------------------------------------------------------
 	public function __construct()
@@ -34,6 +36,23 @@ class tgsfGridGroupFooterCell extends tgsfHtmlTag
 		parent::__construct( 'th' );
 	}
 	//------------------------------------------------------------------------
+	/**
+	* the function you use for the callback must accept
+	* $footerCell, $funcValues
+	*/
+	public function onRender( $callBack, $object = null )
+	{
+		$cb = array( $object, $callBack );
+
+		if ( is_callable( $cb ) )
+		{
+			$this->_onRender =& $cb;
+		}
+		else
+		{
+			$this->_onRender = $callBack;
+		}
+	}
 	/**
 	* Sets up this footer cell as a function
 	* @param String The name of the function
@@ -47,14 +66,17 @@ class tgsfGridGroupFooterCell extends tgsfHtmlTag
 		switch ( strtolower( $func ) )
 		{
 		case 'sum':
+		case fcfSUM:
 			$this->_ro_func = fcfSUM;
 			break;
 
 		case 'avg':
+		case fcfAVG:
 			$this->_ro_func = fcfAVG;
 			break;
 
 		case 'mul':
+		case fcfMUL:
 			$this->_ro_func = fcfMUL;
 			break;
 
@@ -117,8 +139,20 @@ class tgsfGridGroupFooterCell extends tgsfHtmlTag
 				$this->content( array_product( $this->_ro_funcValues ) );
 				break;
 			}
+
+			if ( $this->_onRender != null )
+			{
+				call_user_func( $this->_onRender, $this, $this->_ro_funcValues );
+			}
 			
 			$this->_ro_funcValues = array();
+		}
+		else
+		{
+			if ( $this->_onRender != null )
+			{
+				call_user_func( $this->_onRender, $this, $this->_ro_funcValues );
+			}
 		}
 	}
 }

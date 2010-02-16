@@ -11,8 +11,6 @@ $myGrid = load_grid( 'sampleGrid' );
 A grid file returns an instance of a grid - just like models.
 A grid object should use the grid skeleton located in the grid.php skeleton
 
-
-
 Content Filtering
 -----------------
 

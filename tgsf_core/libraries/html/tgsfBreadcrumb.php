@@ -60,7 +60,7 @@ class tgsfBreadcrumbItem extends tgsfBase
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
-class tgsfBreadcrumb extends tgsfBase
+class tgsfBreadcrumb extends tgsfHtmlTag
 {
 	private static	$_instance				= null;
 	protected		$_items					= array();
@@ -71,8 +71,14 @@ class tgsfBreadcrumb extends tgsfBase
 	/**
 	* protected to prevent instantiation
 	*/
-	protected function __construct()
+	public function __construct()
 	{
+		if ( self::$_instance == null )
+		{
+			throw new tgsfException( 'do not instantiate breadcrumb - use the singleton function BREADCRUMB()' );
+		}
+		parent::__construct( 'ul' );
+		$this->css_class( 'breadcrumb' );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -104,6 +110,7 @@ class tgsfBreadcrumb extends tgsfBase
 		if ( self::$_instance === null )
 		{
 			$c = __CLASS__;
+			self::$_instance = 1;
 			self::$_instance = new $c;
 		}
 		
@@ -177,9 +184,6 @@ class tgsfBreadcrumb extends tgsfBase
 
 		if ( is_array( $items ) && count( $items ) > 0 )
 		{
-			$ul = new tgsfHtmlTag( 'ul' );
-			$ul->css_class( 'breadcrumb' );
-
 			if ( $this->_reverse )
 			{
 				$items = array_reverse( $items );
@@ -190,14 +194,14 @@ class tgsfBreadcrumb extends tgsfBase
 		
 			foreach ( $items as $item )
 			{
-				$ul->addTag( 'li' )->css_class( getArrayFirstLastCssClass( $ix, $itemCount ) )->content( $item->render( $ix ) );
+				$this->addTag( 'li' )->css_class( getArrayFirstLastCssClass( $ix, $itemCount ) )->content( $item->render( $ix ) );
 				$ix++;
 			}
 
-			$ul->addTag( 'li' )->css_class( 'horz-ul-clear' );
+			$this->addTag( 'li' )->css_class( 'horz-ul-clear' );
 
 
-			$out = $ul->render();
+			$out = parent::render();
 		}
 		return $out;
 	}
