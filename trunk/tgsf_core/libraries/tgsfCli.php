@@ -164,7 +164,7 @@ class tgsfCli extends tgsfDataSource
 
 		if ( count( $out ) )
 		{
-			$itemString = '/_/' . implode( '/', $out );
+			$itemString = config( 'get_string' ) . implode( '/', $out );
 		}
 
 		return $this->controller . $itemString;

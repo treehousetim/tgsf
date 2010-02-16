@@ -17,6 +17,8 @@ $config['session/hash_bits']			= 6;							// full resolution of hash for better 
 
 // host should be set to 'www.' if you are forcing www urls
 $host = '';
-$config['session/cookie_domain']		= $host . current_domain();		// the current domain and all sub domains
-$config['session/cookie_path']			= '/' . current_base_url_path( true );	// automatically restricts cookies for sessions to your install of tgsf
-$config['session/cache_limiter']		= 'nocache';					// logged in pages need to not be cached so that someone can't click the back button
+
+$config['session/cookie_domain']		= $host . current_domain();			// the current domain and all sub domains
+$config['session/cookie_path']			= '/' . current_base_url_path();	// automatically restricts cookies for sessions to your install of tgsf
+$config['session/cache_limiter']		= 'nocache';						// logged in pages need to not be cached so that someone can't click the back button
+

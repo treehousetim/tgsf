@@ -1,31 +1,60 @@
-Lots here.
+#summary How to use tgsfHtmlTag
 
-Content Filtering
------------------
+= Contents =
+<wiki:toc max_depth="3" />
 
-When creating a tag, you may define a content filter.
-Example:
-$tag = new tgsfHtmlTag( 'p' )
-	->contentFilter( 'nl2br' );
-	
-To clear a filter:
+=Introduction=
 
-$tag->contentFilter( null );
-	
-This is used extensively in grids. - See grid documentation.
+tgsf has a highly useful html generation object that is used as the basis for many core classes:
+<br><br>
+TgsfGrid<br>
+TgsfReport<br>
+TgsfForm<br>
+BreadCrumb<br>
 
-Adding Child Tags
------------------
-a child tag may be added by using one of 2 methods.
+It can be used to programmatically create a content structure along with attributes and children elements.
+==Instantiating==
+*Traditional Example*
+{{{
+<?php
+$anchor = new tgsfHtmlTag( 'a' );
+$anchor->addAttribute( 'href', 'http://www.example.com/' );
+$anchor->content( 'Click Here' );
+echo $anchor
+?>
+}}}
+*Output*
+{{{
+<a href="http://www.example.com/">Click Here</a>
+}}}
 
-->_
-->addTag
+*Multi-Line-Chain Example*
+{{{
+<?php
+echo tgsfHtmlTag::factory( 'a' )
+    ->addAttribute( 'href', 'http://www.example.com/' )
+    ->content( 'Click Here' );
+?>
+}}}
+*Output*
+{{{
+<a href="http://www.example.com/">Click Here</a>
+}}}
 
-_ is a shortcut method for addTag and should only be used where concise
-short syntax is desired.  Internally to the tgsfHtmlTag and tgsfGrid objects
-->addTag is used.
 
-->addTag accepts two different types of arguments.  If you pass a string to it
+==Adding Child Tags==
+Add a child tag by using the `->addTag()` method
+
+
+->addTag accepts two different types of arguments.  Passing a string creates a new tag for that string.
+<br>
+*Example*
+{{{
+<?php
+
+echo tgsfHtmlTag::factory()
+}}}
+If you pass a string to it
 it will create a new tag using that.  If you pass an existing tgsfHmtlTag
 object, it will use that instead.  Existing tag objects are cloned so that
 any changes made to the tag after being added won't carry back out to
@@ -64,3 +93,18 @@ in the original $divTag.
 <div class="my-div">
 	<p>my paragraph content</p>
 </div>
+
+=
+Content Filtering
+-----------------
+
+When creating a tag, you may define a content filter.
+Example:
+$tag = new tgsfHtmlTag( 'p' )
+	->contentFilter( 'nl2br' );
+	
+To clear a filter:
+
+$tag->contentFilter( null );
+	
+This is used extensively in grids. - See grid documentation.

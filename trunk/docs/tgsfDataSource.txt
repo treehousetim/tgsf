@@ -1,0 +1,84 @@
+#summary Using DataSources
+
+= Introduction =
+tgsf uses datasources to move related groups of information around.  This includes query results, GET and POST variables, CLI command line variables and switches.
+You can also create your own application level datasources.
+
+== Setting and Retrieving data from a data source ==
+_Keep in mind that GET() and POST() do not allow modifying their contents._
+
+There are 3 ways to get the data out of a data source.
+{{{
+<?php
+
+echo GET()->_( 'user_id' );
+echo GET()->getVar( 'user_id' );
+echo GET()->user_id;
+
+?>
+}}}
+
+==Creating your own data source objects:==
+{{{
+<?php
+
+$data = array( 'name' => 'Bill', 'city' => 'Gotham' );
+
+$ds = tgsfDataSource::factory();
+$ds->set( $data );
+
+echo $ds->_( 'name' );
+echo $ds->city;
+
+$row = $ds->dataObject();
+
+echo $row->name;
+echo $row->city;
+?>
+}}}
+
+More datasource options:
+{{{
+<?php
+
+$ds = tgsfDataSource::factory()
+    ->setVar( 'name', 'Bill' )
+    ->setVar( 'city', 'Gotham' );
+
+echo $ds->name;
+echo $ds->city;
+
+?>
+}}}
+
+==Multi-Row Datasources==
+When using the query class there are times when it returns a multi-row datasource result object.
+
+Here is how to work with that:
+
+{{{
+<?php
+$ds = query::factory()
+    ->select( 'user.username,user.email,user.id' )
+    ->from( 'user' )
+    ->where( 'user.active=true' )
+    ->exec()
+    ->fetchAll_ds();
+
+echo 'User Count: ' . $ds->rowCount();
+
+while ( $ds->each() )
+{
+    // each time through this loop, the $ds itself contains the results of the current row
+    echo $ds->id . ' - ' . $ds->username;
+}
+
+// if we need to loop again we do this
+$ds->resetRows();
+while ( $ds->each() )
+{
+    // ...
+}
+?>
+}}}
+

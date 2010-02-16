@@ -278,17 +278,19 @@ class tgsfFormField extends tgsfBase
 			case fftDropDown:
 			case fftList:
 				$tag->changeTag( 'select' );
-				
-				foreach ( $this->_optionList as $optVal => $caption )
+				if ( is_array( $this->_optionList ) )
 				{
-					$option = $tag->_( 'option' );
-					$option->content( $caption );
-					$option->addAttribute( 'value', $optVal );
-					if ( in_array( $optVal, $this->_selected ) )
+					foreach ( $this->_optionList as $optVal => $caption )
 					{
-						$option->addAttribute( 'selected', 'selected' );
+						$option = $tag->_( 'option' );
+						$option->content( $caption );
+						$option->addAttribute( 'value', $optVal );
+						if ( in_array( $optVal, $this->_selected ) )
+						{
+							$option->addAttribute( 'selected', 'selected' );
+						}
+						unset( $option );
 					}
-					unset( $option );
 				}
 				break;
 			

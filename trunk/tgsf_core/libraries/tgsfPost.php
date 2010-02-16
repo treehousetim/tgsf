@@ -80,4 +80,20 @@ class tgsfPost extends tgsfDataSource
 		parent::set( $source, $merge );
 		return $this;
 	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function cancelRedirect( $var, $url, $value = 'cancel' )
+	{
+		if ( $this->dataPresent && strtolower( $this->_( $var ) ) == strtolower( $value ) )
+		{
+			if ( $url instanceof tgsfUrl )
+			{
+				$url->redirect();
+			}
+
+			URL( $url )->redirect();
+		}
+	}
 }

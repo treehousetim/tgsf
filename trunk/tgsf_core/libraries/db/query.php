@@ -873,7 +873,7 @@ class query extends tgsfBase
 				echo 'Last Insert ID: ' . $this->_ro_lastInsertId . $eol;
 			}
 			
-			echo 'Row Count: ' . $this->_ro_rowCount . $eol;
+			echo '$this->rowCount: ' . $this->_ro_rowCount . $eol;
 			
 			$query = $this->sql();
 			

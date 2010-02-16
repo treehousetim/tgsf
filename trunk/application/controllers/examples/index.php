@@ -16,6 +16,7 @@ include view( 'header' );
 
 $menu['query'] = URL( 'examples/query' );
 $menu['urls'] = URL( 'examples/url' );
+$menu['tgsfHtmlTag'] = URL( 'examples/tgsfHtmlTag' );
 
 echo urlMenu( $menu );
 

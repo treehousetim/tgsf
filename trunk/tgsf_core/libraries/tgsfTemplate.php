@@ -10,6 +10,7 @@ for complete licensing information.
 function js( $jsFiles, $group = null )
 {
 	$jsFiles = (array)$jsFiles;
+	$group = str_replace( '/', '_', $group );
 	$groupFiles = array();
 
 	foreach ( $jsFiles as $jsFile )
@@ -139,22 +140,17 @@ function output_css_properties( $array )
 //------------------------------------------------------------------------
 function js_output_url_func()
 {
-	$content  = 'function url( url )';
-	$content .= '{ url=url.trim();';
+	$config['trailingSlash'] = (defined( 'tgTrailingSlash' ) && tgTrailingSlash === true )?'/':'';
+	$config['base'] = current_base_url();
 
-	if ( defined( 'tgTrailingSlash' ) && tgTrailingSlash === true )
-	{
-		$content .= "url=url+'/';";
-	}
+	$config['get_string']		= config( 'get_string', '/_/' );
+	$config['get_separator']	= config( 'get_separator', '/' );
+	$config['get_equals']		= config( 'get_equals', '/' );
 
-	$content .= "if(url=='/'){url=''};";
-	$content .= "return '" . current_base_url() . "' + url;";
-	$content .= '}';
-	
-	$tag = new tgsfHtmlTag( 'script' );
-	$tag->type = 'text/javascript';
-	$tag->content( $content );
-	echo $tag;
+	$content = "\n" . 'tgsf.URL.setConfig(' . json_encode( $config ) . ');';
+	echo tgsfHtmlTag::factory( 'script' )
+		->setAttribute( 'type', 'text/javascript' )
+		->content( $content );
 }
 //------------------------------------------------------------------------
 /**

@@ -118,7 +118,7 @@ class tgsfUrl extends tgsfDataSource
 	//------------------------------------------------------------------------
 	/**
 	* Sets a url to be local.  Changes the variable bits and pieces to the standard
-	* tgsf style of /_/varname/varvalue
+	* tgsf style of /_/varname/varvalue (by default - uses config vars)
 	* _/ / and /
 	*/
 	public function &isLocal()

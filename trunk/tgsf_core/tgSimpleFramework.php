@@ -217,7 +217,7 @@ function &load_cloned_object( $path, $name )
 
 	if ( ! in_array( $file, array_keys( $masterObjects ) ) )
 	{
-		$obj = include( $file );
+		$obj = require_once( $file );
 
 		if ( ! is_object( $obj ) )
 		{
@@ -363,11 +363,11 @@ function force_https()
 	}
 }
 //------------------------------------------------------------------------
-function config( $item )
+function config( $item, $defaultValue = false )
 {
 	global $config;
 
-	$retVal = false;
+	$retVal = $defaultValue;
 	if ( isset( $config[$item] ) )
 	{
 		$retVal = $config[$item];
@@ -454,14 +454,15 @@ function tgsf_parse_url()
 
 	$baseUrlPart = current_base_url_path();
 
-	$page = empty( $_SERVER['REDIRECT_URL'] ) ? '' : trim( $_SERVER['REDIRECT_URL'], '/' );
-	$page = substr( $page, strlen( $baseUrlPart ) );
+	$page = empty( $_SERVER['REDIRECT_URL'] ) ? '' : $_SERVER['REDIRECT_URL'];
 
-	$pieces = explode( '/_/', $page );
+	$page = substr( ltrim( $page,'/ ' ), strlen( $baseUrlPart ) );
+
+	$pieces = explode( config( 'get_string' ), $page );
 	$varPieces = '';
 	if ( count( $pieces ) > 1 )
 	{
-		$page = $pieces[0];
+		$page = trim( $pieces[0], '/' );
 		$varPieces = $pieces[1];
 		tgsf_parse_url_vars( $varPieces );
 	}
@@ -477,12 +478,6 @@ function tgsf_parse_url()
 //------------------------------------------------------------------------
 function tgsf_parse_url_vars( $varPieces )
 {
-	// TODO:: Remove this?  Seems to be unecessary as we won't be calling this from our CLI Front Controller
-	if ( TGSF_CLI )
-	{
-		return array( 'error' => 'NO URL FOR CLI' );
-	}
-
 	static $vars = null;
 
 	if ( ! $vars === null )
@@ -494,8 +489,18 @@ function tgsf_parse_url_vars( $varPieces )
 	$pieces = array();
 	if ( ! is_null( $varPieces ) )
 	{
-		$pieces = explode( '/', trim( $varPieces, '/' ) );
+		if ( ends_with( $varPieces, '//' ) )
+		{
+			$varPieces = trim( $varPieces,'/' ) . '/';
+		}
+		else
+		{
+			$varPieces = trim( $varPieces,' /' );
+		}
+
+		$pieces = explode( '/', $varPieces );
 	}
+
 	// if we have pieces, then loop through them assigning the array [piece1] => piece2
 	// throw an error if we have an odd number of pieces
 	$pieceCnt = count( $pieces );
@@ -1103,6 +1108,11 @@ function memory_stats()
 }
 //------------------------------------------------------------------------
 function tz_convert_string_to_utc( $text, $tz = 'UTC' )
+{
+	return tz_strtotime( $text, $tz );
+}
+//------------------------------------------------------------------------
+function tz_str_to_utc_ts( $text, $tz  )
 {
 	return tz_strtotime( $text, $tz );
 }
