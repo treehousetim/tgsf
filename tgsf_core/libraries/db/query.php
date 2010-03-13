@@ -65,6 +65,9 @@ class query extends tgsfBase
 	protected $_ro_lastInsertId		= false;
 	protected $_ro_rowCount			= false;
 	protected $_generated_sql       = '';
+
+	protected $_duplicateKeyUpdate	= false;
+	protected $_duplicateKeyUpdateString = '';
 	
 	//------------------------------------------------------------------------
 	public static function &factory( $which = 'default' )
@@ -212,6 +215,30 @@ class query extends tgsfBase
 
 	//------------------------------------------------------------------------
 	/**
+	* returns a SQL string to handle duplicate key updates
+	* Added 03/13/2010 by Wesley Cripe
+	*/
+	protected function _duplicateKeyUpdate()
+	{
+		$values = array();
+
+		if ( $this->_duplicateKeyUpdateString )
+		{
+			$values[] = $this->_duplicateKeyUpdateString;
+		}
+		else
+		{
+			foreach( $this->_insertList as $value )
+			{
+				$values[] = $value . " = VALUES({$value})";
+			}
+		}
+
+		return ' ON DUPLICATE KEY UPDATE ' . implode( ',', $values ); 
+	}
+
+	//------------------------------------------------------------------------
+	/**
 	* returns the SET field=:field,field1=:field1 portion of an update query
 	* if you use the table.field pattern, the parameter will become table_field
 	*/
@@ -288,6 +315,9 @@ class query extends tgsfBase
 		$this->_ro_lastInsertId		= false;
 
 		$this->_generated_sql       = '';
+
+		$this->_duplicateKeyUpdate = false;
+		$this->_duplicateKeyUpdateString = '';
 	}
 	//------------------------------------------------------------------------
 	public function &static_query( $query )
@@ -296,6 +326,7 @@ class query extends tgsfBase
 		$this->_staticQuery = $query;
 		return $this;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Adds a value to bind later on when the query is executed to this class
@@ -445,11 +476,25 @@ class query extends tgsfBase
 	* @param String The table name
 	* @return $this - current instance for method chaining.
 	*/
-	public function &insert_into( $table )
+	public function &insert_into( $table, $update = UPDATE_OFF )
 	{
 		$this->_type = qtINSERT;
 		$this->_insertTable = $table;
 		$this->_table = $table;
+		$this->_duplicateKeyUpdate = $update;
+		return $this;
+	}
+	
+	//------------------------------------------------------------------------
+	/**
+	* Inserts into the specified table
+	* @param SQL string indicating what fields to update and their values in the event of a duplicate key
+	* @return $this - current instance for method chaining.
+	*/
+	public function &update_action( $actionString )
+	{
+		$this->_duplicateKeyUpdate = true;
+		$this->_duplicateKeyUpdateString = $actionString;
 		return $this;
 	}
 
@@ -737,6 +782,12 @@ class query extends tgsfBase
 			}
 
 			$out = $this->_insert() . $this->_insertList() . $this->_insertParams();
+
+			//	Added 03/13/2010 by Wesley Cripe
+			if ( $this->_duplicateKeyUpdate )
+			{
+				$out .= $this->_duplicateKeyUpdate();
+			}
 			break;
 
 		case qtDELETE:
