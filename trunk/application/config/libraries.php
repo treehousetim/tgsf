@@ -29,11 +29,11 @@ ENCRYPT( 'passphrase' );
 
 //------------------------------------------------------------------------
 // requires a table to be set up
-load_library( 'db/tgsfLog/tgsf_log', IS_CORE_LIB );
+//load_library( 'db/tgsfLog/tgsf_log', IS_CORE_LIB );
 
 // initialize the logger with a custom table name
 // load this after auth so logger can log user_id's if available
-LOGGER( 'my_log' );
+//LOGGER( 'my_log' );
 
 //------------------------------------------------------------------------
 load_form_libraries();
