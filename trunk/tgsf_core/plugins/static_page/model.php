@@ -80,12 +80,14 @@ class staticPageModel extends model
 		$q = new query();
 
 		return $q->update( 'page' )
-		         ->pt( ptSTR )
-		         ->set( 'page_template', 'page_title', 'page_content' )
-		         ->autoBind( $ds )
-		         ->where( 'page_slug=:page_slug' )
-		         ->bindValue( 'page_slug', $ds->page_slug, ptSTR )
-		         ->exec();
+				->pt( ptSTR )
+				->set( 'page_template', 'page_title', 'page_content', 'page_window_title', 'page_meta_description' )
+				->pt( ptBOOL )
+				->set( 'page_published' )
+				->autoBind( $ds )
+				->where( 'page_slug=:page_slug' )
+				->bindValue( 'page_slug', $ds->page_slug, ptSTR )
+				->exec();
 	}
 	
 	//------------------------------------------------------------------------
@@ -96,7 +98,9 @@ class staticPageModel extends model
 		
 		$q->insert_into( 'page' )
 			->pt( ptSTR )
-			->insert_fields( 'page_slug', 'page_template', 'page_title', 'page_content' )
+			->insert_fields( 'page_slug', 'page_template', 'page_title', 'page_content', 'page_window_title', 'page_meta_description' )
+			->pt( ptBOOL )
+			->insert_fields( 'page_published' )
 			->autoBind( $ds )
 			->exec();
 	}

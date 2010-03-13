@@ -34,6 +34,24 @@ http://www.zackbloom.com/graph/
 Copyright (C) 2006-2007 Zack Bloom
 Licensed under the LGPL
 //------------------------------------------------------------------------
+jQuery Plugin - shuffle
+Copyright (C) Ca Phun Ung
+http://yelotofu.com/2008/08/jquery-shuffle-plugin/
+License: Creative Commons Attribution
+//------------------------------------------------------------------------
+jQuery doTimeout: Like setTimeout, but better! - v0.4 - 7/15/2009
+http://benalman.com/projects/jquery-dotimeout-plugin/
+
+Copyright (c) 2009 "Cowboy" Ben Alman
+Dual licensed under the MIT and GPL licenses.
+http://benalman.com/about/license/
+//------------------------------------------------------------------------
+jQuery Cookie plugin
+Copyright (c) 2006 Klaus Hartl (stilbuero.de)
+Dual licensed under the MIT and GPL licenses
+http://plugins.jquery.com/project/cookie
+http://stilbuero.de/jquery/cookie/
+//------------------------------------------------------------------------
 Live field checking jQuery code
 Written by: Remy Sharp of Left Logic
 taken from:

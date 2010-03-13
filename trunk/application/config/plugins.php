@@ -13,3 +13,10 @@ for complete licensing information.
 
 // registers the static page plugin
 //register_plugin( plugin( 'static_page/static_page', IS_CORE ), 'static_page' );
+add_action( 'static_page_init', 'config_static_page' );
+function config_static_page( $name )
+{
+	global $config;
+	$config['static_page_minRole'] = roleADMIN;
+	$config['static_page_view'] = 'admin/page_editor';
+}

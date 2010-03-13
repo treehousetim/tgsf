@@ -1,5 +1,4 @@
-tgsf.URL = 
-function ( purl )
+tgsf.URL = function ( purl )
 {
 	//------------------------------------------------------------------------
 	if ( !(this instanceof tgsf.URL) ) 
@@ -9,32 +8,31 @@ function ( purl )
 
 	if ( ! this.config )
 	{
-		throw new Error( 'You must call tgsf.URL.config on URL')
+		throw new Error( 'You must call tgsf.URL.setConfig before using URL')
 	}
 
-	var _url = purl.trim()
-	var _local = true;
+	var _url = purl.trim();
+	this.local = true;
+	
+	var _ds = tgsf.datasource();
+	this.setVar = function( name, val ) { _ds.setVar( name, val ); return this; };
+	this.getVar = function( name ) { return _ds.getVar( name ); };
+	this.exists = function( name ) { return _ds.exists( name ); };
+	this.isEmpty = function( name ) { return _ds.isEmpty( name ) };
+	this.dataArray = function() { return _ds.dataArray(); };
 
 	//------------------------------------------------------------------------
 	this.isLocal = function()
 	{
-		_local = true;
+		this.local = true;
 		return this;
 	}
 	//------------------------------------------------------------------------
 	this.notLocal = function()
 	{
-		_local = false;
+		this.local = false;
 		return this;
 	}
-	//------------------------------------------------------------------------
-	/**
-	* Property getter for local
-	*/
-	this.local = (function()
-	{
-		return _local == true; // this way we don' return a pointer to our protected var
-	})();
 	//------------------------------------------------------------------------
 	this.redirect = function()
 	{
@@ -44,7 +42,7 @@ function ( purl )
 	//------------------------------------------------------------------------
 	this.toString = function()
 	{
-		if ( _local == true )
+		if ( this.local == true )
 		{
 			var url = _url + this.getUrlVars();
 			url += this.config.trailingSlash;
@@ -62,30 +60,18 @@ function ( purl )
 		}
 	}
 	//------------------------------------------------------------------------
-	this.getUrlVarString = function()
-	{
-		return '';
-	}
-	//------------------------------------------------------------------------
 	this.getUrlVars = function()
 	{
-		/*
-		if ( ! this.ds instanceof tgsf.datasource )
-				{
-					return '';
-				}*/
-		
-		
-		if ( this.length <= 0 )
+		if ( _ds.getLength() < 1 )
 		{
 			return '';
 		}
-		
+
 		var get_string		= this.config.get_string;
 		var get_separator	= this.config.get_separator;
 		var get_equals		= this.config.get_equals;
 
-		if ( _local == false )
+		if ( this.local == false )
 		{
 			get_string		= '?';
 			get_separator	= '&amp;';
@@ -96,19 +82,20 @@ function ( purl )
 		var _pieces = [];
 		var _ix = 0;
 
-		for ( var name in this._vars )
+		var tvars = this.dataArray();
+
+		for ( name in tvars )
 		{
-			_pieces[_ix] = name + get_equals + this._vars[name];
+			_pieces[_ix] = name + get_equals + tvars[name];
 			_ix++;
 		}
+
 		return _out + _pieces.join( get_separator );
 	}
 	//------------------------------------------------------------------------
 }
-// inherit from the datasource object
-tgsf.URL.prototype = new tgsf.datasource();
 
-tgsf.URL.prototype.setConfig = function( configObj )
+tgsf.URL.setConfig = function( configObj )
 {
 	tgsf.URL.prototype.config = configObj;
-};
+}

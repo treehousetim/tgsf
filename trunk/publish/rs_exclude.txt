@@ -11,5 +11,6 @@ sync-core.php
 rs_sync_exclude.txt
 rx_sync_include.txt
 /application/config/db.php
+/application/assets/images/static
 /info.php
 /demo.sh

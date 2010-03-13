@@ -377,8 +377,9 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	{
 		if ( $cellType == ROW_NORMAL )
 		{
-			if ( empty( $row->{$col->fieldName} ) )
+			if ( empty( $row->{$col->fieldName} ) || $row->{$col->fieldName} == '0000-00-00 00:00:00' )
 			{
+				$cell->content( '' );
 				return;
 			}
 			$cell->content( FORMAT()->date( $row->{$col->fieldName}, DT_FORMAT_UI_DATE, $this->timezone ) );

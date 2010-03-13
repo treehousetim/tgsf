@@ -6,8 +6,17 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-// you are responsible for writing your own controller that is used to edit content
-// consult the google code web site for examples if you need help.
+// you must configure the plugin - example below:
+/*
+register_plugin( plugin( 'static_page/static_page', IS_CORE ), 'static_page' );
+add_action( 'static_page_init', 'config_static_page' );
+function config_static_page( $name )
+{
+	global $config;
+	$config['static_page_minRole'] = roleADMIN;
+	$config['static_page_view'] = 'page_editor';
+}*/
+
 
 add_action( 'static_page_init', 'static_page_setup' );
 function static_page_setup( $file )
@@ -26,16 +35,54 @@ class staticPage
 		$this->model = load_cloned_object( path( 'plugins/static_page', IS_CORE ), 'model' );
 	}
 	//------------------------------------------------------------------------
+	function adminAjax()
+	{
+		$minRole = config( 'static_page_minRole' );
+
+		if ( $minRole !== false )
+		{
+			if ( ! AUTH()->hasRole( $minRole ) )
+			{
+				// we display a 404 with an empty string to avoid stack recursion - display_404 calls the 404 action which we've hooked to get here.
+				display_404( '' );
+			}
+		}
+
+		if ( GET()->dataPresent && !GET()->isEmpty( 'page' ) )
+		{
+			$page = $this->model->fetch( GET()->_( 'page' ) );
+			echo json_encode( $page );
+			exit();
+		}
+	}
+	//------------------------------------------------------------------------
 	function pre404( $slug )
 	{
+		if ( $slug == 'ajax/admin/rte' )
+		{
+			$this->adminAjax();
+			return;
+		}
+		
+		if ( $slug == 'admin/rte' )
+		{
+			$this->adminController();
+			exit();
+		}
+
 		$row = $this->model->fetch( $slug );
 		
-		if ( $row === false )
+		if ( $row === false || $row->page_published == false )
 		{
 			// we have no page for this url, return and let the core handle the 404
 			return;
 		}
-		
+
+		if ( empty( $row->page_window_title ) )
+		{
+			$row->page_window_title = $row->page_title;
+		}
+
 		if ( $row->page_template == '' || file_exists( view( $row->page_template ) ) === false )
 		{
 			include view( 'static_page' );
@@ -47,7 +94,66 @@ class staticPage
 			exit();
 		}
 	}
-	
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function adminController( )
+	{
+		$minRole = config( 'static_page_minRole' );
+
+		if ( $minRole === false || ! AUTH()->hasRole( $minRole ) )
+		{
+			// we display a 404 with an empty string to avoid stack recursion - display_404 calls the 404 action which we've hooked to get here.
+			display_404( '' );
+		}
+		
+		$form = load_cloned_object( path( 'plugins/static_page', IS_CORE ), 'form' );
+		AUTH()->minRole( roleADMIN );
+
+		//------------------------------------------------------------------------
+
+		$form->processor( URL( 'admin/rte' ) );
+
+		if ( POST()->dataPresent )
+		{
+			$ds = clone POST();
+			$ds->setVar( 'page_published', $ds->exists( 'page_published' ) );
+
+			$form->ds( $ds );
+
+			if ( $form->validate() )
+			{
+				if ( $ds->isEmpty( 'page_slug' ) === false )
+				{
+					$this->model->update( $ds );
+
+					URL( 'admin/rte' )->setVar( 'msg', 'page_saved' )->redirect();
+				}
+				elseif ( $ds->isEmpty( '_page_slug' ) === false )
+				{
+					$ds->remap( array( '_page_slug' => 'page_slug' ) );
+					$this->model->insert( $ds );
+
+					URL( 'admin/rte' )->setVar( 'msg', 'page_saved' )->redirect();
+				}
+			}
+		}
+
+		$formHtml  = $form->render();
+		$formValid = $form->valid;
+		
+		$view = config( 'static_page_view' );
+		ob_start();
+		$this->outputJS( 'ajax/admin/rte' );
+		$js = ob_get_clean();
+		
+		if ( $view !== false )
+		{
+			include view( $view );
+		}
+
+	}
 	//------------------------------------------------------------------------
 	
 	public function outputJS( $ajaxController )
@@ -75,22 +181,25 @@ class staticPage
 				if ( $(this).val() )
 				{
 					$("input#_page_slug").attr( 'disabled', 'disabled' );
-					$.getJSON( URL( '<?= $ajaxController . config( 'get_string' ); ?>page<?= config( 'get_equals' ); ?>' + $(this).val() ), function(json)
+					$.getJSON( String( tgsf.URL( "<?= $ajaxController . config( 'get_string' ); ?>page<?= config( 'get_equals' ); ?>" + $(this).val() ) ), function(json)
 					{
 						if ( !json.error )
 						{
-							$("input#page_template"   ).val( json.page_template );
-							$("input#page_title"      ).val( json.page_title    );
-							$("textarea#page_content" ).val( json.page_content  );
+							for ( prop in json )
+							{
+								$( "#" + prop ).val( json[prop] );
+							}
+							$( "#_page_slug" ).val( json.page_slug );
+							$( "#page_published" ).attr( 'checked', json.page_published == 1 )
 							rte.page_content.set_content( json.page_content );
 						}
 					});
 				}
 				else
 				{
+					$( "#page_published" ).attr( 'checked', false )
 					$("input#_page_slug").removeAttr( 'disabled' );
-					$("input#page_template"   ).val( "" );
-					$("input#page_title"      ).val( "" );
+					$("form#page input"   ).not( ".submit" ).val( "" );
 					$("textarea#page_content" ).val( "" );
 					rte.page_content.set_content( '' );
 				}

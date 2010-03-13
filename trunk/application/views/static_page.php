@@ -7,12 +7,11 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-$windowTitle = $row->page_title;
+$windowTitle = $row->page_window_title;
+$metaDescription = $row->page_meta_description;
 
 include view( 'header' );
-
 ?>
-
 <h1><?= $row->page_title; ?></h1>
 
 <div id="page-content">

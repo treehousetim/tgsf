@@ -1,20 +1,20 @@
 tgsf = {};
 tgsf.datasource = function( values )
 {
-	if ( ! ( this instanceof tgsf.datasource ) ) 
+	if ( ! ( this instanceof tgsf.datasource ) )
 	{
 		return new tgsf.datasource( values );
 	}
-	this._vars = [];
+	var _vars = [];
 
 	if ( values )
 	{
-		this._vars = values;
+		_vars = values;
 	}
 	//------------------------------------------------------------------------
 	this.setVar = function( name, value )
 	{
-		this._vars[name] = value;
+		_vars[name] = value;
 		return this;
 	}
 	//------------------------------------------------------------------------
@@ -25,7 +25,7 @@ tgsf.datasource = function( values )
 	{
 		if ( this.exists( name ) )
 		{
-			return this._vars[name];
+			return _vars[name];
 		}
 
 		if ( arguments.length == 2 )
@@ -36,14 +36,21 @@ tgsf.datasource = function( values )
 		return '';
 	}
 	//------------------------------------------------------------------------
-	this.length = (function()
+	this.getLength = function()
 	{
-		//return this._vars.length();
-	})();
+		var ix = 0;
+		var val;
+		for( val in _vars )
+		{
+			ix++;
+		}
+		return ix;
+	};
+
 	//------------------------------------------------------------------------
 	this.exists = function( name )
 	{
-		return this._vars[name] != undefined;
+		return _vars[name] != undefined;
 	}
 	//------------------------------------------------------------------------
 	this.isEmpty = function ( name )
@@ -53,13 +60,11 @@ tgsf.datasource = function( values )
 			return true;
 		}
 		
-		return this._vars[name] == '' || this._vars[name] == 0 || this._vars[name] == false;
+		return _vars[name] == '' || _vars[name] == 0 || _vars[name] == false;
 	}
 	//------------------------------------------------------------------------
 	this.dataArray = function()
 	{
-		// may be worthless - I'm attempting to protect the original from modification
-		var _ret = this._vars;
-		return _ret;
+		return _vars;
 	}
 }
