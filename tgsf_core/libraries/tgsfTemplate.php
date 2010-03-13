@@ -196,12 +196,14 @@ function show_error( $message, $exception = null)
 //------------------------------------------------------------------------
 // HTML Generation functions
 //------------------------------------------------------------------------
-function favicon( $url, $type = 'image/jpeg' )
+function favicon( $url, $type = 'image/x-icon' )
 {
 	$tag = new tgsfHtmlTag( 'link' );
 	$tag->rel = 'icon';
 	$tag->href = $url;
 	$tag->type = $type;
+	echo $tag;
+	$tag->rel="shortcut icon";
 	echo $tag;
 }
 //------------------------------------------------------------------------

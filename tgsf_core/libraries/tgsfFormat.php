@@ -82,7 +82,6 @@ class tgsfFormat extends tgsfBase
 		
 		$date = new Zend_Date( $ts, Zend_Date::TIMESTAMP );
 		$date->setTimezone( $tz );
-		
 		return $date->toString( $format );
 	}
 	//------------------------------------------------------------------------

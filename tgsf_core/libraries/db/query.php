@@ -783,7 +783,6 @@ class query extends tgsfBase
 
 			$out = $this->_insert() . $this->_insertList() . $this->_insertParams();
 
-			//	Added 03/13/2010 by Wesley Cripe
 			if ( $this->_duplicateKeyUpdate )
 			{
 				$out .= $this->_duplicateKeyUpdate();
