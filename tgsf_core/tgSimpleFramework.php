@@ -862,7 +862,15 @@ function general_log( $message, $file = 'general_log.txt' )
 		$out = do_filter( 'general_log', $out, $message );
 	}
 
-	file_put_contents( $file, $out, FILE_APPEND );
+	try
+	{
+		file_put_contents( $file, $out, FILE_APPEND );
+	}
+	catch( Exception $e )
+	{
+		echo 'Unable to log errors - you should use database logging.';
+		exit();
+	}
 }
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
