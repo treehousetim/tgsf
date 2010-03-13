@@ -38,3 +38,11 @@ $fpt = array(
 enum( 'pt', $fpt );
 // field type
 enum( 'ft', $fpt );
+
+// update on duplicate key enum
+enum( 'UPDATE_',
+	array(
+		'ON_DUPLICATE'	=> true,
+		'OFF'			=> false
+		)
+	);
