@@ -225,6 +225,14 @@ function html_title( $title )
 
 }
 //------------------------------------------------------------------------
+function meta_description( $text )
+{
+	$ct = new tgsfHtmlTag( 'meta' );
+	$ct->content = $text;
+	$ct->name = 'description';
+	echo $ct;
+}
+//------------------------------------------------------------------------
 function content_type( $type )
 {
 	$ct = new tgsfHtmlTag( 'meta' );
@@ -324,7 +332,7 @@ function tgsfJqAjaxInputTimeout( $input, $message, $turl, $delay = 500 )
 	ob_start();
 	?>
 	<script type="text/javascript">
-	
+
 	$(document).ready(
 	function ()
 	{
@@ -334,13 +342,13 @@ function tgsfJqAjaxInputTimeout( $input, $message, $turl, $delay = 500 )
 		function ()
 		{
 			var t = this; 
-			if (this.value != this.lastValue)
+			if ( this.value != this.lastValue )
 			{
 				if ( this.timer )
 				{
 					clearTimeout(this.timer);
 				}
-				
+
 				messageElement.removeClass( 'error' ).html('<img src="<?= image_url( 'ajax-loader.gif', IMAGE_URL_RELATIVE, IS_CORE ) ?>"> checking...');
 
 				this.timer = setTimeout(function ()

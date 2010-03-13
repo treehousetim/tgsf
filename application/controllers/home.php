@@ -8,8 +8,10 @@ for complete licensing information.
 */
 
 // see the config/config.php for the site name that is referenced in views/header.php
+$metaDescription = 'A Fresh Install of tgsf';
 $windowTitle = 'Welcome';
 
+//------------------------------------------------------------------------
 
 include view( 'header' );
 ?>
@@ -28,6 +30,4 @@ include view( 'header' );
 <p>You really should view the document in tgsf_core/legal/bundled.txt</p>
 
 
-<?php
-
-include view( 'footer' );
+<?php include view( 'footer' );

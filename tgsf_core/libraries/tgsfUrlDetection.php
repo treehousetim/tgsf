@@ -108,7 +108,7 @@ function current_https_url()
 {
 	return 'https://' .
 	current_host() .
-	current_port() . '/' .
+	current_port() .
 	$_SERVER['REQUEST_URI'];
 	
 }
