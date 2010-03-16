@@ -216,7 +216,6 @@ class query extends tgsfBase
 	//------------------------------------------------------------------------
 	/**
 	* returns a SQL string to handle duplicate key updates
-	* Added 03/13/2010 by Wesley Cripe
 	*/
 	protected function _duplicateKeyUpdate()
 	{
