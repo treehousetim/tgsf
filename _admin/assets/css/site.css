@@ -1,0 +1,17 @@
+/* sample css file */
+
+body
+{
+	font-family: arial, sans-serif;
+    font-size: 1em;
+}
+
+a
+{
+    text-decoration: none;
+}
+
+a:hover
+{
+    text-decoration: underline;
+}
