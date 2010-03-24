@@ -18,5 +18,5 @@ function config_static_page( $name )
 {
 	global $config;
 	$config['static_page_minRole'] = roleADMIN;
-	$config['static_page_view'] = 'admin/page_editor';
+	$config['static_page_view'] = '_admin/page_editor';
 }
