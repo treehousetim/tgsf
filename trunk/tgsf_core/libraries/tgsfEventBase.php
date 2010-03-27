@@ -24,6 +24,11 @@ class tgsfEventBase extends tgsfBase
 			$callback = array( $object, $callback );
 		}
 
+		if ( !is_callable( $callback ) )
+		{
+			throw new tgsfException( 'The callback you provided was not a callable function.' );
+		}
+
 		$this->_eventHandlers[$type][] = $callback;
 
 		return $this;
@@ -40,12 +45,25 @@ class tgsfEventBase extends tgsfBase
 			$callback = array( $object, $callback );
 		}
 
-		for ( $ix = 0, $max = count( $this->_eventHandlers[$type] ); $ix < $max; $ix++ )
+		if ( isset( $this->_eventHandlers[$type] ) )
 		{
-			if ( $this->_eventHandlers[$type][$ix] == $callback )
+			for ( $ix = 0, $max = count( $this->_eventHandlers[$type] ); $ix < $max; $ix++ )
 			{
-				unset( $this->_eventHandlers[$type][$ix] );
+				if ( isset( $this->_eventHandlers[$type][$ix] ) && $this->_eventHandlers[$type][$ix] == $callback )
+				{
+					unset( $this->_eventHandlers[$type][$ix] );
+				}
 			}
+		}
+
+		return $this;
+	}
+
+	function &removeAllEvents( $type )
+	{
+		if ( isset( $this->_eventHandlers[$type] ) )
+		{
+			unset( $this->_eventHandlers[$type] );
 		}
 
 		return $this;
