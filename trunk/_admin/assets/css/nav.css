@@ -1,0 +1,45 @@
+.url_menu ul
+{
+	border-bottom: 2px solid #aaa;
+}
+
+.url_menu li
+{
+	border-bottom: 1px dotted #ccc;
+}
+
+.url_menu li
+{
+	border-bottom: 1px dotted #ccc;
+}
+
+.url_menu:last-child
+{
+	border-bottom: none;
+}
+
+.url_menu li h2, .url_menu li 
+{
+	padding-left: 10px;
+}
+
+.url_menu li a
+{
+	padding-left: 4px;
+	font-size: 10pt;
+	line-height: 18pt;
+	display: block;
+	width: 100%;
+}
+
+.url_menu li a:hover
+{
+	background-color: #B8CDEB;
+	text-decoration: none;
+}
+
+.url_menu h2
+{
+	font-weight: bold;
+	background-color: #ccc;
+}

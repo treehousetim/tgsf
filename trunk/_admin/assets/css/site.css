@@ -1,13 +1,7 @@
-/* sample css file */
-
-body
-{
-	font-family: arial, sans-serif;
-    font-size: 1em;
-}
-
+/* visual */
 a
 {
+	color: #146CBB;
     text-decoration: none;
 }
 
@@ -15,3 +9,14 @@ a:hover
 {
     text-decoration: underline;
 }
+
+.clearboth
+{
+	display: block;
+	clear: both;
+	height: 0px;
+	width: 1px;
+}
+
+
+

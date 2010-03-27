@@ -468,7 +468,7 @@ function tgsf_parse_url()
 	}
 	$page = trim( $page, ' /' );
 
-    if ( $page == '' )
+    if ( $page == trim( APP_URL_FOLDER, ' /' ) )
 	{
 	    $page = 'home';
 	}
