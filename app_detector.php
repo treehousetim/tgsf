@@ -20,4 +20,13 @@ for complete licensing information.
 // then you'll need to set up a connection
 // dbm()->useSetup( new dbSetup( 'user', 'password', 'db_name' ) );
 
-define( 'APP_FOLDER', 'application/' );
+if ( current_url_starts_with( 'admin' ) )
+{
+	define( 'APP_FOLDER', '_admin/' );
+	define( 'APP_URL_FOLDER', 'admin/' );
+}
+else
+{
+	define( 'APP_FOLDER', 'application/' );
+	define( 'APP_URL_FOLDER', '' );
+}

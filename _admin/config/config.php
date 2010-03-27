@@ -45,6 +45,7 @@ case '2FE2E706A46369037D7F84A40E30A7AC':
 // some configs work for more than one server id - this happens to be for CLI
 // on Tim's development machine
 case '72A14737F8C84D562C5BB0BBBF117D76':
+case '1BC7D71BF32B54EC7D07EC6D451D7B5F':
 	load_config( 'server_id/example' ); // not distributed
 	break;
 
@@ -71,3 +72,4 @@ default:
 
 load_config( 'datetime' );
 load_config( 'constants' );
+load_config( 'navLinks' );

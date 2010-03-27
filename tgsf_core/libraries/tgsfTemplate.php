@@ -306,14 +306,25 @@ function alternate()
 * $menu['Click Here'] = URL( 'you_are_a_winner/view' );
 * @param Array The array of url objects
 */
-function urlMenu( $array )
+function urlMenu( $array, $subMenuCaptionElement = 'h2' )
 {
 	$ul = new tgsfHtmlTag( 'ul' );
 	$ul->css_class( 'url_menu' );
-
-	foreach ( $array as $caption => $link )
+	if ( is_array( $array ) )
 	{
-		$ul->_( 'li' )->content( $link->anchorTag( $caption ) );
+		foreach ( $array as $caption => $link )
+		{
+			if ( is_array( $link ) )
+			{
+				$ul->addTag( 'li' )
+					->addTag( $subMenuCaptionElement )->content( $caption )->parent
+					->addTag( urlMenu( $link, $subMenuCaptionElement ) );
+			}
+			else
+			{
+				$ul->_( 'li' )->content( $link->anchorTag( $caption ) );
+			}
+		}
 	}
 
 	return $ul;

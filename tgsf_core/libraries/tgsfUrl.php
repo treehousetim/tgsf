@@ -27,6 +27,7 @@ class tgsfUrl extends tgsfDataSource
 	protected	$_ro_local;
 	protected	$_ro_anchorTag;
 	protected	$_ro_addTrailingSlash = false;
+	protected	$_ro_ignoreApp = false;
 
 	//------------------------------------------------------------------------
 	/**
@@ -35,6 +36,7 @@ class tgsfUrl extends tgsfDataSource
 	protected function __construct( $url, $core )
 	{
 		$this->isLocal();
+		$this->_ro_ignoreApp = starts_with( $url, '/' );
 
 		$url = trim( $url, "\t\n\r /\\" ); // remove leading/trailing whitespace and slashes( back and forward)
 		$this->_ro_core = (bool)$core;
@@ -93,8 +95,15 @@ class tgsfUrl extends tgsfDataSource
 		{
 			return $this->_ro_url . $this->getUrlVars();
 		}
-		
-		$url = $this->_ro_url . $this->getUrlVars();
+
+		$url = '';
+
+		if ( $this->_ro_ignoreApp == false )
+		{
+			$url = APP_URL_FOLDER;
+		}
+
+		$url .= $this->_ro_url . $this->getUrlVars();
 
 		if ( $this->_ro_addTrailingSlash )
 		{

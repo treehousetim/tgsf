@@ -6,10 +6,8 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-
-echo config( 'doctype' );
-echo '<head>';
-content_type( config( 'content-type' ) );
+?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" /><?
 
 html_title( $windowTitle );
 if ( ! empty( $metaDescription ) )
@@ -20,8 +18,12 @@ if ( ! empty( $metaDescription ) )
 css_import(
 	array(
 		css_path( '/', IS_CORE_PATH ) . 'yuiZero.css',
+		css_path() . 'structure.css',
+		css_path() . 'nav.css',
 		css_path() . 'site.css',
-		css_path() . 'grids.css'
+		css_path() . 'grids.css',
+		
+		
 	), 'core' );
 
 css_import(
@@ -60,5 +62,18 @@ if ( ! empty( $style ) )
 
 js_output_url_func();
 do_action( 'html_header' );
-echo '</head>';
-echo '<body>';
+$nav_links = config( 'nav_links' );
+do_filter( 'nav_links', $nav_links );
+?>
+</head>
+<body>
+	<div id="head-bar">
+		<div id="dashboard-title">tgsf Admin Dashboard</div>
+		<div id="user-info">Logout</div>
+		<div id="version"><?=TGSF_VERSION; ?></div>
+		<i class="clearboth"></i>
+	</div>
+	<div id="left-nav">
+		<?= urlMenu( $nav_links ); ?>
+	</div>
+	<div id="page_body">
