@@ -5,4 +5,17 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-//------------------------------------------------------------------------
+class userLoginModel extends tgsfBase
+{
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function fetchById( $id )
+	{
+		return query::factory()
+		->select()
+	}
+}
+
+return new userLoginModel();
