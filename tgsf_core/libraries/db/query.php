@@ -1100,4 +1100,19 @@ class query extends tgsfBase
 
 		return $this->_stmHandle->fetchColumn( $col );
 	}
+	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &pluginAction( $name,  )
+	{
+		$args =  $this->sliceArgs( func_get_args(), 1 );
+		array_unshift( $args, $this );
+		tPLUGIN()->dispatchAction( $name, $args );
+
+		return $this;
+	}
 }

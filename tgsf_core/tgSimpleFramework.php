@@ -1183,3 +1183,9 @@ function tz_gmdate_end( $format, $ts, $tz )
 	return gmdate( $format, $ts );
 }
 //------------------------------------------------------------------------
+// 
+//------------------------------------------------------------------------
+function coreTable( $name )
+{
+	return CORE_TABLE_PREFIX . $name;
+}

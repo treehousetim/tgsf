@@ -24,6 +24,7 @@ if ( current_url_starts_with( 'admin' ) )
 {
 	define( 'APP_FOLDER', '_admin/' );
 	define( 'APP_URL_FOLDER', 'admin/' );
+	define( 'CORE_TABLE_PREFIX' ,'tgsf_' );
 }
 else
 {
