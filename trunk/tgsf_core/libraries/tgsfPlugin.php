@@ -219,7 +219,7 @@ class tgsfPlugin extends tgsfBase
 	{
 		if ( $filterGroup =& $this->_getFilterGroup( $name ) !== false )
 		{
-			foreach( $group as $level => $items )
+			foreach( $filterGroup as $level => $items )
 			{
 				foreach ( $items as $action )
 				{
