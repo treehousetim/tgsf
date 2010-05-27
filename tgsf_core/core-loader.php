@@ -31,8 +31,7 @@ load_library( 'tgsfSession',		IS_CORE_LIB );
 //------------------------------------------------------------------------
 // Plugin Library
 //------------------------------------------------------------------------
-load_library( 'tgPlugin',			IS_CORE_LIB ); // the core class the plugin api functions use
-load_library( 'tgsfPlugin',			IS_CORE_LIB ); // the plugin api functions
+load_library( 'tgsfPlugin',			IS_CORE_LIB ); // the plugin api and base class
 
 
 // load order is important - config first, then get plugins as soon as possible

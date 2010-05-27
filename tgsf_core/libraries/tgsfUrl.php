@@ -110,9 +110,9 @@ class tgsfUrl extends tgsfDataSource
 			$url .= '/';
 		}
 
-		if ( $url == '/' )
+		if ( $url == APP_URL_FOLDER . '/' )
 		{
-			$url = '';
+			$url = APP_URL_FOLDER;
 		}
 
 		if ( TGSF_CLI === false )

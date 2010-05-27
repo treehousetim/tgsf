@@ -248,9 +248,7 @@ class tgsfPlugin extends tgsfBase
 		}
 		else
 		{
-			echo "<pre>Problem adding action for $name the handler is not callable - see details below\n";
-			var_dump( $handler );
-			echo '</pre>';
+			throw new tgsfException( "Action Handler is not callable.\n" . get_dump( $handler ) );
 		}
 	}
 	
@@ -271,9 +269,7 @@ class tgsfPlugin extends tgsfBase
 		}
 		else
 		{
-			echo "<pre>Problem adding filter for $name the handler is not callable - see details below\n";
-			var_dump( $handler );
-			echo '</pre>';
+			throw new tgsfException( "Filter Handler is not callable.\n" . get_dump( $handler ) );
 		}
 	}
 	
