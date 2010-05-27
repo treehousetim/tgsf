@@ -472,6 +472,11 @@ function tgsf_parse_url()
 	{
 	    $page = 'home';
 	}
+	
+	if ( starts_with( $page, APP_URL_FOLDER ) )
+	{
+		$page = substr( $page, strlen( APP_URL_FOLDER ) );
+	}
 
 	return $page;
 }

@@ -1107,7 +1107,7 @@ class query extends tgsfBase
 	/**
 	*
 	*/
-	public function &pluginAction( $name,  )
+	public function &pluginAction( $name )
 	{
 		$args =  $this->sliceArgs( func_get_args(), 1 );
 		array_unshift( $args, $this );
