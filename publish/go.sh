@@ -19,7 +19,7 @@ pg="--no-p --no-g"
 delete=
 rsync_options=-Pav
 rsync_local_path=../
-rsync_server_string=ssdev1@204.232.232.154
-rsync_server_path="/home/dev.silversaver.com/"
+rsync_server_string=user@host
+rsync_server_path="path/to/your/files/"
 
 rsync $rsync_options $dryrun $delete $exclude $c $pg $rsync_local_path $rsync_server_string:$rsync_server_path
