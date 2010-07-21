@@ -25,9 +25,9 @@ $config['js_minify'] = true;
 $config['siteName'] = 'TGSF';
 
 //output
-$config['doctype'] = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html lang="en">';
+$config['doctype'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">';
 
-$config['content-type'] = 'text/html; charset=iso-8859-1';
+$config['content-type'] = 'text/html; charset=utf-8';
 
 $config['server_id'] = current_server_id();
 
