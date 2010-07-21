@@ -29,12 +29,23 @@ query::factory()
     ->debug();
 
 echo PHP_EOL;
+echo 'Group By';
+query::factory()
+    ->select()
+    ->from( 'user' )
+    ->group_by( 'user_type' )
+    ->where( 'id=:id' )
+    ->bindValue( 'id', 123, ptINT )
+    ->debug();
 
+echo PHP_EOL;
+echo 'Insert';
 
 query::factory()
     ->insert_into( 'user' )
-    ->insert_fields( 'username' )
+    ->insert_fields( 'username','email' )
     ->bindValue( 'username', 'example', ptSTR )
+	->bindValue( 'email', 'example@example.com', ptSTR )
     ->debug();
 
 

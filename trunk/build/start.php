@@ -27,6 +27,7 @@ $out .= '$minor = ' . $minor . ";" . PHP_EOL;
 $out .= '$build = ' . $build . ";" . PHP_EOL . PHP_EOL;
 $out .= '$versionString = "{$major}.{$minor}.{$build}";' . PHP_EOL;
 $out .= "define( 'TGSF_VERSION', \$versionString );" . PHP_EOL;
+$out .= "define( 'TGSF_VERSION_INT', \$major . \$minor . \$build );" . PHP_EOL;
 
 file_put_contents( $versionFile, $out );
 include $versionFile;
