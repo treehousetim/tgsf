@@ -244,6 +244,26 @@ class dbManager extends tgsfBase
 		{
 			return $this->getHandle( $which )->lastInsertId( $name );
 		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns true/false if a table exists
+	* @param String The name of the table
+	* @param String The logical name of the database server to connect to - defaults to 'default'
+	*/
+	public function tableExists( $tableName, $which = 'default' )
+	{
+		$stm = $this->getHandle( $which )->handle()->prepare( 'SHOW TABLES LIKE :tablename' );
+		$stm->bindValue( ":tablename", $tableName, PDO::PARAM_STR );
+		$stm->execute();
+		while ( $name = $stm->fetchColumn( 0 ) )
+		{
+			if ( $name == $tableName )
+			{
+				return true;
+			}
+		}
 		
+		return false;
 	}
 }
