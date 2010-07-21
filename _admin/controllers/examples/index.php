@@ -11,7 +11,7 @@ $windowTitle = 'Examples';
 include view( 'header' );
 ?>
 <body style="margin: 1em;">
-<h2 style="font-size: 2em;">tgsf v<?=TGSF_VERSION; ?> - Examples</h2>
+<h2 style="font-size: 2em;">tgsf v<?=TGSF_VERSION_INT; ?> - Examples</h2>
 <?php
 
 $menu['query'] = URL( 'examples/query' );

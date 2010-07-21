@@ -286,7 +286,7 @@ class query extends tgsfBase
 	* Resets the query - calling this is just like destroying a query object
 	* and creating a new one
 	*/
-	public function reset()
+	public function &reset()
 	{
 		$this->_stmHandle			= null;
 		$this->_executed			= false;
@@ -317,6 +317,8 @@ class query extends tgsfBase
 
 		$this->_duplicateKeyUpdate = false;
 		$this->_duplicateKeyUpdateString = '';
+		
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	public function &static_query( $query )

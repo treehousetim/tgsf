@@ -9,7 +9,8 @@ include view( 'header' );
 ?>
 
 <h2>404 - Page Not Found</h2>
-<p>We were unable to find the page you requested.</p>
+<p>We were unable to find <?= $page; ?></p>
+<p><?=  controller( $page ); ?></p>
 <p>Please visit our <a href="<?= URL( '' ) ?>">Home Page</a> to start over.</p>
 <br><br><br>
 

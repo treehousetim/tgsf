@@ -8,7 +8,7 @@ for complete licensing information.
 
 //AUTH()->minRole( roleADMIN );
 
-$c
+
 
 $metaDescription = 'User Management';
 $windowTitle = 'Manage Users';
