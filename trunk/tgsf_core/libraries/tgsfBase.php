@@ -25,11 +25,7 @@ class tgsfBase
 	//------------------------------------------------------------------------
 	public function __set( $name, $value )
 	{
-		ob_start();
-		var_dump( $value );
-		$vd = ob_get_contents();
-		ob_end_clean();
-		throw new tgsfException( 'SET: Undeclared class variable ' . $name . ' : value: ' . $vd . "\nYou must declare all variables you'll be using in the class definition." );
+		throw new tgsfException( 'SET: Undeclared class variable ' . $name . ' : value: ' . get_dump( $value ) . "\nYou must declare all variables you'll be using in the class definition." );
 	}
 	//------------------------------------------------------------------------
 	function sliceArgs( $args, $size )
