@@ -29,7 +29,7 @@ class userLoginGrid extends tgsfGrid
 		
 		// an example of a column that combines 2 fields (a first and last name)
 		// multiple fields can be specified here.  If a value isn't in the datasource, it is simply included as static text.
-		$this->addCol( 'lastname', ', ', 'firstname' )
+		$this->addCol( '', ', ', 'firstname' )
 			->caption( 'Name' )
 			
 			// a url can be set on a col.  Pass it a tgsfUrl object and an array that maps row field names to url variable names
@@ -89,7 +89,6 @@ class userLoginGrid extends tgsfGrid
 	//------------------------------------------------------------------------
 	protected function _loadRows()
 	{
-		// typically you would load this from a model, but array based rows are allowed too.
 		$model = load_model( 'example' );
 		$rows = $model->fetchAll();
 		return $rows;
