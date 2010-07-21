@@ -8,8 +8,9 @@ body
 {
 	line-height: 25px;
 	font-size: 18pt;
-	background-color: #1A4C7A;
-	color: white;
+/*	background-color: #1A4C7A;*/
+	background-color: #ddd;
+	color: #333;
 	padding: 10px;
 }
 
