@@ -319,32 +319,22 @@ function force_trailing_slash()
 
 	if ( empty( $_SERVER['REDIRECT_QUERY_STRING'] ) && ! empty( $_SERVER['REDIRECT_URL'] ) && strlen( $_SERVER['REDIRECT_URL'] ) && substr( $_SERVER['REDIRECT_URL'], -1 ) != '/' )
 	{
-		$page = tgsf_parse_url();
+		$url = URL( tgsf_parse_url() );
+
 		$vars = empty( $_GET['__tgsf_vars'] )?array():$_GET['__tgsf_vars'];
 
-		$extra = '';
-		if ( count( $vars ) )
+		foreach ( $vars as $name => $val )
 		{
-			$extra = '_/';
-
-			foreach ( $vars as $name => $val )
-			{
-				$extra .= $name . '/' . $val . '/';
-			}
-			$extra = trim( $extra, ' /' ) . '/';
+			$url->addVar( $name, $val );
 		}
-
-		$url = current_base_url() . $page . '/' . $extra;
 
 		if ( can_plugin() )
 		{
-			$url = do_filter( 'force_trailing_slash_redirect_url', $url );
+			do_filter( 'force_trailing_slash_redirect_url', $url );
 			do_action( 'force_trailing_slash_redirect', $url );
 		}
 
-	 	header( "HTTP/1.1 301 Moved Permanently" );
-	    header( 'Location: ' . $url );
-	    exit();
+		$url->permRedirect();
 	}
 }
 //------------------------------------------------------------------------
@@ -401,6 +391,11 @@ function controller( $name, $core = false )
 	return path( 'controllers', $core ) . $name . PHP;
 }
 //------------------------------------------------------------------------
+function install_file( $name, $core = true )
+{
+	return path( 'install', $core ) . $name . PHP;
+}
+//------------------------------------------------------------------------
 function view( $name, $core = false )
 {
 	return path( 'views', $core ) . $name . PHP;
@@ -447,16 +442,27 @@ function font( $file, $core = false )
 // parse_url is a PHP function, that's why this is named tgsf_parse_url
 function tgsf_parse_url()
 {
+	static $page = null;
+
+	if ( ! $page === null )
+	{
+		return $page;
+	}
+
 	if ( TGSF_CLI )
 	{
 		return CLI();
 	}
 
-	$baseUrlPart = current_base_url_path();
+	$baseUrlPart = rtrim( current_base_url_path(), '/' );
 
 	$page = empty( $_SERVER['REDIRECT_URL'] ) ? '' : $_SERVER['REDIRECT_URL'];
 
-	$page = substr( ltrim( $page,'/ ' ), strlen( $baseUrlPart ) );
+	if ( $baseUrlPart != '' )
+	{
+		$page = ltrim( $page, '/ ' );
+		$page = substr( $page, strlen( $baseUrlPart ) );
+	}
 
 	$pieces = explode( config( 'get_string' ), $page );
 	$varPieces = '';
@@ -466,16 +472,18 @@ function tgsf_parse_url()
 		$varPieces = $pieces[1];
 		tgsf_parse_url_vars( $varPieces );
 	}
-	$page = trim( $page, ' /' );
 
-    if ( $page == trim( APP_URL_FOLDER, ' /' ) )
+	if ( APP_URL_FOLDER != '' )
+	{
+		$pieces = explode( APP_URL_FOLDER, $page );
+		$page = $pieces[1];
+	}
+
+	$page = trim( $page, ' /' );
+	
+    if ( $page == ''  )
 	{
 	    $page = 'home';
-	}
-	
-	if ( starts_with( $page, APP_URL_FOLDER ) )
-	{
-		$page = substr( $page, strlen( APP_URL_FOLDER ) );
 	}
 
 	return $page;
