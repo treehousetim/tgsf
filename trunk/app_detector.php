@@ -20,11 +20,13 @@ for complete licensing information.
 // then you'll need to set up a connection
 // dbm()->useSetup( new dbSetup( 'user', 'password', 'db_name' ) );
 
+// all core tables will use the same prefix no matter what app is loaded
+define( 'CORE_TABLE_PREFIX' ,'tgsf_' );
+
 if ( current_url_starts_with( 'admin' ) )
 {
 	define( 'APP_FOLDER', '_admin/' );
 	define( 'APP_URL_FOLDER', 'admin/' );
-	define( 'CORE_TABLE_PREFIX' ,'tgsf_' );
 }
 else
 {
