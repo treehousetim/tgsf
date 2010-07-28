@@ -1,5 +1,5 @@
-# This is a good thing to have but it is entirely optional.
-# Feel Free to delete it.
+
+# ETags are a good thing to have
 FileETag MTime Size
 
 php_flag magic_quotes_gpc off

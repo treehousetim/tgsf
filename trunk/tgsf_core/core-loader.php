@@ -33,6 +33,10 @@ load_library( 'tgsfSession',		IS_CORE_LIB );
 //------------------------------------------------------------------------
 load_library( 'tgsfPlugin',			IS_CORE_LIB ); // the plugin api and base class
 
+//------------------------------------------------------------------------
+// The minify bridge - adds hooks to handle minify requests
+//------------------------------------------------------------------------
+load_library( 'bridges/minify',		IS_CORE_LIB );
 
 // load order is important - config first, then get plugins as soon as possible
 

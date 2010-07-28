@@ -9,6 +9,7 @@ for complete licensing information.
 
 function js( $jsFiles, $group = null )
 {
+	$group = APP_URL_FOLDER . $group;
 	$jsFiles = (array)$jsFiles;
 	$group = str_replace( '/', '_', $group );
 	$groupFiles = array();
@@ -35,12 +36,15 @@ function js( $jsFiles, $group = null )
 		{
 			$group = md5( implode( '', $groupFiles ) );
 		}
+		
+		$group = 'js_' . $group;
 
 		$contents = implode( ",\n", $groupFiles );
-		$content = "<?php return array( 'js_$group' => array( $contents ) );";
+		$content = "<?php return array( '$group' => array( $contents ) );";
 
-		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . 'js_' . $group . PHP, $content );
-		echo "\t" . '<script type="text/javascript" src="' .url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=js_' . $group . '"></script>' . "\n";
+		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
+		
+		echo "\t" . '<script type="text/javascript" src="' . $url = URL( '_minify' )->setVar( 'g', $group ) . '"></script>' . "\n";
 
 	}
 }
@@ -74,6 +78,7 @@ function css( $file, $local = true )
 */
 function css_import( $cssFiles, $group = null )
 {
+	$group = APP_URL_FOLDER . $group;
 	$cssFiles = (array)$cssFiles;
 	$group = str_replace( '/', '_', $group );
 	$groupFiles = array();
@@ -111,7 +116,7 @@ function css_import( $cssFiles, $group = null )
 		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
 		$tag = new tgsfHtmlTag( 'style' );
 		$tag->type = 'text/css';
-		$tag->content( '@import url(' . url_path( '3rd_party/min', IS_CORE_PATH ) . '?g=' . $group . ');' );
+		$tag->content( '@import url(' . URL( '_minify' )->setVar( 'g', $group ) . ');' );
 		echo $tag;
 	}
 }
@@ -198,12 +203,14 @@ function show_error( $message, $exception = null)
 //------------------------------------------------------------------------
 function favicon( $url, $type = 'image/x-icon' )
 {
-	$tag = new tgsfHtmlTag( 'link' );
-	$tag->rel = 'icon';
-	$tag->href = $url;
-	$tag->type = $type;
+	$tag = tgsfHtmlTag::factory( 'link' )
+		->setAttribute( 'rel', 'icon' )
+		->setAttribute( 'href', $url )
+		->setAttribute( 'type', $type );
+		
 	echo $tag;
-	$tag->rel="shortcut icon";
+	$tag->setAttribute( 'rel', 'shortcut icon' )
+
 	echo $tag;
 }
 //------------------------------------------------------------------------
@@ -213,34 +220,29 @@ function html_inline_style( $content )
 	{
 		return;
 	}
-	$tag = new tgsfHtmlTag( 'style' );
-	$tag->type = 'text/css';
-	$tag->content( $content );
-	echo $tag;
+	echo tgsfHtmlTag::factory( 'style' )
+		->setAttribute( 'type', 'text/css' )
+		->content( $content );
 }
 //------------------------------------------------------------------------
 function html_title( $title )
 {
-	$tag = new tgsfHtmlTag( 'title' );
-	$tag->content( $title );
-	echo $tag;
-
+ 	echo tgsfHtmlTag::factory( 'title' )
+		->content( $title );
 }
 //------------------------------------------------------------------------
 function meta_description( $text )
 {
-	$ct = new tgsfHtmlTag( 'meta' );
-	$ct->content = $text;
-	$ct->name = 'description';
-	echo $ct;
+	echo tgsfHtmlTag::factory( 'meta' )
+		->setAttribute( 'content', $text )
+		->setAttribute( 'name', 'description' );
 }
 //------------------------------------------------------------------------
 function content_type( $type )
 {
-	$ct = new tgsfHtmlTag( 'meta' );
-	$ct->content = $type;
-	$ct->setAttribute( 'http-equiv', 'Content-Type' );
-	echo $ct;
+	echo tgsfHtmlTag::factory( 'meta' )
+		->setAttribute( 'content', $type )
+		->setAttribute( 'http-equiv', 'Content-Type' );
 }
 //------------------------------------------------------------------------
 function brNotEmpty( $var )
