@@ -18,6 +18,7 @@ enum( 'FIELD_',
 		)
 	);
 
+// fpt = field / param type
 $fpt = array(
 	'BOOL'		=> PDO::PARAM_BOOL,
 	'NULL'		=> PDO::PARAM_NULL,
@@ -44,5 +45,15 @@ enum( 'UPDATE_',
 	array(
 		'ON_DUPLICATE'	=> true,
 		'OFF'			=> false
+		)
+	);
+
+
+
+enum( 'context', 
+	array(
+		'CORE'	=> 'tgsf_core',
+		'ADMIN'	=> 'tgsf_admin',
+		'APP'	=> 'single_app'
 		)
 	);

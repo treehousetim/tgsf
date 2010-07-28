@@ -81,6 +81,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 
 	public function __construct()
 	{
+		$this->_ro_ds = tgsfDataSource::factory();
 		parent::__construct( 'form' );
 		$this->setAttribute( 'method', 'POST' );
 	}

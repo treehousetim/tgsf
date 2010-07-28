@@ -189,6 +189,26 @@ function &load_model( $name, $core = false )
 }
 //------------------------------------------------------------------------
 /**
+* The first time a model is loaded, this function will require_once on the model file.
+* It will take the return value from that required file and use it as an internal instance
+* of that model.
+* All return values from this function will be performed using object cloning.
+* if a model has already loaded, a new instance is returned and no further filesystem
+* access occurs.
+* Model files are required to return a new instance of the model
+* Models should not require constructor parameters as this loader will know nothing about that.
+* @param String The path and name of the model.  This is prefixed by the application's
+* model's path
+* @param Bool Is the model located in the core?  This would only be used for built in models
+* like might be used in a core library (like a user lib).
+* @see load_cloned_object
+*/
+function &load_install_file( $name, $core = false )
+{
+	return load_cloned_object( path( 'install', $core ), $name );
+}
+//------------------------------------------------------------------------
+/**
 * Works like models and forms.  Used for grids (html tables)
 * @param String The path and name of the model.  This is prefixed by the application's
 * grid's path

@@ -6,12 +6,7 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-load_library( 'tgsfVersion', IS_CORE );
-
-$blocks[] = load_install_file( 'v093', IS_CORE )->exec()->getErrors();
-
-
-$windowTitle = 'tgsf Installer';
-include view( 'header' );
-include view( 'install/index' );
-include view( 'footer' );
+foreach ( $blocks as $block )
+{
+	echo $block;
+}

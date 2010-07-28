@@ -37,7 +37,17 @@ class tgsfDbRegistry extends tgsfBase
 	*/
 	protected function __construct( $table )
 	{
+		$this->setApp( 'app' );
 		$this->_ro_tableName = $table;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the application to work with reg values for
+	*/
+	public function &setApp( $app )
+	{
+		$this->_ro_app = $app;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -61,6 +71,10 @@ class tgsfDbRegistry extends tgsfBase
 	//------------------------------------------------------------------------
 	public function insert( $ds )
 	{
+		if ( $ds->isEmpty( 'registry_app' ) )
+		{
+			$ds->setVar( 'registry_app', 'app' )
+		}
 		try
 		{
 			$q = new query();
@@ -69,6 +83,7 @@ class tgsfDbRegistry extends tgsfBase
 			  ->pt( ptSTR )
 			  ->insert_fields( array(
 					'registry_key',
+					'registry_app',
 					'registry_value',
 					'registry_group'
 				))
