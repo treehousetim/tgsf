@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Front controller for default Minify implementation
  * 
@@ -20,7 +19,7 @@ require 'Minify.php';
 
 Minify::$uploaderHoursBehind = $min_uploaderHoursBehind;
 Minify::setCache(
-    isset($min_cachePath) ? $min_cachePath : null
+    isset($min_cachePath) ? $min_cachePath : ''
     ,$min_cacheFileLocking
 );
 
@@ -30,12 +29,7 @@ if ($min_documentRoot) {
     Minify::setDocRoot(); // IIS may need help
 }
 
-// normalize paths in symlinks
-foreach ($min_symlinks as $link => $target) {
-    $link = str_replace('//', realpath($_SERVER['DOCUMENT_ROOT']), $link);
-    $link = strtr($link, '/', DIRECTORY_SEPARATOR);
-    $min_serveOptions['minifierOptions']['text/css']['symlinks'][$link] = realpath($target);
-}
+$min_serveOptions['minifierOptions']['text/css']['symlinks'] = $min_symlinks;
 
 if ($min_allowDebugFlag && isset($_GET['debug'])) {
     $min_serveOptions['debug'] = true;
@@ -55,17 +49,18 @@ if ($min_errorLogger) {
 if (preg_match('/&\\d/', $_SERVER['QUERY_STRING'])) {
     $min_serveOptions['maxAge'] = 31536000;
 }
-
 if (isset($_GET['g'])) {
     // well need groups config
     $min_serveOptions['minApp']['groups'] = (require MINIFY_MIN_DIR . '/groupsConfig.php');
 }
-
 if (isset($_GET['f']) || isset($_GET['g'])) {
     // serve!   
     Minify::serve('MinApp', $min_serveOptions);
+        
+} elseif ($min_enableBuilder) {
+    header('Location: builder/');
+    exit();
 } else {
-    header("Status: 403" );
-	echo 'Forbidden';
+    header("Location: /");
     exit();
 }
