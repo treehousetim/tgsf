@@ -209,7 +209,7 @@ function favicon( $url, $type = 'image/x-icon' )
 		->setAttribute( 'type', $type );
 		
 	echo $tag;
-	$tag->setAttribute( 'rel', 'shortcut icon' )
+	$tag->setAttribute( 'rel', 'shortcut icon' );
 
 	echo $tag;
 }

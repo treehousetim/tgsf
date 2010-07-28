@@ -17,6 +17,7 @@ http://code.google.com/p/jqvm/
 Licensed under the MIT license
 //------------------------------------------------------------------------
 minify
+version 2.1.3 - updated on 2010-07-28
 http://code.google.com/p/minify/
 Licensed under the new BSD license
 //------------------------------------------------------------------------
