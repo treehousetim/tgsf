@@ -161,26 +161,30 @@ class tgsfVersion extends tgsfBase
 	protected $_ro_addingVersion = NULL;
 	protected $_ro_dbVersion;
 	protected $_ro_errorExists = false;
+	protected $_ro_title;
 
 	//------------------------------------------------------------------------
 	/**
 	* The constructor automatically sets the current version based on the define in the core
+	* @param String A title for this version item - used for end-user communication
 	*/
-	public function __construct()
+	protected function __construct( $title = '' )
 	{
 		load_config( 'version', IS_CORE );
 		$this->_ro_codeVersion = TGSF_VERSION_INT;
 		$this->_ro_codeDisplayVersion = TGSF_VERSION;
 		$this->detectDbVersion();
+		$this->_ro_title = $title;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* factory to return new instances
+	* @param String A title for this version item - used for end-user communication
 	*/
-	public static function &factory()
+	public static function &factory( $title = '' )
 	{
 		$c = __CLASS__;
-		$instance = new $c();
+		$instance = new $c( $title );
 		return $instance;
 	}
 	//------------------------------------------------------------------------
@@ -220,7 +224,7 @@ class tgsfVersion extends tgsfBase
 	/**
 	*
 	*/
-	public function exec()
+	public function &exec()
 	{
 		$this->_ro_errorExists = false;
 		foreach( $this->_items as &$item )
@@ -234,6 +238,21 @@ class tgsfVersion extends tgsfBase
 				}
 			}
 		}
+		
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function getTitle()
+	{
+		if ( $this->_ro_title == '' )
+		{
+			return '';
+		}
+
+		return tgsfHtmlTag::factory( 'h2' )->content( $this->_ro_title );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -241,13 +260,20 @@ class tgsfVersion extends tgsfBase
 	*/
 	public function getErrors()
 	{
-		$table = tgsfHtmlTag::factory( 'table' )->css_class( 'install_error_list' );
+		$table = tgsfHtmlTag::factory( 'table' )->css_class( 'install_error_list grid' );
+		
+		$table->beforeTag( $this->getTitle() );
 		
 		if ( $this->_ro_errorExists == false )
 		{
 			return $table->addTag( 'tr' )->addTag( 'td' )->addAttribute( 'colspan', '2' )->content( 'Install/Upgrade was successful.' );
 		}
-		
+
+		$table->addTag( 'tr' )
+			->addTag( 'th' )->content( 'Description' )
+			->parent
+			->addTag( 'th' )->content( 'Error' );
+
 		foreach( $this->_items as &$item )
 		{
 			if ( $item->execError )

@@ -5,15 +5,18 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-$version = tgsfVersion::factory();
+load_library( 'db/tgsfDbRegistry/tgsfDbRegistry' );
+$version = tgsfVersion::factory( '0.9.3' );
 $table = coreTable( 'registry' );
 $version->startVer( '093' );
 $version->addItem()
+	->description( 'Adding registry table' )
 	->table( $table )
 	->ddl( <<< end_of_registry
 	CREATE TABLE $table
 	(
 		registry_key				char(32)		NOT NULL,
+		registry_app				char(32)		NOT NULL,
 		registry_group				char(32)		NOT NULL,
 		registry_value				text			DEFAULT NULL,
 		registry_type				enum( 'text','checkbox','textarea','dropdown','date'),
@@ -22,14 +25,16 @@ $version->addItem()
 		registry_desc				varchar(255)	DEFAULT NULL,
 		registry_help				text			DEFAULT NULL,
 
-		PRIMARY KEY (registry_key,registry_group),
-		KEY registry_group (registry_group)
+		PRIMARY KEY (registry_key,registry_app,registry_group),
+		KEY registry_group (registry_group),
+		KEY registry_app(registry_app)
 	) ENGINE=MyISAM;
 end_of_registry
 );
 //------------------------------------------------------------------------
 $table = coreTable( 'user_login' );	
 $version->addItem()
+	->description( 'Adding user_login table' )
 	->table( $table )
 	->ddl( <<< end_of_login
 	CREATE TABLE $table
@@ -87,6 +92,7 @@ end_of_login
 // holds meta values for any table
 $table = coreTable( 'supermeta' );
 $version->addItem()
+	->description( 'Adding supermeta table' )
 	->table( $table )
 	->ddl( <<< end_of_supermeta
 	CREATE TABLE $table
@@ -107,6 +113,7 @@ end_of_supermeta
 //------------------------------------------------------------------------
 $table = coreTable( 'tz' );
 $version->addItem()
+	->description( 'Adding tz table' )
 	->table( $table )
 	->ddl( <<< end_of_tz
 	CREATE TABLE $table
@@ -121,13 +128,11 @@ $version->addItem()
 		tz_dst_abbr						varchar(8)		DEFAULT NULL,
 	
 	
-		PRIMARY	KEY (tz_id)
+		PRIMARY	KEY (tz_id),
+		UNIQUE KEY `tz_area` (`tz_area`,`tz_abbr`)
 	) ENGINE=MyISAM COMMENT='http://www.statoids.com/tus.html';
 end_of_tz
 );
-//------------------------------------------------------------------------
-$version->addItem()
-	->query( 'ALTER TABLE  `tgsf_tz` ADD UNIQUE ( `tz_area` , `tz_abbr` );' );
 //------------------------------------------------------------------------
 // if you need more timezones, please submit a patch to the project.
 // :)
@@ -146,7 +151,5 @@ $version->addItem()
 	('Hawaii-Aleutian Time (no DST)', -10, 'HST', 'Pacific/Honolulu', 0, NULL, NULL);
 end_of_tz_insert
 );
-
-$version->exec();
 
 return $version;
