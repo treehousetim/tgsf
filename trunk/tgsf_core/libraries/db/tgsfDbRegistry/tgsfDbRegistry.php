@@ -7,27 +7,70 @@ http://tgWebSolutions.com/opensource/tgsf/license
 for complete licensing information.
 */
 
-/*
-This library needs a table in your database.  You can find the DDL for it in
-/tgsf_core/libraries/db/tgsfDbRegistry/table.sql
-*/
-
-
 //------------------------------------------------------------------------
 function &REG( $table = null )
 {
 	return tgsfDbRegistry::get_instance( $table );
 }
-//------------------------------------------------------------------------
-function reg_get( $key, $group )
+function &REG_VALUE()
 {
-	return REG()->fetchValueForKey( $key, $group );
+	return new tgsfDbRegistryValue();
+}
+//------------------------------------------------------------------------
+class tgsfDbRegistryValue extends dbDataSource
+{
+	/**
+	* creates a new registry value object
+	*/
+	public function __construct()
+	{
+		parent::__construct( dsTypeREG );
+		$this->setContext( REG()->context );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &name( $name )
+	{
+		$this->setVar( 'registry_name', $name );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &value( $value )
+	{
+		$this->setVar( 'registry_value', $value );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &store()
+	{
+		if ( REG()->exists( $this->registry_name ) )
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the context to work with reg values for
+	*/
+	public function &setContext( $context )
+	{
+		$this->_ro_context = $context;
+		return $this;
+	}
 }
 //------------------------------------------------------------------------
 class tgsfDbRegistry extends tgsfBase
 {
 	private static	$_instance			= null;
 	protected $_ro_tableName			= '';
+	protected $_ro_context				= contextAPP;
 
 	//------------------------------------------------------------------------
 	/**
@@ -37,16 +80,30 @@ class tgsfDbRegistry extends tgsfBase
 	*/
 	protected function __construct( $table )
 	{
-		$this->setApp( 'app' );
+		$this->setContext( contextAPP );
 		$this->_ro_tableName = $table;
 	}
 	//------------------------------------------------------------------------
 	/**
-	* Sets the application to work with reg values for
+	* Sets the context to work with reg values for
 	*/
-	public function &setApp( $app )
+	public function &setContext( $context )
 	{
-		$this->_ro_app = $app;
+		$this->_ro_context = $context;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the context in a datasource based on the class value.
+	* does NOT override the context if it is already present in the ds
+	*/
+	protected function &setContextDs( $ds )
+	{
+		if ( $ds->isEmpty( 'registry_context' ) )
+		{
+			$ds->setVar( 'registry_context', $this->_ro_context );
+		}
+
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -67,56 +124,54 @@ class tgsfDbRegistry extends tgsfBase
 		}
 
 		return self::$_instance;
+		REG_VALUE()->name( 'name' )->value( 'test' )->store();
 	}
+
 	//------------------------------------------------------------------------
 	public function insert( $ds )
 	{
-		if ( $ds->isEmpty( 'registry_app' ) )
-		{
-			$ds->setVar( 'registry_app', 'app' )
-		}
-		try
-		{
-			$q = new query();
+		$this->setContextDs( $ds );
 
-			$q->insert_into( $this->tableName )
-			  ->pt( ptSTR )
-			  ->insert_fields( array(
-					'registry_key',
-					'registry_app',
-					'registry_value',
-					'registry_group'
-				))
-			  ->autoBind( $ds )
-			  ->exec();
-		}
-		catch ( Exception $e )
-		{
-			LOGGER()->exception( $e );
-			return false;
-		}
-
-		return dbm()->lastInsertId();
+		return query::factory()
+			->insert_into( $this->tableName )
+			->pt( ptSTR )
+			->insert_fields(
+				'registry_key',
+				'registry_context',
+				'registry_value',
+				'registry_group'
+			)
+			->autoBind( $ds )
+			->exec()
+			->lastInsertId;
 	}
 	//------------------------------------------------------------------------
-	public function update( $ds )
+	public function &update( $ds )
 	{
-		$q = new query();
+		$this->setContextForDs( $ds );
+		$this->serializeDs( $ds );
 
-		return $q->update( $this->tableName )
-		         ->pt( ptSTR )
-		         ->set( array(
-					'registry_value'
-		           ))
-		         ->autoBind( $ds )
-		         ->where( 'registry_key=:registry_key' )
-		         ->bindValue( 'registry_key', $ds->registry_key, ptSTR )
-		         ->and_where( 'registry_group=:registry_group' )
-		         ->bindValue( 'registry_group', $ds->registry_group, ptSTR )
-		         ->exec();
+		query::factory()
+			->update( $this->tableName )
+			->pt( ptSTR )
+			->set( 'registry_value' )
+			->autoBind( $ds )
+			->where( 'registry_key=:registry_key' )
+			->bindValue( 'registry_key', $ds->registry_key, ptSTR )
+			->and_where( 'registry_group=:registry_group' )
+			->bindValue( 'registry_group', $ds->registry_group, ptSTR )
+			->exec();
+			
+		return $this;
 	}
 	//------------------------------------------------------------------------
-	public function updateValueForKey( $key, $group, $value )
+	/**
+	* Updates a value for the given key and group
+	* @param String The key
+	* @param String The group
+	* @param String The value to store - if not a string, it will be serialized and stored
+	*/
+	public function updateValue( $key, $group, $value )
 	{
 		$ds = new dbDataSource();
 		$ds->set( array(
@@ -128,21 +183,27 @@ class tgsfDbRegistry extends tgsfBase
 		return $this->update( $ds );
 	}
 	//------------------------------------------------------------------------
-	function fetchValueForKey( $key, $group )
+	function fetchValue( $key, $group )
 	{
+		$ds = dbDataSource::factory();
+		$this->setContextForDs( $ds );
+
 		$q = new query();
 
-		$result = $q->select( 'registry_value' )
-		            ->from( $this->tableName )
-		            ->where( 'registry_key=:registry_key' )
-		            ->bindValue( 'registry_key', $key, ptSTR )
-		            ->and_where( 'registry_group=:registry_group' )
-		            ->bindValue( 'registry_group', $group, ptSTR )
-		            ->exec()
-		            ->fetchColumn();
+		return query::factory()
+			->select( 'registry_value' )
+            ->from( $this->tableName )
+            ->where( 'registry_key=:registry_key' )
+            	->bindValue( 'registry_key', $key, ptSTR )
 
+			->where( 'registry_group=:registry_group' )
+            	->bindValue( 'registry_group', $group, ptSTR )
 
-		return trim($result);
+			->where( 'registry_context=:context' )
+				->bindValue( 'registry_context', $ds->registry_context, ptSTR )
+
+            ->exec()
+            ->fetchColumn();
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -153,7 +214,7 @@ class tgsfDbRegistry extends tgsfBase
 		return $this->fetchValueForKey( $key, $group );
 	}
 	//------------------------------------------------------------------------
-	function fetchByKey( $key, $group )
+	function fetchCompleteForKey( $key, $group )
 	{
 		$q = new query();
 
@@ -167,7 +228,7 @@ class tgsfDbRegistry extends tgsfBase
 		         ->fetch_ds();
 	}
 	//------------------------------------------------------------------------
-	function fetchAllByGroup( $group )
+	function fetchGroup( $group )
 	{
 		$results = query::factory()
 		 	->select()
@@ -201,7 +262,7 @@ class tgsfDbRegistry extends tgsfBase
 		$results = query::factory()
 			->select()
 			->from( $this->tableName )
-			->order_by( 'registry_group,registry_key' )
+			->order_by( 'registry_context, registry_group,registry_key' )
 			->exec()
 			->fetchAll();
 
@@ -223,5 +284,97 @@ class tgsfDbRegistry extends tgsfBase
 		}
 
 		return (object)$data;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &serializeDs( &$ds )
+	{
+		$ds->setVar( 'registry_value', $this->serialize( $ds->registry_value ) );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &unserializeDs( &$ds )
+	{
+		$ds->setVar( 'registry_value', $this->unserialize( $ds->registry_value ) );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Serializes everything but strings.
+	*/
+	public function serialize( $value )
+	{
+		// if a string we don't need to serialize
+		if ( is_string( $value ) === true )
+		{
+			return $value;
+		}
+
+		return serialize( $value );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Checks a value to detect a serialized string
+	* @param String Value to check to see if was serialized.
+	*/
+	function unserialize( $value )
+	{
+		// if it isn't a string, it isn't serialized
+		if ( is_string( $value ) === false )
+		{
+			return $value;
+		}
+		
+		// handle nulls
+	    if ( trim( $value ) == 'N;' )
+		{
+			return null;
+		}
+		
+        if ( preg_match( '/^([adObis]):/', trim( $value ), $matches ) == false )
+		{
+			$retVal = value;
+		}
+		else
+		{
+			$m = '';
+
+			if ( ! empty( $matches[1] ) )
+			{
+				list(, $m ) = $matches;
+			}
+
+	        switch ( $m )
+			{
+			case 'a':
+			case 'O':
+			case 's':
+				if ( preg_match( "/^$m:[0-9]+:.*[;}]\$/s", trim( $value ) ) )
+				{
+					$retVal = unserialize( trim( $value ) );
+				}
+				break;
+
+			case 'b':
+			case 'i':
+			case 'd':
+				if ( preg_match( "/^$m:[0-9.E-]+;\$/", trim( $value ) ) )
+				{
+					$retVal = unserialize( trim( $value ) );
+				}
+				break;
+				
+			default:
+				$retVal = $value;
+				break;
+	        }
+		}
+		
+		return $retVal;
 	}
 }

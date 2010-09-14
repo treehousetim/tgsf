@@ -77,7 +77,10 @@ class tgsfLog extends tgsfBase
 
 		if ( can_plugin() )
 		{
-			$message = do_filter( 'log_exception', $message, $e );
+			$message = tgsfEventFactory::filter()->event( 'log_exception' )->content( $message )
+			->ds->setVar( 'exception', $e )
+			->event
+			->exec();
 		}
 		$this->log( $message, $type );
 	}

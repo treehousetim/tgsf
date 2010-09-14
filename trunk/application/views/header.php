@@ -59,6 +59,8 @@ if ( ! empty( $style ) )
 }
 
 js_output_url_func();
-do_action( 'html_header' );
+
+tgsfEventFactory::action()->event( 'html_header' )->exec();
+
 echo '</head>';
 echo '<body>';

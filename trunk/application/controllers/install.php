@@ -8,7 +8,8 @@ for complete licensing information.
 
 load_library( 'tgsfVersion', IS_CORE );
 
-$blocks[] = load_install_file( 'v093', IS_CORE )->exec()->getErrors();
+$blocks[] = load_install_file( 'all', IS_CORE );
+$blocks[] = load_install_file( 'all' );
 
 
 $windowTitle = 'tgsf Installer';

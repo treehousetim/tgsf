@@ -61,9 +61,16 @@ if ( ! empty( $style ) )
 }
 
 js_output_url_func();
-do_action( 'html_header' );
+
+tgsfEventFactory::action()->event( 'html_header' )->exec();
+
 $nav_links = config( 'nav_links' );
-do_filter( 'nav_links', $nav_links );
+
+$nav_links = tgsfEventFactory::filter()
+->event( 'admin_nav_links' )
+->content( $nav_links )
+->exec();
+
 ?>
 </head>
 <body>

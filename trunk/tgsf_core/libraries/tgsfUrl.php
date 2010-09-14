@@ -119,8 +119,8 @@ class tgsfUrl extends tgsfDataSource
 		{
 			$url = current_base_url() . $url;
 		}
-
-		$url = do_filter( 'generate_url', $url );
+		
+		return tgsfEventFactory::filter()->event( 'generate_url' )->content( $url )->exec();
 
 		return $url;
 	}
@@ -185,7 +185,7 @@ class tgsfUrl extends tgsfDataSource
 
 		if ( can_plugin() )
 		{
-			$urlStr = do_filter( 'temp_redirect_url', $urlStr );
+			$urlStr = tgsfEventFactory::filter()->event( 'temp_redirect_url' )->content( $urlStr )->exec();
 		}
 
 		header( 'Location: ' . $urlStr );
@@ -215,7 +215,7 @@ class tgsfUrl extends tgsfDataSource
 
 		if ( can_plugin() )
 		{
-			$urlStr = do_filter( 'perm_redirect_url', $urlStr );
+			$urlStr = tgsfEventFactory::filter()->event( 'perm_redirect_url' )->content( $urlStr )->exec();
 		}
 		header( 'Location: ' . $urlStr );
 		

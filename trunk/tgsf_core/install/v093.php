@@ -5,29 +5,31 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-load_library( 'db/tgsfDbRegistry/tgsfDbRegistry' );
-$version = tgsfVersion::factory( '0.9.3' );
+
+$version = tgsfVersion::factory( 'tgsf version 0.9.3 - core framework' );
+$version->context( contextCORE );
+$version->setVersion( '093' );
+//------------------------------------------------------------------------
 $table = coreTable( 'registry' );
-$version->startVer( '093' );
 $version->addItem()
 	->description( 'Adding registry table' )
 	->table( $table )
 	->ddl( <<< end_of_registry
 	CREATE TABLE $table
 	(
+		registry_context			char(32)		NOT NULL,
 		registry_key				char(32)		NOT NULL,
-		registry_app				char(32)		NOT NULL,
 		registry_group				char(32)		NOT NULL,
 		registry_value				text			DEFAULT NULL,
-		registry_type				enum( 'text','checkbox','textarea','dropdown','date'),
+		registry_type				enum( 'text','checkbox','textarea','dropdown','date', 'serialized' ),
 		registry_list_values		text			DEFAULT NULL,
 		registry_label				char(32)		DEFAULT NULL,
 		registry_desc				varchar(255)	DEFAULT NULL,
 		registry_help				text			DEFAULT NULL,
 
-		PRIMARY KEY (registry_key,registry_app,registry_group),
+		PRIMARY KEY (registry_key,registry_context,registry_group),
 		KEY registry_group (registry_group),
-		KEY registry_app(registry_app)
+		KEY registry_context ( registry_context )
 	) ENGINE=MyISAM;
 end_of_registry
 );
@@ -86,6 +88,15 @@ $version->addItem()
 				KEY	user_login_suspend			(user_login_suspend)
 	) ENGINE=InnoDB;
 end_of_login
+);
+//------------------------------------------------------------------------
+$version->addItem()
+	->description( 'Creating Admin User' )
+	->query( <<< end_of_login_insert
+	INSERT INTO $table (user_login_username,user_login_password )
+	VALUES
+	('admin', 'password' );
+end_of_login_insert
 );
 //------------------------------------------------------------------------
 // super meta table

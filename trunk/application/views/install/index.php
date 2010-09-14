@@ -6,4 +6,10 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-// this code was moved to core/config/constants.php
+foreach ( $blocks as $block )
+{
+	if ( $block instanceof tgsfVersion )
+	{
+		echo $block->getMessages();
+	}
+}
