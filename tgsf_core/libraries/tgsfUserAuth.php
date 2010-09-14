@@ -143,7 +143,12 @@ class tgsfUserAuth extends tgsfBase
 	*/
 	public function &requireLogin()
 	{
-		do_action( 'AUTH_login_check', $this->loggedIn, $this );
+		tgsfEventFactory::action()
+			->event( 'AUTH_login_check' )
+			->ds
+				->setVal( 'scope', $this )
+				->event
+			->exec();
 
 		if ( ! $this->loggedIn )
 		{
@@ -159,7 +164,12 @@ class tgsfUserAuth extends tgsfBase
 	*/
 	public function &minRole( $minRole )
 	{
-		do_action( 'AUTH_min_role', $minRole, $this );
+		tgsfEventFactory::action()
+			->event( 'AUTH_min_role' )
+			->ds
+				->setVal( 'scope', $this )
+				->event
+			->exec();
 
 		if ( $this->loggedIn === true )
 		{

@@ -6,9 +6,12 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-add_action( 'pre_resolve_controller', 'tgsf_minify_bridge' );
-function tgsf_minify_bridge( $page )
+tgsfEventFactory::handler()->event( 'pre_resolve_controller' )->func( 'tgsf_minify_bridge' )->attach();
+
+function tgsf_minify_bridge( $event )
 {
+	$page = $event->ds->page;
+
 	if ( $page == '_minify' )
 	{
 		chdir( path( '3rd_party/min', IS_CORE_PATH ) );

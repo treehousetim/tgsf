@@ -40,6 +40,26 @@ define( 'GET_DUMP_HTML', true );
 define( 'IMAGE_URL_ABSOLUTE', true );
 define( 'IMAGE_URL_RELATIVE', false );
 //------------------------------------------------------------------------
+function check_install()
+{
+	tgsfEventFactory::action()->event( 'check_install' )->exec();
+
+	load_database_libraries();
+	if ( ! dbm()->setupExists() )
+	{
+		tgsfEventFactory::action()
+		->event( 'check_install_no_db' )
+		->exec();
+
+		//show_error( 'Before loading or installing for the first time, you must configure a database connection.' );
+	}
+}
+//------------------------------------------------------------------------
+function check_update()
+{
+	tgsfEventFactory::action()->event( 'check_update' )->exec();
+}
+//------------------------------------------------------------------------
 function current_server_id()
 {
 	if ( TGSF_CLI )
@@ -203,9 +223,9 @@ function &load_model( $name, $core = false )
 * like might be used in a core library (like a user lib).
 * @see load_cloned_object
 */
-function &load_install_file( $name, $core = false )
+function load_install_file( $name, $core = false )
 {
-	return load_cloned_object( path( 'install', $core ), $name );
+	return require path( 'install', $core ) . $name . PHP;
 }
 //------------------------------------------------------------------------
 /**
@@ -261,8 +281,9 @@ function load_config( $name, $core=false )
 	{
 		$name = do_filter( 'load_config', $name );
 
-		$action = ($core?'core-':'') . 'config' . $name;
-		do_action( $action );
+		tgsfEventFactory::action()
+		->event( ($core?'core-':'') . 'config' . $name )
+		->exec();
 	}
 
 	require_once path( 'config', $core ) . $name . PHP;
@@ -271,10 +292,7 @@ function load_config( $name, $core=false )
 function load_database_libraries()
 {
 	// db search extends grid
-	load_library( 'html/tgsfGrid', IS_CORE_LIB );
-	
-	// enums for the database libraries
-	load_library( 'db/enum',				IS_CORE_LIB );
+	load_library( 'html/tgsfGrid', 			IS_CORE_LIB );
 	load_library( 'db/dbManager',			IS_CORE_LIB );
 	load_library( 'db/dbSetup',				IS_CORE_LIB );
 	load_library( 'db/queryJoin',			IS_CORE_LIB );
@@ -297,13 +315,13 @@ function load_form_libraries()
 //------------------------------------------------------------------------
 function maintenance_mode_check()
 {
-	do_action( 'maintenance_mode_check' );
+	tgsfEventFactory::action()->event( 'maintenance_mode_check' )->exec();
 
 	if ( config( 'maintenanceMode' ) )
 	{
 		if ( ! isset( $_GET[config( 'maintenanceModeVar' )] ) || $_GET[config( 'maintenanceModeVar' )] != config('maintenanceModeVarValue' )  )
 		{
-			do_action( 'maintenance_mode_message' );
+			tgsfEventFactory::action()->event( 'maintenance_mode_message' )->exec();
 			echo 'Our website is currently down for maintenance. Please check back a little later.';
 			exit();
 		}
@@ -350,8 +368,15 @@ function force_trailing_slash()
 
 		if ( can_plugin() )
 		{
-			do_filter( 'force_trailing_slash_redirect_url', $url );
-			do_action( 'force_trailing_slash_redirect', $url );
+			tgsfEventFactory::filter()
+				->event( 'force_trailing_slash_redirect_url' )
+				->content( $url )
+				->exec();
+			
+			tgsfEventFactory::action()
+				->event( 'force_trailing_slash_redirect' )
+				->ds->setVar( 'url', $url )->event
+				->exec();
 		}
 
 		$url->permRedirect();
@@ -598,18 +623,35 @@ function display_404( $page = null )
 //------------------------------------------------------------------------
 function get_404( $page )
 {
-	do_action( 'pre_404', $page );
+	tgsfEventFactory::action()->event( 'pre_404' )->ds->setVar( 'page', $page )->event->exec();
+
 	// we don't output 404 headers here so that the 404 controller can make choices of its own
 	// it should output the 404 header.
 	$out = controller( '404' );
-	$out = do_filter( 'controller_404', $out, $page );
+
+	$out = tgsfEventFactory::filter()
+		->event( 'controller_404' )
+		->content( $out )
+		->ds->setVar( 'page', $page )->event
+		->exec();
+
 	return $out;
 }
 //------------------------------------------------------------------------
 function resolve_controller( $page )
 {
-	do_action( 'pre_resolve_controller', $page );
-	$page = do_filter( 'pre_resolve_controller', $page );
+	tgsfEventFactory::action()
+		->event( 'pre_resolve_controller' )
+		->ds
+			->setVar( 'page', $page )
+			->event
+		->exec();
+
+	$page = tgsfEventFactory::filter()
+		->event( 'pre_resolve_controller' )
+		->content( $page )
+		->ds->setVar( 'page', $page )->event
+		->exec();
 
 	if ( controller_exists( $page ) )
 	{
@@ -627,16 +669,35 @@ function resolve_controller( $page )
 		}
 	}
 
-	$out = do_filter( 'post_resolve_controller', $out, $page );
-	do_action( 'post_resolve_controller', $page, $out );
+	$out = tgsfEventFactory::filter()
+		->event( 'post_resolve_controller' )
+		->content( $out )
+		->ds->setVar( 'page', $page )->event
+		->exec();
+
+	tgsfEventFactory::action()
+		->event( 'post_resolve_controller' )
+		->ds
+			->setVar( 'page', $page )
+			->setVar( 'controller', $out )
+			->event
+		->exec();
 
 	return $out;
 }
 //------------------------------------------------------------------------
 function resolve_cli_controller( $name )
 {
-	do_action( 'pre_resolve_cli_controller', $name );
-	$name = do_filter( 'pre_resolve_cli_controller', $name );
+	tgsfEventFactory::action()
+		->event( 'pre_resolve_cli_controller' )
+		->ds
+			->setVar( 'controller', $name )->event
+		->exec();
+		
+	tgsfEventFactory::filter()
+		->event( 'pre_resolve_cli_controller' )
+		->content( $name )
+		->exec();
 
 	// check to see if controllers exist in:
 	// app/cli/$name.php
@@ -674,8 +735,20 @@ function resolve_cli_controller( $name )
 		}
 	}
 
-	$out = do_filter( 'post_resolve_cli_controller', $out, $name );
-	do_action( 'post_resolve_cli_controller', $name, $out );
+	$out = tgsfEventFactory::filter()
+		->event( 'post_resolve_cli_controller' )
+		->content(  $out )
+		->ds
+			->setVar( 'name', $name )->event
+		->exec();
+		
+	tgsfEventFactory::action()
+		->event( 'post_resolve_cli_controller' )
+		->ds
+			->setVar( 'name', $name )
+			->setVar( 'controller', $out )
+			->event
+		->exec();
 
 	return $out;
 }
@@ -710,7 +783,11 @@ function in_debug_mode()
 function content_buffer()
 {
 	global $no_content_buffer;
-	$cancel = do_filter( 'cancel_content_buffer', false );
+	
+	$cancel = tgsfEventFactory::filter()
+		->event( 'cancel_content_buffer' )
+		->content( false )
+		->exec();
 
 	if ( $cancel )
 	{
@@ -780,10 +857,7 @@ function hash_password( $clearText, $salt = null )
         $salt = substr( $salt, 0, SALT_LENGTH );
     }
     $hashed = $salt . sha1($salt . $clearText);
-	//do_action( 'hash_password', $hashed, $salt, $clearText );
 
-	// we should never be calling this before the plugin library has loaded
-	$hashed = do_filter( 'hash_password', $hashed, $clearText, $salt );
     return $hashed;
 }
 //------------------------------------------------------------------------

@@ -13,7 +13,9 @@ for complete licensing information.
 
 // registers the static page plugin
 //register_plugin( plugin( 'static_page/static_page', IS_CORE ), 'static_page' );
-add_action( 'static_page_init', 'config_static_page' );
+
+tgsfEventFactory::handler()->event( 'static_page_init' )->func( 'config_static_page' );
+
 function config_static_page( $name )
 {
 	global $config;

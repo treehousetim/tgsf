@@ -5,6 +5,7 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
+
 $config['debug_mode']		= true;
 
 $config['live_host'] = 'example.com';

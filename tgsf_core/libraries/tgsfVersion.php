@@ -21,6 +21,10 @@ define ( 'virEXISTS',	'table-exists' );
 define( 'virSUCCESS',	true );
 define( 'virFAIL',		false );
 
+// we use the registry to manage version numbers
+load_library( 'db/tgsfDbRegistry/tgsfDbRegistry', IS_CORE );
+
+
 class tgsfVersionItem extends tgsfBase
 {
 	protected $_ro_type;
@@ -162,6 +166,7 @@ class tgsfVersion extends tgsfBase
 	protected $_ro_dbVersion;
 	protected $_ro_errorExists = false;
 	protected $_ro_title;
+	protected $_ro_context;
 
 	//------------------------------------------------------------------------
 	/**
@@ -173,7 +178,7 @@ class tgsfVersion extends tgsfBase
 		load_config( 'version', IS_CORE );
 		$this->_ro_codeVersion = TGSF_VERSION_INT;
 		$this->_ro_codeDisplayVersion = TGSF_VERSION;
-		$this->detectDbVersion();
+		$this->detectDbVersion( contextCORE );
 		$this->_ro_title = $title;
 	}
 	//------------------------------------------------------------------------
@@ -191,6 +196,17 @@ class tgsfVersion extends tgsfBase
 	/**
 	*
 	*/
+	public function &context( $context )
+	{
+		$this->_ro_context = $context;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Attempts to detect the database version from the database
+	* either call context before calling this or pass a context to this function
+	* @param String App context - used for getting data out of the registry table
+	*/
 	public function detectDbVersion()
 	{
 		$table = coreTable( 'registry' );
@@ -199,14 +215,14 @@ class tgsfVersion extends tgsfBase
 		{
 			load_library( 'db/tgsfDbRegistry/tgsfDbRegistry', IS_CORE );
 			REG( $table );
-			$this->_ro_dbVersion = reg_get( 'version', 'tgsf_core' );
+			$this->_ro_dbVersion = REG_VALUE()->name( 'version' )->context( $this->_ro_context )->fetch()->registry_value;
 		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
-	public function startVer( $version )
+	public function setVersion( $version )
 	{
 		$this->_ro_addingVersion = str_replace( '.', '', $version );
 	}
@@ -258,7 +274,16 @@ class tgsfVersion extends tgsfBase
 	/**
 	*
 	*/
-	public function getErrors()
+	public function &title( $title )
+	{
+		$this->_ro_title = $title;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function getMessages()
 	{
 		$table = tgsfHtmlTag::factory( 'table' )->css_class( 'install_error_list grid' );
 		

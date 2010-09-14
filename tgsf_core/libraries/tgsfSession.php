@@ -90,6 +90,7 @@ class tgsfSession extends tgsfBase
 		// now we manually expire the session if necessary
 		
 		$lifetime = config( 'session/lifetime' );
+		$_SESSION['inactive_logout'] = false;
 		if ( empty( $_SESSION['tgsf-last-access'] ) )
 		{
 			$_SESSION['tgsf-last-access'] = time();
@@ -106,6 +107,7 @@ class tgsfSession extends tgsfBase
 			
 			
 			$this->start(); // restart the session.
+			$_SESSION['inactive_logout'] = true;
 		}
 
 		$_SESSION['tgsf-last-access'] = time();

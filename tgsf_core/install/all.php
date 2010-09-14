@@ -6,7 +6,5 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-foreach ( $blocks as $block )
-{
-	echo $block;
-}
+return load_install_file( 'v093', IS_CORE );
+

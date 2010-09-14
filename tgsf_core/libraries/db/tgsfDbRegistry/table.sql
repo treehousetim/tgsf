@@ -3,12 +3,17 @@
 */
 CREATE TABLE `registry`
 (
-	registry_key			char(32)		NOT NULL,
- 	registry_group			char(32)		NOT NULL,
- 	registry_value			char(64)		DEFAULT NULL,
-	registry_label			char(32)		DEFAULT NULL,
-	registry_desc			char(128)		DEFAULT NULL,
-	registry_input_size		int				DEFAULT 4, /* The width of an input field - visual only */
+	registry_context			char(32)		NOT NULL,
+	registry_key				char(32)		NOT NULL,
+	registry_group				char(32)		NOT NULL,
+	registry_value				text			DEFAULT NULL,
+	registry_type				enum( 'text','checkbox','textarea','dropdown','date' ),
+	registry_list_values		text			DEFAULT NULL,
+	registry_label				char(32)		DEFAULT NULL,
+	registry_desc				varchar(255)	DEFAULT NULL,
+	registry_help				text			DEFAULT NULL,
 
-	PRIMARY KEY ( registry_key, registry_group )
-);
+	PRIMARY KEY (registry_key,registry_context,registry_group),
+	KEY registry_group (registry_group),
+	KEY registry_app(registry_app)
+) ENGINE=MyISAM;

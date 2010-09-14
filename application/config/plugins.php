@@ -20,3 +20,10 @@ function config_static_page( $name )
 	$config['static_page_minRole'] = roleADMIN;
 	$config['static_page_view'] = '_admin/page_editor';
 }
+//------------------------------------------------------------------------
+/*
+add_action( 'core_load_complete', 'appOnLoadComplete' );
+function appOnLoadComplete()
+{
+
+}*/

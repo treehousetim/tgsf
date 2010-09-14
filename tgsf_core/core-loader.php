@@ -13,6 +13,9 @@ If you modify this file, it will only get overwritten the next time you upgrade.
 
 */
 //------------------------------------------------------------------------
+// load the core constant definitions
+load_config( 'constants',			IS_CORE );
+//------------------------------------------------------------------------
 define( 'APP_PATH', BASEPATH . APP_FOLDER );
 //------------------------------------------------------------------------
 // datasources
@@ -31,7 +34,10 @@ load_library( 'tgsfSession',		IS_CORE_LIB );
 //------------------------------------------------------------------------
 // Plugin Library
 //------------------------------------------------------------------------
-load_library( 'tgsfPlugin',			IS_CORE_LIB ); // the plugin api and base class
+load_library( 'plugin/tgsfPlugin',	IS_CORE_LIB ); // the plugin api and base class
+load_library( 'plugin/tgsfEvent',	IS_CORE_LIB );
+load_library( 'plugin/api',		IS_CORE_LIB );
+
 
 //------------------------------------------------------------------------
 // The minify bridge - adds hooks to handle minify requests
@@ -52,10 +58,10 @@ if ( config( 'debug_mode' ) === true )
 load_config( 'plugins' ); // where to specify which plugin files to load
 load_plugins();
 
-do_action( 'pre_system' );
-do_action( 'plugins_loaded' );
+tgsfEventFactory::action()->event( 'pre_system' )->exec();
+tgsfEventFactory::action()->event( 'plugins_loaded' )->exec();
+tgsfEventFactory::action()->event( 'load_library_config' )->exec();
 
-do_action( 'load_library_config' );
 load_config( 'libraries' );
 
 if ( TGSF_CLI === false )
@@ -64,5 +70,10 @@ if ( TGSF_CLI === false )
 	load_config( 'user_agent' );
 }
 
-do_action( 'core_load_complete' );
-do_action( 'app_loaded' );
+tgsfEventFactory::action()->event( 'core_load_complete' )->exec();
+tgsfEventFactory::action()->event( 'app_loaded' )->exec();
+
+//------------------------------------------------------------------------
+// make sure we've done an install and all updates needed to run core and /application
+check_install();
+check_update();

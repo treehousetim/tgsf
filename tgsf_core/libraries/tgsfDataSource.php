@@ -6,18 +6,6 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-enum( 'dsType',
-	array(
-		'DB',
-		'POST',
-		'GET',
-		'APP',
-		'CLI'
-		)
-	);
-
-define( 'DS_IGNORE_DEFAULT', 'tgsf-ignore-default' );
-
 class tgsfDataSource extends tgsfBase
 {
 	private		$_data 				= array();

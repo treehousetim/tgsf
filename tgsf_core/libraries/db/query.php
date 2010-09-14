@@ -76,20 +76,17 @@ class query extends tgsfBase
 		$instance = new $c( $which );
 		return $instance;
 	}
-
 	//------------------------------------------------------------------------
-
 	public function __construct( $which = 'default' )
 	{
 		$this->changeDB( $which );
 	}
-
 	//------------------------------------------------------------------------
 	protected function _table()
 	{
 		return implode( ',', $this->_table );
 	}
-
+	//------------------------------------------------------------------------
 	/**
 	* Used in rendering the query
 	* this is used to render select queries - the from table list.
