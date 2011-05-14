@@ -49,6 +49,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	public		$altRowClasses			= array( '', 'alt' );
 	private		$_renderSetup			= false;
 	public		$timezone				= 'UTC';
+	protected	$_ro_renderFormat		= grtHTML_TABLE;
 	//------------------------------------------------------------------------
 	public function __construct()
 	{
@@ -86,6 +87,23 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	public function colCount()
 	{
 		return count( $this->_colDefs );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function rowCount()
+	{
+		return count( $this->_rows );
+	}
+
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function getRow($ix)
+	{
+		return $this->_rows[$ix];
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -217,6 +235,22 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	/**
 	*
 	*/
+	public function getNextRow()
+	{
+		if ( is_array( $this->_rows ) )
+		{
+			return next( $this->_rows );
+		}
+
+		if ( $this->_rows instanceOf dbDataSource  )
+		{
+
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
 	public function renderRows()
 	{
 		if ( count( $this->_rows ) > 0 )
@@ -255,6 +289,24 @@ abstract class tgsfGrid extends tgsfHtmlTag
 
 		$this->_onRow( $tr, $row );
 	}
+	public function preLoad()
+	{
+		if ( empty( $this->_rows ) )
+		{
+			$this->_rows = $this->_loadRows();
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function renderCSV()
+	{
+		if ( empty( $this->_rows ) )
+		{
+			//$this->_rows =
+		}
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Renders a grid and returns the html as a string.
@@ -262,15 +314,25 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	*/
 	public function render( $format = grtHTML_TABLE, $csvIncludeHeader = false )
 	{
+		$this->_ro_renderFormat = $format;
+
 		if ( empty( $this->_colDefs ) )
 		{
 			$this->_setup();
 		}
 
+/*
+		if ( $this->_ro_renderFormat == grtCSV )
+		{
+			return $this->renderCSV();
+		}*/
+
+
 		if ( empty( $this->_rows ) )
 		{
 			$this->_rows = $this->_loadRows();
 		}
+
 		if ( $this->_renderSetup === false )
 		{
 			$this->renderHeader();
@@ -370,6 +432,19 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		}
 	}
 	//------------------------------------------------------------------------
+	public function raw_date( $col, $cell, $row, $cellType )
+	{
+		if ( $cellType == ROW_NORMAL )
+		{
+			if ( empty( $row->{$col->fieldName} ) || $row->{$col->fieldName} == '0000-00-00 00:00:00' )
+			{
+				$cell->content( '' );
+				return;
+			}
+			$cell->content( FORMAT()->raw_date( $row->{$col->fieldName}, DT_FORMAT_UI_DATE ) );
+		}
+	}
+	//------------------------------------------------------------------------
 	/**
 	* Formats a date
 	*/
@@ -416,6 +491,28 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		if ( $cellType == ROW_NORMAL )
 		{
 			$cell->content( number_format( (float)$cell->content, 2 ) );
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function boolYN( $col, $cell, $row, $cellType )
+	{
+		if ( $cellType == ROW_NORMAL )
+		{
+			$cell->content( FORMAT()->boolToYN( $row->{$col->fieldName} ) );
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function whoisIp( $col, $cell, $row, $cellType )
+	{
+		if ( trim( $row->{$col->fieldName} ) != '' )
+		{
+			$cell->content( URL('http://tools.whois.net/whoisbyip/' )->notLocal()->setVar( 'host', $row->{$col->fieldName} )->anchorTag( $row->{$col->fieldName} )->addAttribute( 'target','_blank' )->css_class( 'orange button' ) );
 		}
 	}
 	//------------------------------------------------------------------------

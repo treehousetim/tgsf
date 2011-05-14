@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2011 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -42,8 +42,6 @@ define( 'IMAGE_URL_RELATIVE', false );
 //------------------------------------------------------------------------
 function check_install()
 {
-	tgsfEventFactory::action()->event( 'check_install' )->exec();
-
 	load_database_libraries();
 	if ( ! dbm()->setupExists() )
 	{
@@ -51,8 +49,10 @@ function check_install()
 		->event( 'check_install_no_db' )
 		->exec();
 
-		//show_error( 'Before loading or installing for the first time, you must configure a database connection.' );
+		show_error( 'Before loading or installing for the first time, you must configure a database connection.' );
 	}
+	
+	tgsfEventFactory::action()->event( 'check_install' )->exec();
 }
 //------------------------------------------------------------------------
 function check_update()
@@ -293,6 +293,9 @@ function load_database_libraries()
 {
 	// db search extends grid
 	load_library( 'html/tgsfGrid', 			IS_CORE_LIB );
+
+	// enums for the database libraries
+	load_library( 'db/enum',				IS_CORE_LIB );
 	load_library( 'db/dbManager',			IS_CORE_LIB );
 	load_library( 'db/dbSetup',				IS_CORE_LIB );
 	load_library( 'db/queryJoin',			IS_CORE_LIB );
@@ -363,7 +366,7 @@ function force_trailing_slash()
 
 		foreach ( $vars as $name => $val )
 		{
-			$url->addVar( $name, $val );
+			$url->setVar( $name, $val );
 		}
 
 		if ( can_plugin() )
@@ -372,10 +375,10 @@ function force_trailing_slash()
 				->event( 'force_trailing_slash_redirect_url' )
 				->content( $url )
 				->exec();
-			
+
 			tgsfEventFactory::action()
 				->event( 'force_trailing_slash_redirect' )
-				->ds->setVar( 'url', $url )->event
+				->setVar( 'url', $url )
 				->exec();
 		}
 
@@ -525,8 +528,8 @@ function tgsf_parse_url()
 	}
 
 	$page = trim( $page, ' /' );
-	
-    if ( $page == ''  )
+
+    if ( $page == '' )
 	{
 	    $page = 'home';
 	}
@@ -572,6 +575,10 @@ function tgsf_parse_url_vars( $varPieces )
 			{
 				$val = $pieces[$ix+1];
 			}
+			else
+			{
+				$val = true;
+			}
 			// attempt to set $_GET
 			// we don't overwrite existing get vars though
 			if ( ! isset( $_GET[$name] ) )
@@ -597,7 +604,8 @@ function tgsf_parse_url_vars( $varPieces )
 
 		$_GET['__tgsf_vars'] =& $vars;
 
-		if ( $pieceCnt % 2 != 0  )
+		// throw error only while in debug mode - i.e. only for dev setups
+		if ( config( 'debug_mode' ) && $pieceCnt % 2 != 0 )
 		{
 			throw new tgsfException( 'Count of variables is not even - pass variables using name/value pairs' );
 		}
@@ -623,7 +631,7 @@ function display_404( $page = null )
 //------------------------------------------------------------------------
 function get_404( $page )
 {
-	tgsfEventFactory::action()->event( 'pre_404' )->ds->setVar( 'page', $page )->event->exec();
+	tgsfEventFactory::action()->event( 'pre_404' )->setVar( 'page', $page )->exec();
 
 	// we don't output 404 headers here so that the 404 controller can make choices of its own
 	// it should output the 404 header.
@@ -632,7 +640,7 @@ function get_404( $page )
 	$out = tgsfEventFactory::filter()
 		->event( 'controller_404' )
 		->content( $out )
-		->ds->setVar( 'page', $page )->event
+		->setVar( 'page', $page )
 		->exec();
 
 	return $out;
@@ -642,16 +650,13 @@ function resolve_controller( $page )
 {
 	tgsfEventFactory::action()
 		->event( 'pre_resolve_controller' )
-		->ds
-			->setVar( 'page', $page )
-			->event
+		->setVar( 'page', $page )
 		->exec();
 
 	$page = tgsfEventFactory::filter()
-		->event( 'pre_resolve_controller' )
-		->content( $page )
-		->ds->setVar( 'page', $page )->event
-		->exec();
+			->event( 'pre_resolve_controller' )
+			->content( $page )
+			->exec();
 
 	if ( controller_exists( $page ) )
 	{
@@ -672,15 +677,13 @@ function resolve_controller( $page )
 	$out = tgsfEventFactory::filter()
 		->event( 'post_resolve_controller' )
 		->content( $out )
-		->ds->setVar( 'page', $page )->event
+		->setVar( 'page', $page )
 		->exec();
 
 	tgsfEventFactory::action()
 		->event( 'post_resolve_controller' )
-		->ds
-			->setVar( 'page', $page )
-			->setVar( 'controller', $out )
-			->event
+		->setVar( 'page', $page )
+		->setVar( 'controller', $out )
 		->exec();
 
 	return $out;
@@ -690,10 +693,9 @@ function resolve_cli_controller( $name )
 {
 	tgsfEventFactory::action()
 		->event( 'pre_resolve_cli_controller' )
-		->ds
-			->setVar( 'controller', $name )->event
+		->setVar( 'controller', $name )
 		->exec();
-		
+
 	tgsfEventFactory::filter()
 		->event( 'pre_resolve_cli_controller' )
 		->content( $name )
@@ -738,16 +740,13 @@ function resolve_cli_controller( $name )
 	$out = tgsfEventFactory::filter()
 		->event( 'post_resolve_cli_controller' )
 		->content(  $out )
-		->ds
-			->setVar( 'name', $name )->event
+		->setVar( 'name', $name )
 		->exec();
-		
+
 	tgsfEventFactory::action()
 		->event( 'post_resolve_cli_controller' )
-		->ds
-			->setVar( 'name', $name )
-			->setVar( 'controller', $out )
-			->event
+		->setVar( 'name', $name )
+		->setVar( 'controller', $out )
 		->exec();
 
 	return $out;
@@ -783,7 +782,7 @@ function in_debug_mode()
 function content_buffer()
 {
 	global $no_content_buffer;
-	
+
 	$cancel = tgsfEventFactory::filter()
 		->event( 'cancel_content_buffer' )
 		->content( false )
@@ -952,15 +951,23 @@ function log_error( $message )
 //------------------------------------------------------------------------
 function general_log( $message, $file = 'general_log.txt' )
 {
-	$date = new DateTime();
-	$cst = new DateTimeZone( 'America/Chicago' );
-	$date->setTimezone( $cst );
+	$formattedDate = date( 'Y-m-d H:i:s T' );
+	try
+	{
+		$date = new DateTime();
+		$cst = new DateTimeZone( 'America/Chicago' );
+		$date->setTimezone( $cst );
+		$formattedDate = $date->format( 'Y-m-d H:i:s T' );
+	}
+	catch( Exception $e )
+	{
+
+	}
 
 	$file = clean_text( $file, '_', "." );
 	$file = path( 'logs', IS_CORE_PATH ) . $file;
-
 	$out = PHP_EOL . '------------------------------------------------------------------------' . PHP_EOL;
-	$out .= $date->format( 'Y-m-d H:i:s T' ) . PHP_EOL;
+	$out .= $formattedDate . PHP_EOL;
 	$out .= '----------------------' . PHP_EOL;
 	$out .= $message . PHP_EOL;
 
@@ -976,6 +983,7 @@ function general_log( $message, $file = 'general_log.txt' )
 	catch( Exception $e )
 	{
 		echo 'Unable to log errors - you should use database logging.';
+		echo PHP_EOL . '<pre>' . PHP_EOL . $e->getMessage() . PHP_EOL . '</pre>' . PHP_EOL;
 		exit();
 	}
 }
@@ -1168,7 +1176,7 @@ function zeroPad( $value, $places )
 	{
 		$value = $value . str_repeat( '0', $places - strlen( $value ) );
 	}
-	
+
 	return $value;
 }
 //------------------------------------------------------------------------
@@ -1193,7 +1201,8 @@ function truncateNumberFormat( $value, $places )
 	}
 	else
 	{
-		return $neg . number_format( $vals[0] ) . '.' . zeroPad( 0, $places );
+		// rex-php-5.3 - use intval
+		return $neg . number_format( intval($vals[0]) ) . '.' . zeroPad( 0, $places );
 	}
 }
 //------------------------------------------------------------------------
@@ -1213,6 +1222,67 @@ function get_dump( &$var, $formatHTML = false )
 	return $prefix . ob_get_clean() . $postfix;
 }
 //------------------------------------------------------------------------
+function rtrace($test)
+{
+	$btrace = array();
+
+	$t = debug_backtrace();
+
+	array_shift( $t );
+	array_shift( $t );
+
+	foreach ( $t as $lineInfo )
+	{
+		$btrace[] = '<b>' . $lineInfo['function'] . '</b>   in ' . $lineInfo['file'] . '  ('. $lineInfo['line'] . ')';
+
+		if ( isset( $lineInfo['args'] ) && count($lineInfo['args']) )
+		{
+			foreach ( $lineInfo['args'] as $argName => $argValue )
+			{
+				$btrace[] = "        arg[" . $argName . '] = <blockquote><pre><code>' . get_dump( $argValue ) . '</code></pre></blockquote>';
+			}
+		}
+
+		$btrace[] = '';
+	}
+
+	$btrace = implode( "<br>", $btrace );
+
+	return $btrace;
+}
+
+function rdebug( $var, $stackTrace = false )
+{
+	ob_start();
+
+	var_dump( $var );
+
+	$var_value = ob_get_clean();
+
+	if ( $stackTrace == false )
+	{
+		$place = '(set stackTrace to true to see trace)';
+	}
+	else
+	{
+		$place = rtrace('rex');
+	}
+
+	?>
+	<div style="align: top; background-color: orange; border-style: solid; border-color: black; border-width: 2px;">
+		<div style="align: left; margin-left: 40px; border-width: 2px; border-style: solid; border-color: black;">
+			<pre><code><?= $var_value ?></code></pre>
+		</div>
+		<div style="align: left; margin-left: 40px; border-width: 2px; border-style: solid; border-color: black;">
+			<?= $place ?>
+		</div>
+	</div>
+	<div style="align: top; background-color: green; ">
+		&nbsp
+	</div>
+<?php
+}
+//------------------------------------------------------------------------
 function memory_stats()
 {
 	if ( ! headers_sent() )
@@ -1220,6 +1290,11 @@ function memory_stats()
 		fb( number_format(memory_get_usage()), 'Mem Usage', FirePHP::INFO );
 		fb( number_format(memory_get_peak_usage()), 'Mem Usage (Peak)', FirePHP::INFO );
 	}
+}
+//------------------------------------------------------------------------
+function getTimezone()
+{
+	return function_exists( 'AUTH' )?AUTH()->getLoginTimeZone():TZ_DEFAULT;
 }
 //------------------------------------------------------------------------
 function tz_convert_string_to_utc( $text, $tz = 'UTC' )
@@ -1258,14 +1333,63 @@ function tz_strtotime( $text, $tz = 'UTC' )
 function tz_date( $format, $ts, $tz = 'UTC' )
 {
 	// force ts to be a timestamp (integer) - if not an int we force a strtotime
-	$ts = is_int( $ts )?$ts:strtotime($ts);
+	$ts = is_int( $ts )?$ts : strtotime($ts);
 
 	$date = new Zend_Date( $ts, Zend_Date::TIMESTAMP );
 	$date->setTimezone( $tz );
-	
+
 	return $date->toString( $format );
 }
+//------------------------------------------------------------------------
+function tz_date_str( $time )
+{
+	return tz_date('Y-m-d', $time, TZ_DEFAULT );
+}
+//------------------------------------------------------------------------
+/*
+ * Return the current unix timestamp for our default time zone (Central)
+ * @return Str The current timestamp for Central time zone
+ */
+function tz_default_time()
+{
+	date_default_timezone_set(TZ_DEFAULT);
 
+	$result = time();
+
+	date_default_timezone_set('UTC');
+
+	return $result;
+}
+//------------------------------------------------------------------------
+/*
+ * Return the current date for our default time zone (Central)
+ * @return Str The formatted date string for Central time zone
+ */
+function tz_default_date( $format = DT_FORMAT_SQL_DATE )
+{
+	date_default_timezone_set(TZ_DEFAULT);
+
+	$result = date( $format, time() );
+
+	date_default_timezone_set('UTC');
+
+	return $result;
+}
+//------------------------------------------------------------------------
+/*
+ * Return the result of getdate for our default time zone (Central)
+ * @return array The date parts as returned by getdate
+ */
+function tz_default_getdate( $timestamp )
+{
+	date_default_timezone_set(TZ_DEFAULT);
+
+	$result = getdate($timestamp);
+
+	date_default_timezone_set('UTC');
+
+	return $result;
+}
 //------------------------------------------------------------------------
 /*
 * $ts is expected to be a time stamp.  You can pass a string, but the string
@@ -1277,7 +1401,6 @@ function tz_gmdate_start( $format, $ts, $tz )
 	$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_START, $ts, $tz ), $tz );
 	return gmdate( $format, $ts );
 }
-
 //------------------------------------------------------------------------
 /*
 * $ts is expected to be a time stamp.  You can pass a string, but the string
@@ -1289,8 +1412,6 @@ function tz_gmdate_end( $format, $ts, $tz )
 	$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_END, $ts, $tz ), $tz );
 	return gmdate( $format, $ts );
 }
-//------------------------------------------------------------------------
-// 
 //------------------------------------------------------------------------
 function coreTable( $name )
 {

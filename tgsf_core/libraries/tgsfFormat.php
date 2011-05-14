@@ -74,14 +74,38 @@ class tgsfFormat extends tgsfBase
 		{
 			$ts = strtotime( $text );
 		}
-		
+
 		if ( $ts === false )
 		{
 			return '';
 		}
-		
+
 		$date = new Zend_Date( $ts, Zend_Date::TIMESTAMP );
 		$date->setTimezone( $tz );
+		return $date->toString( $format ); //  . '(' . $text . ')';
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Formats a raw date - no time zone is considered
+	*/
+	public function raw_date( $text, $format = DT_FORMAT_UI_DATE )
+	{
+		if ( empty( $text ) )
+		{
+			$ts = time();
+		}
+		else
+		{
+			$ts = strtotime( $text );
+		}
+
+		if ( $ts === false )
+		{
+			return '';
+		}
+
+		$date = new Zend_Date( $ts, Zend_Date::TIMESTAMP );
+//		$date->setTimezone( $tz );
 		return $date->toString( $format );
 	}
 	//------------------------------------------------------------------------
@@ -137,5 +161,21 @@ class tgsfFormat extends tgsfBase
 		}
 
 		return str_repeat( $chr, $repeat ) . substr( $data, $repeat );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function boolToYN( $value )
+	{
+		return (bool)$value?'Yes':'No';
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function boolToTF( $value )
+	{
+		return (bool)$value?'True':'False';
 	}
 }

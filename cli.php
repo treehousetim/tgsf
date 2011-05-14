@@ -18,8 +18,13 @@ chdir( BASEPATH );
 define( 'CORE_PATH',		BASEPATH . 'tgsf_core/'			);
 define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 
+ini_set('include_path', ini_get( 'include_path' )
+
 // zend framework support
-ini_set('include_path', ini_get( 'include_path' ) . PATH_SEPARATOR . CORE_PATH . '3rd_party' );
+. PATH_SEPARATOR . CORE_PATH . '3rd_party'
+
+// PHP Secure Communications Library support
+. PATH_SEPARATOR . CORE_PATH . '3rd_party/phpseclib0.2.1a' );
 
 //------------------------------------------------------------------------
 // a base class that is used in all core classes
@@ -50,7 +55,6 @@ try
 }
 catch ( Exception $e )
 {
-	
 	echo $e->getMessage();
 	show_error( 'An error occurred and was logged.', $e );
 }

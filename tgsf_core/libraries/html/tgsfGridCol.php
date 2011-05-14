@@ -18,7 +18,7 @@ class tgsfGridCol extends tgsfHtmlTag
 	protected $_renderFunc		= null;
 	
 	protected $_ro_url			= null;
-	protected $_ro_urlvars		= array();
+	protected $_ro_urlVars		= array();
 	protected $_ro_fields		= array();
 	protected $_ro_mailToField	= '';
 	
@@ -118,6 +118,8 @@ class tgsfGridCol extends tgsfHtmlTag
 	* Sets a url object on the column - this is set as the content of cells
 	* with the rendered content as the link text
 	* @param Object::tgsfUrl A url object used to create a link with the cell contents
+	* @param Array associative array of variables to add to a url - array( 'query_field_name' => 'url_var_name' )
+	* Example: ->url( 'admin/view', array( 'row_id' => 'i' ) );
 	*/
 	public function &url( $url, $urlVars )
 	{

@@ -6,6 +6,28 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
+class dsFactory
+{
+	public static function ds()
+	{
+		return tgsfDataSource::ds_factory();
+	}
+	public static function db()
+	{
+		return dbDataSource::db_factory();
+	}
+	//------------------------------------------------------------------------
+	public static function get()
+	{
+		return clone GET();
+	}
+	//------------------------------------------------------------------------
+	public static function post()
+	{
+		return clone POST();
+	}
+}
+//------------------------------------------------------------------------
 class tgsfDataSource extends tgsfBase
 {
 	private		$_data 				= array();
@@ -13,13 +35,14 @@ class tgsfDataSource extends tgsfBase
 	protected	$_ro_dataPresent	= false;
 	protected	$_rows				= array();
 	protected	$_ro_multiRow		= false;
+	protected	$_ro_strict			= false;
 	//------------------------------------------------------------------------
 	protected function __construct( $type = dsTypeAPP )
 	{
 		$this->_type = $type;
 	}
 	//------------------------------------------------------------------------
-	public static function &factory( $type = dsTypeAPP )
+	public static function &ds_factory( $type = dsTypeAPP )
 	{
 		$c = __CLASS__;
 		$instance = new $c( $type );
@@ -32,13 +55,17 @@ class tgsfDataSource extends tgsfBase
 		{
 			return $this->_data[$name];
 		}
+
 		try
 		{
 			return parent::__get( $name );
 		}
 		catch( Exception $e )
 		{
-
+			if ($this->_ro_strict )
+			{
+				throw new tgsfException( 'Undefined variable (' . $name . ') on a datasource marked as strict.' );
+			}
 		}
 
 		return '';
@@ -70,6 +97,16 @@ class tgsfDataSource extends tgsfBase
 	public function __clone()
 	{
 		$this->_type = dsTypeAPP;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the datasource to enforce variable existance
+	* @param Bool Enforce strict checking?
+	*/
+	public function &strict( $value = true )
+	{
+		$this->_ro_strict = (bool)$value;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -141,7 +178,7 @@ class tgsfDataSource extends tgsfBase
 			$this->_data[$new] = $data[$old];
 			unset( $this->_data[$old] );
 		}
-		
+
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -181,7 +218,7 @@ class tgsfDataSource extends tgsfBase
 		{
 			throw new tgsfException( 'Only Application and Database datasources allow members to be removed.' );
 		}
-		
+
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -196,7 +233,7 @@ class tgsfDataSource extends tgsfBase
 	//------------------------------------------------------------------------
 	/**
 	* Checks to see if a particular data element exists.  this is different than empty
-	* because this will return true even if an element is empty as long as 
+	* because this will return true even if an element is empty as long as
 	* it is present in the datasource
 	* @return bool true if exists
 	*/
@@ -335,6 +372,35 @@ class tgsfDataSource extends tgsfBase
 		return true;
 	}
 	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &ipField( $field )
+	{
+		if ( TGSF_CLI )
+		{
+			$this->setVar( $field, '127.0.0.1' );
+		}
+		elseif ( array_key_exists( 'REMOTE_ADDR', $_SERVER ) )
+		{
+			$this->setVar( $field, $_SERVER['REMOTE_ADDR'] );
+		}
+		else
+		{
+			$this->setVar( $field, 'N/A' );
+		}
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the current Date on a field
+	*/
+	public function &dateField( $field, $format = DT_FORMAT_SQL )
+	{
+		$this->setVar( $field, date::UTCcurrentDate( $format ) );
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	public function &resetRows()
 	{
 		reset( $this->_rows );
@@ -370,15 +436,14 @@ class tgsfDataSource extends tgsfBase
 	{
 		if ( in_debug_mode() )
 		{
-			$eol = str_repeat( "\n", 1 );
 			foreach ( $this->_data as $var => $value )
 			{
 				$det = trim( get_dump( $value ) );
 
 				echo str_pad( $var, 30 ) . $det;
-				echo $eol;
+				echo PHP_EOL;
 			}
-			echo $eol;
+			echo PHP_EOL;
 		}
 	}
 }

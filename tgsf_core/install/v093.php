@@ -8,20 +8,22 @@ for complete licensing information.
 
 $version = tgsfVersion::factory( 'tgsf version 0.9.3 - core framework' );
 $version->context( contextCORE );
-$version->setVersion( '093' );
+$version->version( '093' );
 //------------------------------------------------------------------------
 $table = coreTable( 'registry' );
-$version->addItem()
-	->description( 'Adding registry table' )
-	->table( $table )
-	->ddl( <<< end_of_registry
+REG( $table ); // must initialize the registry with the correct table name.
+
+$version->addItem(
+	versionItemFactory::table( $table )
+		->description( 'Adding registry table' )
+		->query( <<< end_of_registry
 	CREATE TABLE $table
 	(
 		registry_context			char(32)		NOT NULL,
 		registry_key				char(32)		NOT NULL,
 		registry_group				char(32)		NOT NULL,
 		registry_value				text			DEFAULT NULL,
-		registry_type				enum( 'text','checkbox','textarea','dropdown','date', 'serialized' ),
+		registry_type				enum( 'static','text','checkbox','textarea','dropdown','date', 'serialized', 'hidden' ),
 		registry_list_values		text			DEFAULT NULL,
 		registry_label				char(32)		DEFAULT NULL,
 		registry_desc				varchar(255)	DEFAULT NULL,
@@ -32,13 +34,14 @@ $version->addItem()
 		KEY registry_context ( registry_context )
 	) ENGINE=MyISAM;
 end_of_registry
+)
 );
 //------------------------------------------------------------------------
-$table = coreTable( 'user_login' );	
-$version->addItem()
-	->description( 'Adding user_login table' )
-	->table( $table )
-	->ddl( <<< end_of_login
+$table = coreTable( 'user_login' );
+$version->addItem(
+	versionItemFactory::table( $table )
+		->description( 'Adding user_login table' )
+		->query( <<< end_of_login
 	CREATE TABLE $table
 	(
 		user_login_id					bigint(20)		unsigned NOT NULL AUTO_INCREMENT,
@@ -88,24 +91,15 @@ $version->addItem()
 				KEY	user_login_suspend			(user_login_suspend)
 	) ENGINE=InnoDB;
 end_of_login
-);
-//------------------------------------------------------------------------
-$version->addItem()
-	->description( 'Creating Admin User' )
-	->query( <<< end_of_login_insert
-	INSERT INTO $table (user_login_username,user_login_password )
-	VALUES
-	('admin', 'password' );
-end_of_login_insert
-);
+));
 //------------------------------------------------------------------------
 // super meta table
 // holds meta values for any table
 $table = coreTable( 'supermeta' );
-$version->addItem()
-	->description( 'Adding supermeta table' )
-	->table( $table )
-	->ddl( <<< end_of_supermeta
+$version->addItem(
+	versionItemFactory::table( $table )
+		->description( 'Adding supermeta table' )
+		->query( <<< end_of_supermeta
 	CREATE TABLE $table
 	(
 		supermeta_record_id			varchar(20)		NOT NULL,
@@ -120,13 +114,13 @@ $version->addItem()
 		PRIMARY KEY ( supermeta_record_id,supermeta_table,supermeta_name )
 	) ENGINE=InnoDB;
 end_of_supermeta
-);
+));
 //------------------------------------------------------------------------
 $table = coreTable( 'tz' );
-$version->addItem()
-	->description( 'Adding tz table' )
-	->table( $table )
-	->ddl( <<< end_of_tz
+$version->addItem(
+	versionItemFactory::table( $table )
+		->description( 'Adding tz table' )
+		->query( <<< end_of_tz
 	CREATE TABLE $table
 	(
 		tz_id							smallint		unsigned NOT NULL AUTO_INCREMENT,
@@ -143,13 +137,12 @@ $version->addItem()
 		UNIQUE KEY `tz_area` (`tz_area`,`tz_abbr`)
 	) ENGINE=MyISAM COMMENT='http://www.statoids.com/tus.html';
 end_of_tz
-);
+));
 //------------------------------------------------------------------------
 // if you need more timezones, please submit a patch to the project.
 // :)
-$version->addItem()
-	->description( 'Inserting Time Zone Records' )
-	->query( <<< end_of_tz_insert
+$version->addItem(
+	versionItemFactory::query( <<< end_of_tz_insert
 	INSERT INTO $table (tz_area, tz_offset, tz_abbr, tz_zone, tz_dst, tz_dst_offset, tz_dst_abbr)
 	VALUES
 	('Eastern Time', -5, 'EST', 'America/New_York', 1, -4, 'EDT'),
@@ -161,6 +154,19 @@ $version->addItem()
 	('Hawaii-Aleutian Time', -10, 'HST', 'America/Adak', 1, -9, 'HDT'),
 	('Hawaii-Aleutian Time (no DST)', -10, 'HST', 'Pacific/Honolulu', 0, NULL, NULL);
 end_of_tz_insert
+)
+	->description( 'Inserting Time Zone Records' )
 );
+$version->addItem(
+	versionItemFactory::reg(
+		REG_VALUE()
+			->key( 'version' )
+			->group( 'version' )
+			->context( contextCORE )
+			->value( '093' )
+			->type( rtSTATIC )
+		)
+		->description( 'Adding registry entry' )
+	);
 
 return $version;

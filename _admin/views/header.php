@@ -6,7 +6,7 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>
+?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" class="page-<?= str_replace( '/', '-', $page ); ?>"><head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" /><?
 
 html_title( $windowTitle );
@@ -17,7 +17,8 @@ if ( ! empty( $metaDescription ) )
 
 css_import(
 	array(
-		css_path( '/', IS_CORE_PATH ) . 'yuiZero.css',
+		css_path( '/', IS_CORE_PATH )			. 'yuiZero.css',
+		css_path( 'jq-themes', IS_CORE_PATH )	. 'redmond/jquery-ui-1.7.1.custom.css',
 		css_path() . 'structure.css',
 		css_path() . 'nav.css',
 		css_path() . 'site.css',
@@ -73,14 +74,20 @@ $nav_links = tgsfEventFactory::filter()
 
 ?>
 </head>
-<body>
+<body class="page-<?= str_replace( '/', '-', $page ); ?>">
+	<?php if ( $page != 'login' ) : ?>
 	<div id="head-bar">
 		<div id="dashboard-title">tgsf Admin Dashboard</div>
 		<div id="user-info">Logout</div>
 		<div id="version"><?=TGSF_VERSION; ?></div>
 		<i class="clearboth"></i>
 	</div>
+	
 	<div id="left-nav">
 		<?= urlMenu( $nav_links ); ?>
 	</div>
 	<div id="page_body">
+	<?php else : ?>
+		<div>
+	<?php endif; ?>
+	

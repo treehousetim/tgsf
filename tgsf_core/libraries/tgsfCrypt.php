@@ -67,7 +67,7 @@ class tgsfCrypt extends tgsfBase
 	public function iv()
 	{
 		if ( $this->_iv === null )
-		{	
+		{
     		$iv_size = mcrypt_get_iv_size( $this->cipher, $this->mode );
     		$this->_iv = mcrypt_create_iv( $iv_size, MCRYPT_RAND );
     	}

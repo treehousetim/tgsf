@@ -23,7 +23,7 @@ class foreignKey extends tgsfBase
 		$this->foreignField		= $foreignField;
 		$this->relName			= $relName;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Create the ALTER TABLE DDL statement to add this foreign key to the database

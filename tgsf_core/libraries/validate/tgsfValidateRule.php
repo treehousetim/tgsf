@@ -84,7 +84,7 @@ abstract class tgsfValidateRule extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
-	* Sets the javascript code for 
+	* Sets the javascript code for
 	*/
 	public function getJs()
 	{
@@ -191,7 +191,7 @@ class tvr_max_len extends tgsfValidateRule
 class tvr_int extends tgsfValidateRule
 {
 	public $emptyValueValid = true;
-	public $errorMessage = ' must be an integer (no decimal point)';
+	public $errorMessage = ' must be a whole number (no decimal point)';
 	public function execute( $fieldName, $ds )
 	{
 		$this->valid = preg_match( '/^[0-9]+$/i', $ds->_( $fieldName ) );
@@ -213,10 +213,22 @@ class tvr_numeric extends tgsfValidateRule
 class tvr_clean extends tgsfValidateRule
 {
 	public $emptyValueValid = true;
-	public $errorMessage = ' must only contain letters, spaces, numbers, dashes, underscores and periods';
+	public $errorMessage = ' may only contain: A-Z, 0-9, dashes, underscores and periods.';
 	public function execute( $fieldName, $ds )
 	{
 		$this->valid = preg_match( '/^[0-9a-z.,_\-\' ]+$/i', $ds->_( $fieldName ) );
+		return $this->valid;
+	}
+}
+//------------------------------------------------------------------------
+class tvr_clean_address extends tgsfValidateRule
+{
+	public $emptyValueValid = true;
+	public $errorMessage = ' must be a properly formatted address.';
+	public function execute( $fieldName, $ds )
+	{
+		// dash must be last in this expression
+		$this->valid = preg_match('/^[A-Z0-9@#*(),.:& -]+$/i', $ds->_( $fieldName ) );
 		return $this->valid;
 	}
 }
@@ -237,7 +249,7 @@ class tvr_gt extends tgsfValidateRule
 	public function execute( $fieldName, $ds )
 	{
 		$this->errorMessage = ' must be greater than ' . $this->value;
-		
+
 		$value = $ds->_( $fieldName );
 		if ( empty( $value ) )
 		{
@@ -291,6 +303,19 @@ class tvr_lte extends tgsfValidateRule
 		$value = $ds->_( $fieldName );
 
 		$this->valid = (int)$value <= (int)$this->value || (float)$value <= (float)$this->value;
+		return $this->valid;
+	}
+}
+//------------------------------------------------------------------------
+class tvr_lte_float extends tgsfValidateRule
+{
+	public function execute( $fieldName, $ds )
+	{
+		$this->errorMessage = ' must be less than or equal to ' . $this->value;
+
+		$value = $ds->_( $fieldName );
+
+		$this->valid = (float)$value <= (float)$this->value;
 		return $this->valid;
 	}
 }
@@ -354,7 +379,7 @@ class tvr_date extends tgsfValidateRule
 			$year	= (int)$pieces[2];
 			$this->valid = checkdate( $month, $day, $year );
 		}
-		
+
 		return $this->valid;
 	}
 }
@@ -370,14 +395,14 @@ class tvr_future_date extends tvr_date
 		$this->errorMessage = ' must be a valid date ' . (int)$this->numDays . ' day(s) after today';
 
 		parent::execute( $fieldName, $ds );
-		
+
 		if ( $this->valid )
 		{
 			$date = strtotime( tz_gmdate_start( DT_FORMAT_SQL, tz_strtotime( $ds->{$fieldName}, $this->tz ), $this->tz ) );
 			$now  = strtotime( tz_gmdate_start( DT_FORMAT_SQL, time() + ( intval( $this->numDays ) * DT_TIME_DAY ), $this->tz ) );
 			$this->valid = $date >= $now;
 		}
-		
+
 		return $this->valid;
 	}
 }
@@ -472,6 +497,20 @@ class tvr_usa_state extends tgsfValidateRule
 	}
 }
 //------------------------------------------------------------------------
+class tvr_usa_canada_state extends tgsfValidateRule
+{
+	public $emptyValueValid = true;
+	public $errorMessage = ' must be a valid US state or Canadian Province';
+	public function execute( $fieldName, $ds )
+	{
+		load_config( 'us_canada_states', IS_CORE_CONFIG );
+		$stateList = config( 'us_canada_states' );
+		$value = $ds->_( $fieldName );
+		return $this->valid = in_array( strtoupper( $value ), $stateList );
+	}
+}
+
+//------------------------------------------------------------------------
 class tvr_usa_zipcode extends tgsfValidateRule
 {
 	public $emptyValueValid = true;
@@ -495,14 +534,14 @@ class tvr_bank_routing extends tgsfValidateRule
 				The first two digits of the nine digit ABA number must be in the ranges 00 through 12, 21 through 32, 61 through 72, or 80.
 				The entire number must pass checksum calc: (3 * (d1 + d4 + d7) + 7 * (d2 + d5 + d8) + d3 + d6 + d9 ) % 10 == 0
 		*/
-		
+
 		$value = $ds->_( $fieldName );
 		$value = str_replace( ' ', '', $value );
-		
+
 		if ( preg_match( '/^[0-9]+$/i', $value ) && strlen($value) == 9 )
 		{
 			$pair = (int)substr( $value, 0, 2 );
-			
+
 			if ( ($pair < 0) ||
 			     ($pair > 12 && $pair < 21) ||
 			     ($pair > 32 && $pair < 61) ||
@@ -512,7 +551,7 @@ class tvr_bank_routing extends tgsfValidateRule
 			{
 				return $this->valid = false;
 			}
-		
+
 			$d1 = (int)substr( $value, 0, 1 );
 			$d2 = (int)substr( $value, 1, 1 );
 			$d3 = (int)substr( $value, 2, 1 );
@@ -522,10 +561,10 @@ class tvr_bank_routing extends tgsfValidateRule
 			$d7 = (int)substr( $value, 6, 1 );
 			$d8 = (int)substr( $value, 7, 1 );
 			$d9 = (int)substr( $value, 8, 1 );
-			
+
 			return $this->valid = ((3 * ($d1 + $d4 + $d7) + 7 * ($d2 + $d5 + $d8) + $d3 + $d6 + $d9 ) % 10 == 0);
 		}
-		
+
 		return $this->valid = false;
 	}
 }

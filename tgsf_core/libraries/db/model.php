@@ -16,7 +16,7 @@ class model extends table
 	{
 		parent::__construct( $name, $which );
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -28,7 +28,7 @@ class model extends table
 		$this->wherePK( $q );
 		echo $q->generate();
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -39,13 +39,13 @@ class model extends table
 		{
 			throw new tgsfDbException( 'wherePK expects to receive an object that is an instance of the query class' );
 		}
-		
+
 		foreach( $this->_primaryKey as $field )
 		{
 			$query->and_where( $field->getWhereParamString() );
 		}
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* returns a datasource containing the record fetched by the given id, using {table}_id as the field
@@ -54,9 +54,9 @@ class model extends table
 	public function fetchById( $id, $selectList = '*' )
 	{
 		$_field = $this->_ro_tableName . '_id';
-	
+
 		$q = new query();
-		
+
 		return $q->select( $selectList )
 		         ->from( $this->_ro_tableName )
 		         ->where( $_field . '=:' . $_field )
@@ -64,7 +64,7 @@ class model extends table
 		         ->exec()
 		         ->fetch_ds();
 	}
-	
+
 	//------------------------------------------------------------------------
 
 	public function deleteById( $id, $selectList = '*' )
@@ -72,7 +72,7 @@ class model extends table
 		$_field = $this->_ro_tableName . '_id';
 
 		$q = new query();
-		
+
 		return $q->delete_from( $this->_ro_tableName )
 		         ->where( $_field . '=:' . $_field )
 		         ->bindValue( $_field, $id, ptINT )

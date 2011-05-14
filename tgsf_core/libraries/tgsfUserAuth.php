@@ -6,14 +6,9 @@ http://tgWebSolutions.com/opensource/tgsf/license
 for complete licensing information.
 */
 
-define( 'tgsfRoleGuest', 0 );
-define( 'tgsfRoleMember', 20 );
-define( 'tgsfRoleContributor', 40 );
-define( 'tgsfRoleEditor', 60 );
-define( 'tgsfRoleAdmin', 80 );
-define( 'tgsfRoleSuperAdmin', 100 );
+// defines in tgsf_core/config/constants.php
 
-function &AUTH( $model = null )
+function &AUTH( $model = null, $autoStart = false )
 {
 	if ( TGSF_CLI === true )
 	{
@@ -21,7 +16,7 @@ function &AUTH( $model = null )
 	}
 	else
 	{
-		return tgsfUserAuth::get_instance( $model );
+		return tgsfUserAuth::get_instance( $model, $autoStart );
 	}
 }
 //------------------------------------------------------------------------
@@ -35,6 +30,14 @@ function AUTH_is_configured()
 	{
 		return tgsfUserAuth::$configured;
 	}
+}
+interface tgsfUserAuthModel
+{
+	public function getForAuth( $id );
+	public function login( $ds );
+	public function getAuthRecordId( $row );
+	public function getLoginTimeZone( $row );
+	public function getAuthRole( $row );
 }
 //------------------------------------------------------------------------
 class tgsfUserAuth extends tgsfBase
@@ -53,9 +56,21 @@ class tgsfUserAuth extends tgsfBase
 	* user's login record if so.
 	* it is also protected as we will be using the get_instance method to instantiate
 	*/
-	protected function __construct( $model )
+	protected function __construct( $model, $autoStart = false )
 	{
 		$this->model = $model;
+		self::$configured = true;
+		if ( $autoStart )
+		{
+			$this->startSession();
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function startSession()
+	{
 		SESSION()->start();
 		$this->_ro_loggedIn = ! empty( $_SESSION['loggedin'] ) && $_SESSION['loggedin'] === true;
 
@@ -93,13 +108,18 @@ class tgsfUserAuth extends tgsfBase
 			$_SESSION['loggedin'] = true;
 			$_SESSION['record_id'] = $this->model->getAuthRecordId( $row );
 			$this->_ro_user	= $this->model->getForAuth( $_SESSION['record_id'] );
+
+			tgsfEventFactory::action()
+				->event( 'AUTH_logged_in' )
+				->setVar( 'scope', $this )
+				->exec();
+				
 			return true;
 		}
 
 		$this->logout();
 		return false;
 	}
-	
 	//------------------------------------------------------------------------
 	/*
 	 * Return the logged in users time zone
@@ -109,7 +129,6 @@ class tgsfUserAuth extends tgsfBase
 		if ( ! $this->loggedIn ) return TZ_DEFAULT;
 		return $this->model->getLoginTimeZone( $this->_ro_user );
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Returns the logged in user's id
@@ -145,13 +164,16 @@ class tgsfUserAuth extends tgsfBase
 	{
 		tgsfEventFactory::action()
 			->event( 'AUTH_login_check' )
-			->ds
-				->setVal( 'scope', $this )
-				->event
+			->setVar( 'scope', $this )
+			->setVar( 'logged_in', $this->loggedIn )
 			->exec();
 
 		if ( ! $this->loggedIn )
 		{
+			$r = URL( tgsf_parse_url() )->set( GET() );
+
+			$redir = urlencode( urlencode( $r ) );
+			$this->loginUrl->setVar( 'redir', $redir );
 			$this->loginUrl->redirect();
 		}
 
@@ -166,9 +188,7 @@ class tgsfUserAuth extends tgsfBase
 	{
 		tgsfEventFactory::action()
 			->event( 'AUTH_min_role' )
-			->ds
-				->setVal( 'scope', $this )
-				->event
+			->setVar( 'scope', $this )
 			->exec();
 
 		if ( $this->loggedIn === true )
@@ -221,7 +241,7 @@ class tgsfUserAuth extends tgsfBase
 	/**
 	* Static function that returns the singleton instance of this class.
 	*/
-	public static function &get_instance( $model )
+	public static function &get_instance( $model, $autoStart )
 	{
 		if ( self::$_instance === null )
 		{
@@ -266,7 +286,6 @@ class tgsfUserAuthCLI extends tgsfUserAuth
 	{
 		return TZ_DEFAULT;
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Returns the logged in user's id

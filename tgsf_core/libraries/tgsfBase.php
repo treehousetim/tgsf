@@ -11,7 +11,9 @@ for complete licensing information.
 * To avoid exceptions from being thrown, you need to override these functions in your extending class, or
 * declare all variables you'll be using in the class definition.
 */
-class tgsfBase
+//include  CORE_PATH . 'libraries/tgsfMemory.php';
+
+abstract class tgsfBase
 {
 	public function __get( $name )
 	{
@@ -38,7 +40,7 @@ class tgsfBase
 		{
 			$args = array();
 		}
-		
+
 		return $args;
 	}
 }
@@ -109,7 +111,7 @@ abstract class CustomException extends Exception implements IException
 function fatalErrorBacktrace()
 {
 	$msg = 'Fatal Error.  An administrator has been notified with the details.';
-	
+
 	if ( in_debug_mode() && TGSF_CLI === false )
 	{
 		fb( $msg, FirePHP::ERROR );
@@ -118,7 +120,7 @@ function fatalErrorBacktrace()
 	$btrace = array();
 
 	$t = debug_backtrace();
-	
+
 	array_shift( $t );
 
 	$errorDetails = $t[0]['args'][1];
@@ -130,24 +132,24 @@ function fatalErrorBacktrace()
 		{
 			fb( $lineInfo, $lineInfo['function'] . '() : ' . basename($lineInfo['file']) . ' : ' . $lineInfo['line'], FirePHP::INFO );
 		}
-		
+
 		$btrace[] = 'Function: ' . $lineInfo['function'];
 		$btrace[] = '    File: '     . $lineInfo['file'];
 		$btrace[] = '    Line: '     . $lineInfo['line'];
-		
+
 		if ( isset( $lineInfo['args'] ) )
 		{
 			foreach ( $lineInfo['args'] as $argName => $argValue )
 			{
-				$btrace[] = "        " . $argName . ' = ' . get_dump( $value );
+				$btrace[] = "        " . $argName . ' = ' . get_dump( $argValue );
 			}
 		}
 
 		$btrace[] = '';
 	}
-	
+
 	$btrace = implode( PHP_EOL, $btrace );
-	
+
 	if ( function_exists( 'LOGGER' ) )
 	{
 		LOGGER()->log( $errorDetails . PHP_EOL . $btrace, 'fatal' );

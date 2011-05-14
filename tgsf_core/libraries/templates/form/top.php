@@ -95,9 +95,9 @@ class formTop extends tgsfFormTemplate
 		throw new tgsfException( 'debug output from form radio groups.' );
 
 		// $out = $this->_caption( $field );
-		// 
+		//
 		// $list = new tgsfHtmlTag( 'dl' );
-		// 
+		//
 		// foreach ( $field->optionList as $value => $caption )
 		// {
 		// 	$id = md5( 'rg' . $field->name . $value );
@@ -105,11 +105,11 @@ class formTop extends tgsfFormTemplate
 		// 	$radio = $container->addTag( $field->tag );
 		// 	$radio->addAttribute( 'value', $value, SINGLE_ATTR_ONLY );
 		// 	$radio->id( $id );
-		// 
+		//
 		// html_form_radio has been removed from the framework.
 		// 	$out .= html_tag( 'dd', '', html_form_radio( $atr ) . ' ' . html_tag( 'label', array('for'=>$id), $caption ) );
 		// }
-		// 
+		//
 		// return $this->_wrapField( $field, $out );
 	}
 	//------------------------------------------------------------------------
@@ -131,7 +131,11 @@ class formTop extends tgsfFormTemplate
 	{
 		$fld_container = $container->_( 'dt' );
 		$fld_container->content( '&nbsp;' );
-		$fld_container->_( 'dd' )->addTag( $field->tag );
+		$fld_container->css_class( $field->name . '_caption' );
+
+		$dd = $fld_container->_( 'dd' );
+		$dd->addTag( $field->tag );
+		$dd->css_class( $field->name . '_field' );
 	}
 	//------------------------------------------------------------------------
 	public function reset( &$field, &$container )
@@ -144,6 +148,13 @@ class formTop extends tgsfFormTemplate
 	public function other( &$field, &$container )
 	{
 		$container->_( NON_TAG_NODE )->content( $field->rawHTML );
+	}
+	//------------------------------------------------------------------------
+	public function span( &$field, &$container )
+	{
+		$container->_( 'dd' )
+			->css_class( $field->name . '_field' )
+			->addTag( $field->tag );
 	}
 }
 

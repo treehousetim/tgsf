@@ -23,8 +23,10 @@ class dbManager extends tgsfBase
 	/**
 	* The constructor - private to prevent direct instantiation.
 	*/
-	private function __construct(){}
-	
+	private function __construct()
+	{
+	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Static function that returns the singleton instance of this class.
@@ -36,10 +38,10 @@ class dbManager extends tgsfBase
 			$c = __CLASS__;
 			self::$instance = new $c;
 		}
-		
+
 		return self::$instance;
 	}
-	
+
 	/**
 	* Prevent cloning the instance
 	*/
@@ -62,16 +64,16 @@ class dbManager extends tgsfBase
 		{
 			throw new tgsfDbException( 'Wrong type when calling _setSetupObject in the Database manager.' );
 		}
-		
+
 		if ( $this->setupExists( $which ) )
 		{
 			$this->_setup[$which]->disconnect();
 			unset( $this->_setup[$which] );
 		}
-		
+
 		$this->_setup[$which] =& $object;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Unsets the setup array, explicitly disconnecting each setup item from its database
@@ -83,11 +85,11 @@ class dbManager extends tgsfBase
 		{
 			$setup->disconnect();
 		}
-		
+
 		unset( $this->_setup );
 		$this->_setup = array();
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Use a setup object (or array of setup objects) for connecting with
@@ -112,7 +114,6 @@ class dbManager extends tgsfBase
 			}
 		}
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Adds an additional database setup object
@@ -125,7 +126,6 @@ class dbManager extends tgsfBase
 	{
 		$this->_setSetupObject( $setupObject, $which );
 	}
-	
 	//------------------------------------------------------------------------
 	/**
 	* Returns true/false if the logical connection exists.  Makes sure that
@@ -135,7 +135,7 @@ class dbManager extends tgsfBase
 	public function setupExists( $which = 'default' )
 	{
 		$result = false;
-		
+
 		if ( isset( $this->_setup[$which] ) )
 		{
 			$ob =& $this->_setup[$which];
@@ -143,14 +143,14 @@ class dbManager extends tgsfBase
 		}
 		return $result;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Connects to the database using the settings for the supplied connection name
 	* Returns false if the connection is unavailable
 	* @param String The logical name of the database server to connect to
 	* This is 'default' by ... um... default.
-	* @return dbSetup Object 
+	* @return dbSetup Object
 	*/
 	public function &connect( $which = 'default' )
 	{
@@ -158,10 +158,26 @@ class dbManager extends tgsfBase
 		{
 			throw new tgsfDbException( 'The Logical database Connection named "' . $which . '" has not been defined.' );
 		}
-		
+
 		$this->_setup[$which]->connect();
-				
+
 		return $this->_setup[$which];
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &reconnect( $which = 'default' )
+	{
+		if ( $this->setupExists( $which ) === false )
+		{
+			throw new tgsfDbException( 'The Logical database Connection named "' . $which . '" has not been defined.' );
+		}
+
+		$this->_setup[$which]->disconnect();
+		$this->_setup[$which]->connect();
+
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -174,7 +190,7 @@ class dbManager extends tgsfBase
 		{
 			throw new tgsfDbException( 'The logical database Connection named "' . $which . '" has not been defined.' );
 		}
-		
+
 		return $this->_setup[$which];
 	}
 	//------------------------------------------------------------------------
@@ -217,6 +233,15 @@ class dbManager extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* checks if there is an active transaction
+	* @param String The logical name of the database server to connect to
+	*/
+	public function inTransaction( $which = 'default' )
+	{
+		return $this->getHandle( $which )->inTransaction();
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Commits a transaction on the given named logical database connection
 	* @param String The logical name of the database server to connect to
 	*/
@@ -227,9 +252,10 @@ class dbManager extends tgsfBase
 	//------------------------------------------------------------------------
 	/**
 	* Rolls back a transaction on the given named logical database connection
+	* @param Exception - The exception that triggered a rollback - may be null
 	* @param String The logical name of the database server to connect to
 	*/
-	public function rollBack( $exception, $which = 'default' )
+	public function rollBack( $exception = null, $which = 'default' )
 	{
 		$this->getHandle( $which )->rollBack( $exception );
 	}
@@ -263,7 +289,7 @@ class dbManager extends tgsfBase
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 }

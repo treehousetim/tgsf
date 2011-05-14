@@ -8,7 +8,7 @@ for complete licensing information.
 
 // @Requires php_ssh.dll
 
-class tgsfSFTP
+class tgsfSFTP extends tgsfBase
 {
 	protected $_connection;
 	protected $_sftp;
@@ -74,22 +74,20 @@ class tgsfSFTP
 	//------------------------------------------------------------------------
 	public function getFileNames( $dir )
 	{
-		$remotePath = "ssh2.sftp://" . $this->_sftp . "/" . $dir;
-
 		$files = array();
 
-		$h = opendir($remotePath);
+		$h = opendir( "ssh2.sftp://" . $this->_sftp . "/" . $dir );
 
 		// List all the files
-		while ($file = readdir($h) )
+		while ( $file = readdir( $h ) )
 		{
-			if(is_dir($file) === false )
+			if( is_dir( $file ) === false )
 			{
 				$files[$file] =  '/' . $dir . '/' . $file;
 			}
 		}
 
-		closedir($h);
+		closedir( $h );
 
 		return $files;
 	}
@@ -110,29 +108,19 @@ class tgsfSFTP
 	//------------------------------------------------------------------------
 	public function getFile( $remoteFile, $localFile )
 	{
-		$fileName = "ssh2.sftp://" . $this->_sftp . $remoteFile;
+		$data = file_get_contents( "ssh2.sftp://" . $this->_sftp . $remoteFile );
 
-		$fp = @fopen( $fileName, 'r');
-
-		if ( $fp === false )
+		if ( $data === false )
 		{
 			throw new Exception("Could not open remote file: " . $remoteFile );
 		}
 
-		$filsSize = filesize($fileName);
-
-		$contents = fread($fp, $filsSize);
-
-		file_put_contents ($localFile, $contents);
-
-		@fclose($fp);
+		file_put_contents ($localFile, $data );
 	}
 	//------------------------------------------------------------------------
 	public function deleteFile( $remoteFile )
 	{
-		$fileName = "ssh2.sftp://" . $this->_sftp . $remoteFile;
-
-		unlink($fileName);
+		unlink( "ssh2.sftp://" . $this->_sftp . $remoteFile );
 	}
 
 }

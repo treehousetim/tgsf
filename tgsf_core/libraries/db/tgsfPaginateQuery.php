@@ -35,15 +35,22 @@ class tgsfPaginateQuery extends query
 		$this->_ro_curPage = GET()->_( 'page', 1 );
 		$this->_ro_resultsPer = GET()->_( 'per', 10 );
 		$this->_ro_totalResults = GET()->_( 'latot', NULL );
-		$this->_ro_totalPages = (int)( $this->_ro_totalResults/$this->_ro_resultsPer ) + 1;
+		$this->_ro_totalPages = (int)( $this->_ro_totalResults / $this->_ro_resultsPer );
+
+		if ( $this->_ro_totalResults % $this->_ro_resultsPer != 0 )
+		{
+			$this->_ro_totalPages++;
+		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
-	public function enforceLimit( $value )
+	public function &enforceLimit( $value )
 	{
 		$this->_ro_enforceLimit = $value;
+
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -69,43 +76,79 @@ class tgsfPaginateQuery extends query
 	*/
 	protected function _getCurPage( $increment = 0 )
 	{
-		return min( max( 1,$this->curPage + $increment ), $this->_ro_maxRecords/$this->_ro_resultsPer );
+		if ( $increment > 0 )
+		{
+			return min( $this->_ro_maxRecords/$this->_ro_resultsPer, $this->_ro_curPage + $increment );
+		}
+		elseif ( $increment < 0 )
+		{
+			return max( 1, $this->_ro_curPage + $increment );
+		}
+
+		return $this->_ro_curPage;
 	}
 	//------------------------------------------------------------------------
 	/**
-	* Pass in your url object to have pagination variables set on it for the next page.
-	* @param Object::tgsfUrl The url object
+	* Pass in a url string and get a URL object back with pagination variables set on it for the next page.
+	* @param String The url fragment
+	* @param An optional datasource to get variables from
 	*/
-	public function &nextLinkUrlVars( &$url )
+	public function getNextLinkUrl( $_url, $ds = null )
 	{
+		$url = PaginateURL( $_url );
+
+		if ( $ds != null )
+		{
+			$url->set( clone $ds );
+		}
+
 		if ( empty( $this->_ro_totalResults ) )
 		{
 			$this->setPageCount();
 		}
-		
+
+		if ( $this->_getCurPage() >= $this->_ro_totalPages )
+		{
+			$url->anchorTextOnly();
+		}
+
+		$url->unSetVar('page');
 		$url->setVar( 'page', $this->_getCurPage( 1 ) );
 		$url->setVar( 'per', $this->_ro_resultsPer );
 		$url->setVar( 'latot', $this->_ro_totalResults );
 
-		return $this;
+		return $url;
 	}
 	//------------------------------------------------------------------------
 	/**
-	* Pass in your url object to have pagination variables set on it for the next page.
-	* @param Object::tgsfUrl The url object
+	* Pass in a url string and get a URL object back with pagination variables set on it for the next page.
+	* @param String The url fragment
 	*/
-	public function &prevLinkUrlVars( &$url )
+	public function getPrevLinkUrl( $_url, $ds = null )
 	{
+		$url = PaginateURL( $_url );
+
+		if ( $ds != null )
+		{
+			$url->set( clone $ds );
+		}
+
 		if ( empty( $this->_ro_totalResults ) )
 		{
 			$this->setPageCount();
 		}
-		
+
+		if ( $this->_getCurPage() == 1 )
+		{
+			$url->anchorTextOnly();
+		}
+
+		$url->unSetVar('page');
 		$url->setVar( 'page', $this->_getCurPage( -1 ) );
 		$url->setVar( 'per', $this->_ro_resultsPer );
 		$url->setVar( 'latot', $this->_ro_totalResults );
 
-		return $this;
+		return $url;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -117,17 +160,23 @@ class tgsfPaginateQuery extends query
 		{
 			return $this;
 		}
-		
+
 		$_selectList = $this->_selectList;
 		$this->_selectList = array();
 		$this->count();
 		parent::exec();
 
 		$this->_ro_totalResults = $this->fetchColumn(0);
-		$this->_ro_totalPages = (int)( $this->_ro_totalResults/$this->_ro_resultsPer ) + 1;
+		$this->_ro_totalPages = (int)( $this->_ro_totalResults/$this->_ro_resultsPer );
+
+		if ( $this->_ro_totalResults % $this->_ro_resultsPer != 0 )
+		{
+			$this->_ro_totalPages++;
+		}
+
 
 		$this->_stmHandle = null;
-		$this->_executed = false;
+		$this->_ro_executed = false;
 		$this->_selectList = $_selectList;
 
 		return $this;

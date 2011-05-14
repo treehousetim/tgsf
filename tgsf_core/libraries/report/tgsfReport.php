@@ -17,7 +17,7 @@ abstract class tgsfReport extends tgsfGrid
 	protected	$_ro_reportAppName	= '';
 	protected	$_ro_reportSubTitle = '';
 	protected	$_ro_reportDetails	= '';
-	
+
 	protected	$_params			= array();
 	//------------------------------------------------------------------------
 	protected function _sort() {} // empty implementation for reports
@@ -32,7 +32,7 @@ abstract class tgsfReport extends tgsfGrid
 		{
 			$this->_ro_reportAppName = REPORT_APP_NAME;
 		}
-		
+
 		$this->_ro_reportDate = gmdate( DT_FORMAT_SQL );
 		$this->css_class( 'report-grid' );
 		parent::__construct();
@@ -58,7 +58,7 @@ abstract class tgsfReport extends tgsfGrid
 		{
 			throw new tgsfException( 'setParam - No Report Param by that name (' . $name . ') exists for this report: ' . get_class( $this ) );
 		}
-		
+
 		$this->_params[$name] = $value;
 		return $this;
 	}
@@ -138,12 +138,12 @@ abstract class tgsfReport extends tgsfGrid
 		{
 			$this->_setup();
 		}
-		
+
 		if ( $this->hasAttribute( 'id' ) === false )
 		{
 			throw new tgsfException( 'Reports must have an ID set.  Use $this->id( \'report-id\' ); in your setup method.' );
 		}
-		
+
 		if ( $renderType == grtHTML_TABLE )
 		{
 			$div = new tgsfHtmlTag( 'div' );
@@ -154,7 +154,7 @@ abstract class tgsfReport extends tgsfGrid
 
 			$table = $div->addTag( 'table' );
 			$table->style = 'width: 100%';
-			
+
 			$table
 			->css_class( 'report_container' )
 			->addTag( 'thead' )

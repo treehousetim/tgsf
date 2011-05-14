@@ -9,12 +9,12 @@ $config['nav_links'] = array(
 	'Dashboard' => array(
 		'Home' => URL( '' ),
 	),
-	
+
 	'Content'	=> array( 
 		'Pages'			=> URL( 'content/pages' ),
 		'Categories'	=> URL( 'content/categories' )
 		),
 	'Users'		=> URL( 'users' ),
 	'Settings'	=> URL( 'settings' )
-	
+
 	);

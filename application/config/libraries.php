@@ -1,6 +1,6 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2011 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -20,7 +20,12 @@ $auth->loginUrl = URL( 'login' );*/
 
 load_library( 'tgsfFormat', IS_CORE_LIB );
 
-//add_action( 'AUTH_login_check', 'yourFunctionHere' );
+/*
+tgsfEventFactory::actionHandler()
+	->event( 'AUTH_login_check' )
+	->func( 'yourFunction' )
+	->attach();
+*/
 
 
 //------------------------------------------------------------------------

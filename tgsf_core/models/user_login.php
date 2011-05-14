@@ -5,17 +5,19 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-class userLoginModel extends tgsfBase
+class userLoginModel extends tgsfBase implements tgsfUserAuthModel
 {
 	protected $_ro_tableName;
+	protected $_ro_tzTableName;
+	public $includeSuspended = false;
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
 	public function __construct( )
 	{
-		$this->tableName = coreTable( 'user_login' );
-		$this->tzTableName = coreTable( 'tz' );
+		$this->_ro_tableName = coreTable( 'user_login' );
+		$this->_ro_tzTableName = coreTable( 'tz' );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -25,9 +27,9 @@ class userLoginModel extends tgsfBase
 	{
 		return query::factory()
 		->select( $this->tableName . '.*' )
-		->select( $this->tzTableName . '.tz_zone' );
-		->from( $this->tableName )
-		->join( 'tz', $this->tableName . '.user_login_tz_id = ' . $this->tzTableName . '.tz_id' );
+		->select( $this->tzTableName . '.tz_zone' )
+		->from( $this->_ro_tableName )
+		->join( 'tz', $this->_ro_tableName . '.user_login_tz_id = ' . $this->_ro_tzTableName . '.tz_id' );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -38,7 +40,7 @@ class userLoginModel extends tgsfBase
 		return $this->stdFetch()
 		->where( 'user_login_id=:id' )
 		->bindValue( 'id', $id, ptINT )
-		->pluginAction( 'core:userLogin:fetchById', $id )
+		->pluginAction( 'core:userLogin:fetchById', array( 'user_login_id' => $id ) )
 		->fetch_ds();
 	}
 	//------------------------------------------------------------------------
@@ -97,7 +99,7 @@ class userLoginModel extends tgsfBase
 		return $this->stdFetch()
 			->where( 'user_login_username = :user_login_username' )
 			->bindValue( 'user_login_username', $username,	ptSTR )
-			->pluginAction( 'core:userLogin:getByUsername', $username )
+			->pluginAction( 'core:userLogin:getByUsername', array( 'username' => $username ) )
 			->exec()
 			->fetch();
 	}
@@ -112,8 +114,8 @@ class userLoginModel extends tgsfBase
 			->count( 'user_login_id' )
 			->from( $this->tableName )
 			->where( 'user_login_username = :user_login_username' )
-			->bindValue( 'login_username', $username,	ptSTR )
-			->pluginAction( 'core:userLogin:usernameExists', $username )
+			->bindValue( 'user_login_username', $username,	ptSTR )
+			->pluginAction( 'core:userLogin:usernameExists', array( 'username' => $username ) );
 		
 		return ( $q->exec()->fetchColumn( 0 ) ) > 0;
 	}
@@ -138,6 +140,57 @@ class userLoginModel extends tgsfBase
 		$this->includeSuspended = $tmpSuspended;
 
 		return $q->exec()->fetchColumn( 0 ) > 0;
+	}
+	//------------------------------------------------------------------------
+	public function login( $ds )
+	{
+		// for login, we FORCE suspended users to not be included
+		$tmpSuspended = $this->includeSuspended;
+		$this->includeSuspended = false;
+		if ( $this->usernameExists( $ds->login_username, false ) )
+		{
+			$row = $this->getByUsername( $ds->_( 'login_username', false ) );
+			$pw = $ds->_( 'login_password' );
+			if ( hash_password( $pw, $row->login_password ) == $row->login_password )
+			{
+				// if the password reset code isn't empty then we clear it after a successful login
+				if ( $row->login_password_reset != '' )
+				{
+					$this->clearPasswordReset( $row->login_id );
+				}
+				$this->includeSuspended = $tmpSuspended;
+				return $row;
+			}
+		}
+
+		$this->includeSuspended = $tmpSuspended;
+
+		return false;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function adminInstallUser( $ds, &$version )
+	{
+		$version->addItem(
+			versionItemFactory::query(
+				query::factory()
+					->insert_into( $this->_ro_tableName )
+					->insert_fields(
+							'user_login_username',
+							'user_login_password',
+							'user_login_role',
+							'user_login_signup_date',
+							'user_login_activated'
+							)
+					->bindValue( 'user_login_username', $ds->user_login_username, ptSTR )
+					->bindValue( 'user_login_password', hash_password( $ds->user_login_password ), ptSTR )
+					->bindValue( 'user_login_role', tgsfRoleAdmin, ptINT )
+					->bindValue( 'user_login_signup_date', gmdate( DT_FORMAT_SQL ), ptDATETIME )
+					->bindValue( 'user_login_activated', true, ptBOOL )
+				)
+			->description( 'Creating Admin User' ) );
 	}
 }
 
