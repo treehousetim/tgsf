@@ -40,9 +40,9 @@ class tgsfGridGroup extends tgsfHtmlTag
 	protected $_ro_rowTagHeader		= null;
 	protected $_ro_rowTagFooter		= null;
 	protected $_ro_cellTagHeader	= null;
-	
-	protected $_headerRenderFunc		= null; 
-	
+
+	protected $_headerRenderFunc		= null;
+
 	protected $_onRenderFieldGroup	= null;
 
 	//------------------------------------------------------------------------
@@ -137,7 +137,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 	{
 		$vars = func_get_args();
 		$callback = null;
-		
+
 		if ( count( $vars == 1 ) )
 		{
 			$callback = $vars[0];
@@ -146,7 +146,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 		{
 			$callback = array( $vars[1], $vars[0] );
 		}
-		
+
 		if ( is_callable( $callback ) == false )
 		{
 			throw new tgsfException( 'When calling renderFuncHeader on a grid group, you must pass a valid callback.' );
@@ -284,7 +284,7 @@ class tgsfGridGroup extends tgsfHtmlTag
 				$cell->content( $fieldPart, APPEND_CONTENT );
 			}
 		}
-		
+
 		if ( is_callable( $this->_onRenderFieldGroup ) )
 		{
 			call_user_func( $this->_onRenderFieldGroup, $cell, $row, $this );

@@ -26,7 +26,7 @@ class dbSetup extends tgsfBase
 	* @param String (Mysql only) The password for connecting
 	* @param String The database (name for mysql, file for sqlite)
 	* @param String The type of the database - special handing for sqlite/sqlite2 and for mssql
-	* @param 
+	* @param
 	*/
 	public function __construct( $user, $password, $database, $type = 'mysql', $host = 'localhost', $port = null )
 	{
@@ -46,7 +46,7 @@ class dbSetup extends tgsfBase
 	{
 		$this->_ro_handle = null;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* UNTESTED Creates a Sqlite dsn string
@@ -55,7 +55,7 @@ class dbSetup extends tgsfBase
 	{
 		return $this->_type . ':' . $this->_database;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* UNTESTED Creates a PostgreSQL dsn string
@@ -63,21 +63,21 @@ class dbSetup extends tgsfBase
 	private function _pgsqlDSN()
 	{
 		$out = 'pgsql:';
-		
+
 		if ( ! $this->_host == '' )
 		{
 			$out .= "host={$this->_host}";
-			
+
 			if ( ! is_null( $this->_port ) || $this->_port != '' )
 			{
 				$out .= " port={$this->_port}";
 			}
 		}
 		$out .= " dbname={$this->_database}";
-		
+
 		return $out;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Creates a MySQL dsn string
@@ -85,17 +85,17 @@ class dbSetup extends tgsfBase
 	private function _mysqlDSN()
 	{
 		$out = 'mysql:';
-		
+
 		$out .= "host={$this->_host}";
 		if ( ! is_null( $this->_port ) && $this->_port != '' )
 		{
-			$out .= ";port={$this->_port}";			
+			$out .= ";port={$this->_port}";
 		}
-		
+
 		$out .= ";dbname={$this->_database}";
 		return $out;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* UNTESTED Creates an MSSQL dsn string
@@ -104,15 +104,15 @@ class dbSetup extends tgsfBase
 	{
 		$out = 'mssql:';
 		$out .= "host={$this->_host}";
-		
+
 		if ( ! is_null( $this->_port ) && $this->_port != '' )
 		{
-			$out .= ":{$this->_port}";			
+			$out .= ":{$this->_port}";
 		}
 		$out .= ";dbname={$this->_database}";
 		return $out;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Makes the DSN string - based on the server type.
@@ -125,19 +125,19 @@ class dbSetup extends tgsfBase
 		case 'sqlite2':
 			return $this->_sqliteDSN();
 			break;
-			
+
 		case 'pgsql':
 			return $this->_pgsqlDSN();
 			break;
-		
+
 		case 'mysql':
 			return $this->_mysqlDSN();
 			break;
-			
+
 		case 'mssql':
 			return $this->_mssqlDSN();
 			break;
-			
+
 		default:
 			throw new tgsfDbException( 'Unsupported database type: ' . $this->_type . ' - visit http://code.google.com/p/tgsf/ to submit a feature request.' );
 			break;
@@ -153,14 +153,14 @@ class dbSetup extends tgsfBase
 		{
 			return $this->_ro_handle;
 		}
-		
+
 		$dsn = $this->_makeDSN();
-		
+
 		if ( $dsn == '' )
 		{
 			throw new tgsfDbException( 'Empty DSN' );
 		}
-		
+
 		try
 		{
 			$this->_ro_handle = new PDO( $dsn, $this->_user, $this->_password );
@@ -171,7 +171,7 @@ class dbSetup extends tgsfBase
 		{
 			$this->connected = false;
 			$this->_ro_handle = false;
-			throw new tgsfDbException( $e->getMessage() );
+			throw new tgsfDbException( $dsn . PHP_EOL . $e->getMessage() );
 		}
 	}
 	//------------------------------------------------------------------------
@@ -228,6 +228,22 @@ class dbSetup extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	* checks if there is an active transaction
+	* @param Object::exception The exception that caused the rollback.
+	*/
+	public function inTransaction( )
+	{
+		if ($this->_transactionLevel < 1 )
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
 	* rolls back a transaction
 	* @param Object::exception The exception that caused the rollback.
 	*/
@@ -237,7 +253,7 @@ class dbSetup extends tgsfBase
 		{
 			throw new tgsfDbException( 'Unable to rollback - no active transaction' );
 		}
-		
+
 		$this->_transactionLevel--;
 
 		if ( $this->allowNestedTransactions === false )
@@ -248,7 +264,16 @@ class dbSetup extends tgsfBase
 			}
 			else
 			{
-				throw $exception === null ? new tgsfDbException( 'Unable to rollback nested transactions.' ) : $exception;
+				if ( $exception === null )
+				{
+					$ex = tgsfDbException( 'Unable to rollback nested transactions.' );
+				}
+				else
+				{
+					$ex = tgsfDbException( 'Unable to rollback nested transactions - ' . $exception->getMessage() );
+				}
+
+				throw $ex;
 			}
 		}
 		else
@@ -271,10 +296,11 @@ class dbSetup extends tgsfBase
 	{
 		return $this->connect();
 	}
-	
-	//------------------------------------------------------------------------	
+
+	//------------------------------------------------------------------------
 	public function disconnect()
 	{
+		$this->connected = false;
 		$this->_ro_handle = null;
 	}
 }

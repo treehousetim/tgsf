@@ -6,13 +6,8 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-class staticPageModel extends model
+class staticPageModel extends tgsfBase
 {
-	function __construct()
-	{
-		parent::__construct( 'page' );
-	}
-	
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -24,7 +19,7 @@ class staticPageModel extends model
 		$q->bindValue( 'page_slug', $slug, ptSTR );
 		return $q->exec()->fetchColumn(0) > 0;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -51,13 +46,13 @@ class staticPageModel extends model
 		}
 		return $row;
 	}
-	
+
 	//------------------------------------------------------------------------
-	
+
 	public function fetchForDropdown()
 	{
 		$q = new query();
-		
+
 		$items = $q->select( 'page_slug, page_title' )
 		           ->from( 'page' )
 		           ->order_by( 'page_slug DESC' )
@@ -69,12 +64,12 @@ class staticPageModel extends model
 		{
 			$list[$item->page_slug] = $item->page_slug . ' - ' . $item->page_title;
 		}
-		
+
 		return $list;
 	}
-	
+
 	//------------------------------------------------------------------------
-	
+
 	public function update( $ds )
 	{
 		$q = new query();
@@ -89,13 +84,13 @@ class staticPageModel extends model
 				->bindValue( 'page_slug', $ds->page_slug, ptSTR )
 				->exec();
 	}
-	
+
 	//------------------------------------------------------------------------
-	
-	public function insert( $ds )
+
+	public function insert( &$ds )
 	{
 		$q = new query();
-		
+
 		$q->insert_into( 'page' )
 			->pt( ptSTR )
 			->insert_fields( 'page_slug', 'page_template', 'page_title', 'page_content', 'page_window_title', 'page_meta_description' )

@@ -5,7 +5,8 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-$config['security_questions'] = array( 
+$config['security_questions'] = array(
+'' => 'Please Choose',
 "What was your childhood nickname?" => "What was your childhood nickname?",
 "In what city did you meet your spouse/significant other?" => "In what city did you meet your spouse/significant other?",
 "What is the name of your favorite childhood friend?" => "What is the name of your favorite childhood friend?",

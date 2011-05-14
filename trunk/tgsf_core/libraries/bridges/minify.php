@@ -6,11 +6,11 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-tgsfEventFactory::handler()->event( 'pre_resolve_controller' )->func( 'tgsf_minify_bridge' )->attach();
+tgsfEventFactory::actionHandler()->event( 'pre_resolve_controller' )->func( 'tgsf_minify_bridge' )->attach();
 
 function tgsf_minify_bridge( $event )
 {
-	$page = $event->ds->page;
+	$page = $event->page;
 
 	if ( $page == '_minify' )
 	{
@@ -22,18 +22,21 @@ function tgsf_minify_bridge( $event )
 		require MINIFY_MIN_DIR . '/config.php';
 		set_include_path( $min_libPath . PATH_SEPARATOR . get_include_path() );
 		require 'Minify.php';
-		
+
 		$min_serveOptions['minApp']['groups'] = (require MINIFY_MIN_DIR . '/groupsConfig.php');
 
 		if (  isset($_GET['g']))
 		{
-	    	// serve!   
+	    	// serve!
 	    	Minify::serve('MinApp', $min_serveOptions);
 		}
 		*/
-		
+		if ( array_key_exists( 'HTTP_USER_AGENT', $_SERVER ) == false )
+		{
+			$_SERVER['HTTP_USER_AGENT'] = '';
+		}
+
 		require path( '3rd_party/min', IS_CORE_PATH ) . 'index.php';
 		exit();
 	}
-
 }

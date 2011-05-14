@@ -5,18 +5,37 @@ Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
-
+//------------------------------------------------------------------------
 class tgsfPlugin extends tgsfBase
 {
+	protected static $instance;
 	private $_handlers		= array();
 
 	private $_plugins		= array();
 	private $_pluginNames	= array();
 	private $_loaded		= array();
 	//------------------------------------------------------------------------
-	public function __construct()
+	protected function __construct()
+// private
 	{
+//		parent::__construct();
 	}
+	//------------------------------------------------------------------------
+	public static function getInstance()
+	{
+		if ( tgsfPlugin::$instance === null )
+		{
+			tgsfPlugin::$instance = new tgsfPlugin();
+		}
+
+		return tgsfPlugin::$instance;
+	}
+	//------------------------------------------------------------------------
+	public static function loaderFactory()
+	{
+		return new tgsfPluginLoader();
+	}
+	//------------------------------------------------------------------------
 	protected function &_getGroup( $event, $create = false )
 	{
 		if (
@@ -30,71 +49,80 @@ class tgsfPlugin extends tgsfBase
 		{
 			$this->_handlers[$event->type][$event->event] = array();
 		}
-		
+
 		return $this->_handlers[$event->type][$event->event];
 	}
 	//------------------------------------------------------------------------
 	/**
-	* Returns true/false if a plugin **name** has been registered before.
+	* Returns true/false if a plugin has been registered before.
 	* this is used to handle plugins in the app space being used before plugins
 	* in the core space.
+	* @param object::tgsfPluginLoader The plugin loader object
 	*/
-	function pluginRegistered( $name )
+	function pluginRegistered( $plugin )
 	{
-		return in_array( $name, $this->_pluginNames );
+		return in_array( $plugin->name, $this->_pluginNames );
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Registers a plugin into the system - only if the file exists
-	* @var String The file name
+	* @param object::tgsfPluginLoader The plugin loader object
 	*/
-	function registerPlugin( $file, $name )
+	function registerPlugin( $plugin )
 	{
 		$out = false;
-		if ( file_exists(  $file ) )
+
+		if ( ! in_array( $plugin->file, array_keys( $this->_plugins ) ) )
 		{
-			if ( ! in_array( $file, array_keys( $this->_plugins ) ) )
-			{
-				$this->_pluginNames[] = $name;
-				$this->_plugins[$file]['name'] = $name;
-				$this->_plugins[$file]['file'] = $file;
-				$out = true;
-				$this->doAction( 'register_plugin', $file );
-				$this->doAction( 'register_plugin_' . $name, $file );
-			}
+			$this->_pluginNames[] = $plugin->name;
+			$this->_plugins[$plugin->file] = $plugin;
+			$out = true;
+			tgsfEventFactory::action()
+				->event( 'register_plugin' )
+				->setVar( 'plugin', $plugin )
+				->exec();
+
+			tgsfEventFactory::action()
+				->event( 'register_plugin_' . $plugin->name )
+				->setVar( 'plugin', $plugin )
+				->exec();
 		}
-		else
-		{
-			throw new tgsfException( 'Unable to load plugin file for plugin (' . $name . '): ' . $file );
-		}
+
 		return $out;
 	}
 	//------------------------------------------------------------------------
 	/**
-	* (possibly as early )
+	*
 	*/
-	function getPlugins()
+	public function loadPlugins()
 	{
-		return $this->_plugins;
+		foreach ( $this->_plugins as $plugin )
+		{
+			if ( $this->pluginLoaded( $plugin ) == false )
+			{
+				$plugin->load();
+			}
+		}
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Marks a plugin as loaded
+	* @param object::tgsfPluginLoader The plugin loader object
 	*/
-	function markPluginAsLoaded( $plugin, $name = '' )
+	function loadPlugin( $plugin )
 	{
-		$this->_loaded[] = $plugin;
+		$this->_loaded[] = $plugin->file;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Returns true/false if a plugin is already loaded.
 	* This relies on having the markPluginAsLoaded method called
-	* @param String The plugin file
+	* @param object::tgsfPluginLoader The plugin loader object
 	* @see markPluginAsLoaded
 	*/
-	function pluginAlreadyLoaded( $plugin )
+	function pluginLoaded( $plugin )
 	{
-		return in_array( $this->_loaded, $plugin );
+		return in_array( $plugin->file, $this->_loaded );
 	}
 	//------------------------------------------------------------------------
 
@@ -119,7 +147,7 @@ class tgsfPlugin extends tgsfBase
 	//------------------------------------------------------------------------
 	function ectString( $event )
 	{
-		$content = $event->ds->content;
+		$content = $event->content;
 		$group =& $this->_getGroup( $event );
 
 		if ( $group !== false )
@@ -129,7 +157,7 @@ class tgsfPlugin extends tgsfBase
 				foreach ( $items as $handler )
 				{
 					$content = call_user_func( $handler, $event );
-					$event->ds->setVar( 'content', $content );
+					$event->setVar( 'content', $content );
 				}
 			}
 			return $content;
@@ -144,7 +172,8 @@ class tgsfPlugin extends tgsfBase
 	public function addHandler( $event )
 	{
 		$handler = $event->handler();
-		$level = $event->ds->level;
+
+		$level = $event->level;
 
 		if ( is_callable( $handler ) )
 		{
@@ -155,5 +184,5 @@ class tgsfPlugin extends tgsfBase
 		{
 			throw new tgsfException( "Plugin Handler is not callable.\n" . get_dump( $handler ) );
 		}
-	}	
+	}
 }

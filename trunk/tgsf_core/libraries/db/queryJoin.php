@@ -6,7 +6,7 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 //------------------------------------------------------------------------
-class queryJoin
+class queryJoin extends tgsfBase
 {
 	public $type = '';
 	public $foreignTable = '';
@@ -17,7 +17,7 @@ class queryJoin
 		$this->foreignTable = $table;
 		$this->clause = $clause;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Generates the SQL for the join.
@@ -29,7 +29,7 @@ class queryJoin
 		$out .= $this->foreignTable;
 		$out .= ' ON ( ';
 		$out .= trim( $this->clause, ' )(' ) . ' ) ';
-		
+
 		return $out;
 	}
 }

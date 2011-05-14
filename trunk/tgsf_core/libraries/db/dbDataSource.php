@@ -10,6 +10,7 @@ class dbDataSource extends tgsfDataSource
 {
 	protected $_tableList = array();
 	protected $_ro_defaultFieldName = null;
+	private $_query;
 
 	//------------------------------------------------------------------------
 	/**
@@ -19,6 +20,15 @@ class dbDataSource extends tgsfDataSource
 	{
 		parent::__construct( dsTypeDB );
 		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function __destruct()
+	{
+		unset( $this->_query );
+		unset( $this->_tableList );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -42,7 +52,7 @@ class dbDataSource extends tgsfDataSource
 		}
 	}
 	//------------------------------------------------------------------------
-	public static function &factory()
+	public static function &db_factory()
 	{
 		$c = __CLASS__;
 		$instance = new $c();
@@ -100,5 +110,33 @@ class dbDataSource extends tgsfDataSource
 	public function getTableList()
 	{
 		return $this->_tableList;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets a query object on this data source.  This is typically called from within the query object
+	* @param object::query An executed select query
+	*/
+	public function &setQuery( &$query )
+	{
+		$this->_query =& $query;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function fetch()
+	{
+		if ( $this->_query )
+		{
+			$row = $this->_query->fetch();
+			if ( $row != false )
+			{
+				$this->set( $row );
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

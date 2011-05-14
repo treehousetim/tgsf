@@ -21,11 +21,13 @@ enum( 'vt_',
 		'max_len',
 		'int',
 		'clean',
+		'clean_address',
 		'clean_question',
 		'gt',
 		'lt',
 		'gte',
 		'lte',
+		'lte_float',
 		'neq',
 		'email',
 		'date',
@@ -37,6 +39,7 @@ enum( 'vt_',
 		'db_exists',
 		'usa_phone',
 		'usa_state',
+		'usa_canada_state',
 		'usa_zipcode',
 		'bank_routing',
 		'credit_card',
@@ -52,7 +55,7 @@ class tgsfValidate extends tgsfBase
 	protected	$_ds			= null;
 	protected	$_ro_errors	= array();
 	protected	$_ro_valid	= true;
-	
+
 	public		$form;
 	//------------------------------------------------------------------------
 	/**
@@ -74,7 +77,7 @@ class tgsfValidate extends tgsfBase
 			$this->_fields[$name] = new tgsfValidateField( $name );
 			$this->_fields[$name]->fieldName = $name;
 		}
-		
+
 		return $this->_fields[$name];
 	}
 	//------------------------------------------------------------------------
@@ -128,18 +131,18 @@ class tgsfValidate extends tgsfBase
 	public function jsOutput( &$script )
 	{
 		$formFind = '$( "#' . $this->form->id . ' ';
-		
+
 		$validationFunctions =& $script->addTag( NON_TAG_NODE );
 		$formSubmitFunction =& $script->addTag( NON_TAG_NODE );
-		
+
 		$formSubmitFunction->content( $formFind . "\").submit( function() {\n", APPEND_CONTENT );
-		
+
 		foreach( $this->_fields as &$field )
 		{
 			$field->jsOutput( $formFind, $validationFunctions );
 			$formSubmitFunction->content( "\t" . $formFind . ' #' . $field->fieldName . "\").blur();\n", APPEND_CONTENT );
 		}
-		
+
 		$formSubmitFunction->content( "})", APPEND_CONTENT );
 	}
 	//------------------------------------------------------------------------

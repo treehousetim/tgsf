@@ -6,24 +6,33 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-// syntax is (file is the .php file without the .php extension )
-// register_plugin( plugin( 'folder/file' ), 'logical_plugin_name' );
-
-// this registers a plugin in the application's plugins folder.
-
 // registers the static page plugin
-//register_plugin( plugin( 'static_page/static_page', IS_CORE ), 'static_page' );
-add_action( 'static_page_init', 'config_static_page' );
+tgsfPlugin::loaderFactory()
+	->file( plugin( 'static_page/static_page', IS_CORE ) )
+	->name( 'static_page' )
+	->register();
+	
+tgsfEventFactory::actionHandler()
+	->event( 'static_page_init' )
+	->func( 'config_static_page' )
+	->attach();
+
 function config_static_page( $name )
 {
 	global $config;
-	$config['static_page_minRole'] = roleADMIN;
+	$config['static_page_minRole'] = tgsfRoleAdmin;
 	$config['static_page_view'] = '_admin/page_editor';
 }
 //------------------------------------------------------------------------
+// sample plugin that loads after core loader is done loading core and app
 /*
-add_action( 'core_load_complete', 'appOnLoadComplete' );
+tgsfEventFactory::handler()
+	->event( 'app_loaded' )
+	->func( 'appOnLoadComplete' )
+	->attach();
+
 function appOnLoadComplete()
 {
 
-}*/
+}
+*/

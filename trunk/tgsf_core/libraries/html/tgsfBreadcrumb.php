@@ -46,7 +46,7 @@ class tgsfBreadcrumbItem extends tgsfBase
 		{
 			return $this->_ro_caption;
 		}
-		
+
 		if ( $this->_ro_url instanceof tgsfUrl )
 		{
 			return $this->_ro_url->anchorTag()->content( $this->_ro_caption );
@@ -113,7 +113,7 @@ class tgsfBreadcrumb extends tgsfHtmlTag
 			self::$_instance = 1;
 			self::$_instance = new $c;
 		}
-		
+
 		return self::$_instance;
 	}
 	//------------------------------------------------------------------------
@@ -133,7 +133,7 @@ class tgsfBreadcrumb extends tgsfHtmlTag
 	{
 		$args = func_get_args();
 		$argCount = func_num_args();
-		
+
 		if ( $argCount == 1 && is_array( $args[0] ) )
 		{
 			$args = $args[0];
@@ -141,7 +141,7 @@ class tgsfBreadcrumb extends tgsfHtmlTag
 		}
 
 		for ( $ix = 0; $ix < $argCount ; $ix++ )
-		{ 
+		{
 			if ( ! empty( $args[$ix+1] ) )
 			{
 				$item = new tgsfBreadcrumbItem( $args[$ix], $args[$ix+1] );
@@ -191,7 +191,7 @@ class tgsfBreadcrumb extends tgsfHtmlTag
 
 			$itemCount = count( $items );
 			$ix = 0;
-		
+
 			foreach ( $items as $item )
 			{
 				$this->addTag( 'li' )->css_class( getArrayFirstLastCssClass( $ix, $itemCount ) )->content( $item->render( $ix ) );

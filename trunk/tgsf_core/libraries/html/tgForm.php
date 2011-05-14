@@ -6,32 +6,6 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-//------------------------------------------------------------------------
-// form enums
-
-// form field type
-enum( 'fft',
-	array(
-		'Hidden'	=> 'hidden',
-		'Text'		=> 'text',
-		'TextArea'	=> 'textarea',
-		'File'		=> 'file',
-		'DropDown'	=> 'dropdown',
-		'List'		=> 'list',
-		'Radio'		=> 'radio',
-		'Check'		=> 'checkbox',
-		'Image'		=> 'image',
-		'Button'	=> 'button',
-		'Submit'	=> 'submit',
-		'Reset'		=> 'reset',
-		'Password'	=> 'password',
-		'OtherTag'	=> 'other',
-		'Static'	=> 'statictext'
-		)
-	);
-define( 'FORM_AUTOCOMPLETE_ON', true );
-define( 'FORM_AUTOCOMPLETE_OFF', false );
-
 load_library( 'html/tgsfHtmlTag', IS_CORE_LIB );
 //------------------------------------------------------------------------
 /**
@@ -81,9 +55,17 @@ abstract class tgsfForm extends tgsfHtmlTag
 
 	public function __construct()
 	{
-		$this->_ro_ds = tgsfDataSource::factory();
+		$this->_ro_ds = dsFactory::ds();
 		parent::__construct( 'form' );
 		$this->setAttribute( 'method', 'POST' );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Set the form's action attribute
+	*/
+	public function __clone( )
+	{
+		$this->processor( URL( tgsf_parse_url() )->set( GET() ) );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -99,7 +81,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 		}
 	}
 	//------------------------------------------------------------------------
-	protected function useTemplate( $template, $core = true )
+	public function useTemplate( $template, $core = true )
 	{
 		if ( is_object( $template ) && $template instanceof tgsfFormTemplate )
 		{
@@ -305,7 +287,7 @@ abstract class tgsfForm extends tgsfHtmlTag
 		}
 
 		$this->validateForm( $this->_ro_ds, $v );
-		
+
 		return $this->_ro_valid;
 	}
 	//------------------------------------------------------------------------

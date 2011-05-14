@@ -247,7 +247,7 @@ class table extends tgsfBase
 	/**
 	*
 	*/
-	function insert()
+	function insert(&$ds)
 	{
 		throw new tgsfDbException( 'Not Implemented' );
 	}

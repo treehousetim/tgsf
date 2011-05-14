@@ -21,3 +21,4 @@ for complete licensing information.
 // dbm()->useSetup( new dbSetup( 'user', 'password', 'db_name' ) );
 
 define( 'APP_FOLDER', 'application/' );
+define( 'APP_URL_FOLDER', '' );

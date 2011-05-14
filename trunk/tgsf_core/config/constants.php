@@ -1,11 +1,12 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2011 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 // registry context defines
+// used in versioning too
 enum( 'context', 
 	array(
 		'CORE'	=> 'tgsf_core',
@@ -13,6 +14,19 @@ enum( 'context',
 		'APP'	=> 'single_app'
 		)
 	);
+enum( 'rt',
+	array(
+		'STATIC'		=> 'static',
+		'TEXT'			=> 'text',
+		'TEXTAREA'		=> 'textarea',
+		'CHECKBOX'		=> 'checkbox',
+		'DROPDOWN'		=> 'dropdown',
+		'SERIALIZED'	=> 'serialized',
+		'HIDDEN'		=> 'hidden'
+		));
+//------------------------------------------------------------------------
+// attempt to be unique enough to not be a value stored in the reg table
+define( 'regNOT_EXISTS', 'reg-not-exists-tgsfAEPIO90' );
 //------------------------------------------------------------------------
 // plugin event types
 enum( 'event', 
@@ -41,7 +55,8 @@ enum( 'dsType',
 		// database
 		'DB',
 		
-		// get & post for http handling
+		// get, post, request for http handling
+		'REQUEST',
 		'POST',
 		'GET',
 		
@@ -56,7 +71,6 @@ enum( 'dsType',
 		'FILTER'
 		)
 	);
-
 
 define( 'DS_IGNORE_DEFAULT', 'tgsf-ignore-default' );
 
@@ -101,3 +115,73 @@ enum( 'UPDATE_',
 		'OFF'			=> false
 		)
 	);
+
+enum( 'qt',
+	array(
+		'NONE'   => NULL,
+		'STATIC' => 'STATIC',
+		'SELECT' => 'SELECT',
+		'INSERT' => 'INSERT',
+		'UPDATE' => 'UPDATE',
+		'DELETE' => 'DELETE'
+		)
+	);
+
+define( 'qiDUP_CHECK', true );
+//------------------------------------------------------------------------
+define( 'tgsfRoleGuest', 0 );
+define( 'tgsfRoleMember', 20 );
+define( 'tgsfRoleContributor', 40 );
+define( 'tgsfRoleEditor', 60 );
+define( 'tgsfRoleAdmin', 80 );
+define( 'tgsfRoleSuperAdmin', 100 );
+
+//------------------------------------------------------------------------
+
+enum( 'cbt', 
+	array(
+		'CLASS',
+		'FUNCTION',
+		'OBJECT'
+		)
+	);
+	
+//------------------------------------------------------------------------
+// form enums
+
+// form field type
+enum( 'fft',
+	array(
+		'Hidden'	=> 'hidden',
+		'Text'		=> 'text',
+		'TextArea'	=> 'textarea',
+		'File'		=> 'file',
+		'DropDown'	=> 'dropdown',
+		'List'		=> 'list',
+		'Radio'		=> 'radio',
+		'Check'		=> 'checkbox',
+		'Image'		=> 'image',
+		'Button'	=> 'button',
+		'Submit'	=> 'submit',
+		'Reset'		=> 'reset',
+		'Password'	=> 'password',
+		'OtherTag'	=> 'other',
+		'Span'		=> 'span',
+		'Static'	=> 'statictext'
+		)
+	);
+define( 'FORM_AUTOCOMPLETE_ON', true );
+define( 'FORM_AUTOCOMPLETE_OFF', false );
+//------------------------------------------------------------------------
+// log severity values
+enum( 'ls',
+	array(
+		'UNREVIEWED',
+		'IGNORE',
+		'MINOR',
+		'BIG',
+		'CRITICAL',
+		'IMMEDIATE ACTION'
+		)
+	);
+//------------------------------------------------------------------------

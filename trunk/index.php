@@ -9,7 +9,7 @@ for complete licensing information.
 // this can be manually removed for production systems that are set up correctly.
 if ( get_magic_quotes_gpc() == 1 )
 {
-	die( 'You must turn magic quotes off.<br>http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc' );
+	die( 'You must turn magic quotes off.<br><a href="http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc">Read More at http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc</a>' );
 }
 
 // remove for production
@@ -23,8 +23,13 @@ define( 'BASEPATH',			dirname(  __FILE__ ) . '/'		);
 define( 'CORE_PATH',		BASEPATH . 'tgsf_core/'			);
 define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 
+ini_set( 'include_path', ini_get( 'include_path' )
+
 // zend framework support
-ini_set('include_path', ini_get( 'include_path' ) . PATH_SEPARATOR . CORE_PATH . '3rd_party' );
+. PATH_SEPARATOR . CORE_PATH . '3rd_party'
+
+// PHP Secure Communications Library support
+. PATH_SEPARATOR . CORE_PATH . '3rd_party/phpseclib0.2.1a' );
 
 //------------------------------------------------------------------------
 // a base class that is used in all core classes
@@ -53,6 +58,11 @@ try
 
 	// page is a global variable that is used in other places.
 	$page = tgsf_parse_url();
+
+	//------------------------------------------------------------------------
+	// make sure we've done an install and all updates needed to run core and /application
+	check_install();
+	check_update();
 
 	require resolve_controller( $page );
 

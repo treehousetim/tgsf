@@ -14,11 +14,13 @@ for complete licensing information.
 
 function &URL( $url, $core = false )
 {
-	return tgsfUrl::factory( $url, $core );
+	return tgsfUrl::Url_factory( $url, $core );
 }
 //------------------------------------------------------------------------
 class tgsfUrl extends tgsfDataSource
 {
+	protected	static $staticVars = array();
+
 	protected	$_ro_url		= '';
 	protected	$_ro_core		= false;
 	protected	$_ro_prefix;
@@ -35,12 +37,14 @@ class tgsfUrl extends tgsfDataSource
 	*/
 	protected function __construct( $url, $core )
 	{
+		$this->set( tgsfUrl::$staticVars );
+
 		$this->isLocal();
 		$this->_ro_ignoreApp = starts_with( $url, '/' );
 
 		$url = trim( $url, "\t\n\r /\\" ); // remove leading/trailing whitespace and slashes( back and forward)
 		$this->_ro_core = (bool)$core;
-		
+
 		$this->_ro_addTrailingSlash = ( defined( 'tgTrailingSlash' ) && tgTrailingSlash === true ) && config( 'get_string' ) != '?';
 
 		if ( strpos( $url, '?' ) !== false )
@@ -51,7 +55,7 @@ class tgsfUrl extends tgsfDataSource
 		$this->_ro_url = $url;
 		$this->_ro_anchorTag = new tgsfHtmlTag( 'a' );
 		$this->_ro_anchorTag->href = $this->__toString();
-		
+
 		parent::__construct( dsTypeAPP );
 	}
 	//------------------------------------------------------------------------
@@ -66,7 +70,7 @@ class tgsfUrl extends tgsfDataSource
 			return '';
 		}
 		$vars = array();
-		
+
 		foreach ( $varArray as $name => $value )
 		{
 			// array / __tgsf_vars issue
@@ -81,11 +85,19 @@ class tgsfUrl extends tgsfDataSource
 	/**
 	* Static factory that creates new url instances
 	*/
-	public static function &factory( $url, $core )
+	public static function &Url_factory( $url, $core )
 	{
 		$c = __CLASS__;
 		$instance = new $c( $url, $core );
 		return $instance;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public static function staticVars( $array )
+	{
+		tgsfUrl::$staticVars = $array;
 	}
 	//------------------------------------------------------------------------
 	public function __toString()
@@ -105,7 +117,7 @@ class tgsfUrl extends tgsfDataSource
 
 		$url .= $this->_ro_url . $this->getUrlVars();
 
-		if ( $this->_ro_addTrailingSlash )
+		if ( $this->_ro_addTrailingSlash && $this->_ro_separator == '/' )
 		{
 			$url .= '/';
 		}
@@ -119,7 +131,7 @@ class tgsfUrl extends tgsfDataSource
 		{
 			$url = current_base_url() . $url;
 		}
-		
+
 		return tgsfEventFactory::filter()->event( 'generate_url' )->content( $url )->exec();
 
 		return $url;
@@ -158,11 +170,15 @@ class tgsfUrl extends tgsfDataSource
 	*/
 	public function &anchorTag( $caption = '' )
 	{
-		//$tag = clone $this->_ro_anchorTag;
 		$tag = $this->_ro_anchorTag;
-		
+
 		$tag->content( $caption );
 		$tag->href = $this->__toString();
+
+		if ( $this->_ro_url == $GLOBALS['page'] )
+		{
+			$tag->css_class( 'current' );
+		}
 
 		return $tag;
 	}
@@ -218,12 +234,64 @@ class tgsfUrl extends tgsfDataSource
 			$urlStr = tgsfEventFactory::filter()->event( 'perm_redirect_url' )->content( $urlStr )->exec();
 		}
 		header( 'Location: ' . $urlStr );
-		
+
 		if ( $exit )
 		{
 			exit();
 		}
 
 		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns a string that can be used in an onClick handler to do a redirect
+	*/
+	public function jsRedirect()
+	{
+		return "return tgsf.URL( '" . $this->_ro_url . "' ).redirect()";
+	}
+}
+//------------------------------------------------------------------------
+function &PaginateURL( $url )
+{
+	return tgsfPaginateUrl::PaginateUrl_factory( $url );
+}
+
+class tgsfPaginateUrl extends tgsfUrl
+{
+	protected $_ro_anchorTextOnly = false;
+	//------------------------------------------------------------------------
+	/**
+	* Static factory that creates new url instances
+	*/
+	public static function &PaginateUrl_factory( $url )
+	{
+		$c = __CLASS__;
+		$instance = new $c( $url, false );
+		return $instance;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets a flag on the URL object to only return the anchor text and not an anchor tag
+	* @param Bool T/F anchor text only?
+	*/
+	public function &anchorTextOnly( $value = true )
+	{
+		$this->_ro_anchorTextOnly = $value;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Returns a span or an anchor tag depending on $this->_ro_anchorTextOnly
+	* @param String The text to display
+	*/
+	public function &anchorTag( $caption = '' )
+	{
+		if ( $this->_ro_anchorTextOnly )
+		{
+			return tgsfHtmlTag::factory( 'span' )->content( $caption );
+		}
+
+		return parent::anchorTag( $caption );
 	}
 }

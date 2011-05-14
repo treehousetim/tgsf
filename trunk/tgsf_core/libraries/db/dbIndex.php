@@ -13,7 +13,7 @@ class dbIndexCol extends tgsfBase
 	public $colName		= '';
 	public $width 		= null;
 	public $direction	= '';
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* The constructor
@@ -26,7 +26,7 @@ class dbIndexCol extends tgsfBase
 		$this->colName = $name;
 		$this->width = $width;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Generates the inner DDL for this one column
@@ -34,14 +34,14 @@ class dbIndexCol extends tgsfBase
 	function generateDDL()
 	{
 		$out = $this->colName;
-		
+
 		if ( $this->width != '' && ! is_null( $this->width ) )
 		{
 			$out .= '(' . $this->width . ') ';
 		}
-		
+
 		$out .= $this->direction . ' ';
-		
+
 		return $out;
 	}
 }
@@ -60,7 +60,7 @@ class dbIndex extends tgsfBase
 	protected $_cols		= array();
 	public $type			= '';
 
-	
+
 	/**
 	* The constructor - table name is required - all others can be left out.
 	* supply all for a simple index, or call $this->simple()
@@ -106,13 +106,13 @@ class dbIndex extends tgsfBase
 				$relName = $tableName . '_' . $fieldName . '_idx';
 			}
 		}
-		
+
 		$this->tableName	= $tableName;
 		$this->relName		= $relName;
 		$this->direction	= $direction;
 		$this->addCol( $fieldName );
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Gives the ability to store the exact DDL statement used to create the index.
@@ -133,7 +133,7 @@ class dbIndex extends tgsfBase
 		{
 			return $this->_exactDDL;
 		}
-		
+
 		$out = "CREATE INDEX ";
 		$out .= "{$this->relName} ON {$this->tableName}";
 
@@ -144,7 +144,7 @@ class dbIndex extends tgsfBase
 		}
 
 		$out .= '(' . implode( ',', $lines ) . ');';
-		
+
 		return  $out;
 	}
 

@@ -36,14 +36,14 @@ function js( $jsFiles, $group = null )
 		{
 			$group = md5( implode( '', $groupFiles ) );
 		}
-		
+
 		$group = 'js_' . $group;
 
 		$contents = implode( ",\n", $groupFiles );
 		$content = "<?php return array( '$group' => array( $contents ) );";
 
 		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
-		
+
 		echo "\t" . '<script type="text/javascript" src="' . $url = URL( '_minify' )->setVar( 'g', $group ) . '"></script>' . "\n";
 
 	}
@@ -58,7 +58,7 @@ function css( $file, $local = true )
 		$prefix = config( 'css_url' );
 		$suffix = '.css';
 	}
-	
+
 	$tag = new tgsfHtmlTag( 'link' );
 	$tag->type = 'text/css';
 	$tag->href = $prefix . $file . $suffix;
@@ -116,16 +116,18 @@ function css_import( $cssFiles, $group = null )
 		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
 		$tag = new tgsfHtmlTag( 'style' );
 		$tag->type = 'text/css';
-		$tag->content( '@import url(' . URL( '_minify' )->setVar( 'g', $group ) . ');' );
+		$tag->content( '@import url(' . trim( URL( '_minify' )->setVar( 'g', $group ), '/' ) . ');' );
 		echo $tag;
 	}
 }
 //------------------------------------------------------------------------
 function css_import_ie( $file, $if = 'if IE' )
 {
+	static $ie = 1;
 	echo '<!--[' . $if . ']>';
-	css_import( $file );
+	css_import( $file, 'ie-' . $ie );
 	echo '<![endif]-->';
+	$ie++;
 }
 //------------------------------------------------------------------------
 function css_import_ie_x( $file, $version = '6', $local = true )
@@ -153,6 +155,7 @@ function js_output_url_func()
 	$config['get_equals']		= config( 'get_equals', '/' );
 
 	$content = "\n" . 'tgsf.URL.setConfig(' . json_encode( $config ) . ');';
+
 	echo tgsfHtmlTag::factory( 'script' )
 		->setAttribute( 'type', 'text/javascript' )
 		->content( $content );
@@ -194,6 +197,10 @@ function show_error( $message, $exception = null)
     }
     else
     {
+		// for debug mode uncomment as any startup errors produce new errors.
+		//
+		// echo 'error:' . $message . ', ' . $exception;
+
         require_once controller( 'error' );
     }
 	exit();
@@ -207,7 +214,7 @@ function favicon( $url, $type = 'image/x-icon' )
 		->setAttribute( 'rel', 'icon' )
 		->setAttribute( 'href', $url )
 		->setAttribute( 'type', $type );
-		
+
 	echo $tag;
 	$tag->setAttribute( 'rel', 'shortcut icon' );
 
@@ -302,7 +309,7 @@ function alternate()
 * <ul class="url_menu">
 *	<li><a href... > </li>
 * </ul>
-* 
+*
 * It returns the ul as a tgsfHtmlTag so you can further add visual changes or content changes.
 * You pass it an array of URL objects:
 * $menu['Click Here'] = URL( 'you_are_a_winner/view' );
@@ -324,7 +331,14 @@ function urlMenu( $array, $subMenuCaptionElement = 'h2' )
 			}
 			else
 			{
-				$ul->_( 'li' )->content( $link->anchorTag( $caption ) );
+				if ( $link instanceOf tgsfUrl )
+				{
+					$ul->_( 'li' )->content( $link->anchorTag( $caption ) );
+				}
+				else
+				{
+					$ul->_( 'li' )->content( $link );
+				}
 			}
 		}
 	}
@@ -356,7 +370,7 @@ function tgsfJqAjaxInputTimeout( $input, $message, $turl, $delay = 500 )
 		$('<?= $input ?>').keyup(
 		function ()
 		{
-			var t = this; 
+			var t = this;
 			if ( this.value != this.lastValue )
 			{
 				if ( this.timer )
@@ -365,6 +379,7 @@ function tgsfJqAjaxInputTimeout( $input, $message, $turl, $delay = 500 )
 				}
 
 				messageElement.removeClass( 'error' ).html('<img src="<?= image_url( 'ajax-loader.gif', IMAGE_URL_RELATIVE, IS_CORE ) ?>"> checking...');
+                $( t ).removeAttr('halt');
 
 				this.timer = setTimeout(function ()
 				{
@@ -379,6 +394,7 @@ function tgsfJqAjaxInputTimeout( $input, $message, $turl, $delay = 500 )
 								if ( j.error == true )
 								{
 									messageElement.addClass( 'error' );
+                                    $( t ).attr( 'halt', 'yes' );
 								}
 								messageElement.html( j.msg );
 							}
@@ -391,7 +407,7 @@ function tgsfJqAjaxInputTimeout( $input, $message, $turl, $delay = 500 )
 	});
 	</script>
 	<?php
-	
+
 	return ob_get_clean();
 }
 //------------------------------------------------------------------------
@@ -416,3 +432,20 @@ function debugMarker( $text )
 		//echo '<!--' . $text . '-->';
 	}
 }
+//------------------------------------------------------------------------
+/**
+* Takes underline and dash separated words and puts a space between
+*/
+function toSpaces( $text, $fromChars = array( '_', '-' ) )
+{
+	return str_replace( $fromChars, ' ', $text );
+}
+//------------------------------------------------------------------------
+/**
+* Uppercase to spaces
+*/
+function underscore_to_spaces( $text, $fromChars = array( '_', '-' ) )
+{
+	return ucwords( toSpaces( $text, $fromChars ) );
+}
+//------------------------------------------------------------------------

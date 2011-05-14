@@ -48,7 +48,7 @@ class tzModel extends tgsfBase
 					->from( $this->tableName )
 					->where( 'tz_id = :tz_id' )
 					->bindValue( 'tz_id', $tz_id, ptINT )
-					->pluginAction( 'core:tz:fetchById', $tz_id )
+					->pluginAction( 'core:tz:fetchById', array( 'tz_id' => $tz_id ) )
 					->exec()
 					->fetch();
 	}

@@ -14,7 +14,7 @@ class tgsfSession extends tgsfBase
 {
 	private static	$_instance			= null;
 	protected		$_ro_started		= false;
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* protected to enforce singleton pattern
@@ -23,7 +23,7 @@ class tgsfSession extends tgsfBase
 	{
 
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Static function that returns the singleton instance of this class.
@@ -35,7 +35,7 @@ class tgsfSession extends tgsfBase
 			$c = __CLASS__;
 			self::$_instance = new $c;
 		}
-		
+
 		return self::$_instance;
 	}
 	//------------------------------------------------------------------------
@@ -56,7 +56,7 @@ class tgsfSession extends tgsfBase
 		{
 			return $this;
 		}
-		
+
 		if ( $this->_ro_started === false )
 		{
 			load_config( 'session' );
@@ -82,15 +82,14 @@ class tgsfSession extends tgsfBase
 			ini_set( 'session.cache_limiter',			config( 'session/cache_limiter'		) );
 			ini_set( 'session.cookie_httponly', 		config( 'session/httponly'			) );
 			ini_set( 'session.hash_function',			config( 'session/hash_function'		) );
-			
+
 			session_start();
 			$this->_ro_started = true;
 		}
 
 		// now we manually expire the session if necessary
-		
+
 		$lifetime = config( 'session/lifetime' );
-		$_SESSION['inactive_logout'] = false;
 		if ( empty( $_SESSION['tgsf-last-access'] ) )
 		{
 			$_SESSION['tgsf-last-access'] = time();
@@ -104,10 +103,8 @@ class tgsfSession extends tgsfBase
 				setcookie( session_name(), '', time()-42000, config( 'session/cookie_path' ) );
 			}
 			session_destroy();
-			
-			
+
 			$this->start(); // restart the session.
-			$_SESSION['inactive_logout'] = true;
 		}
 
 		$_SESSION['tgsf-last-access'] = time();

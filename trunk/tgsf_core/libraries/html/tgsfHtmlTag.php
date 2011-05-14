@@ -72,7 +72,7 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			return $this->_children;
 		}
-		
+
 		return $this->_children[$ix];
 	}
 	//------------------------------------------------------------------------
@@ -125,6 +125,26 @@ class tgsfHtmlTag extends tgsfBase
 		$item->parent = $this;
 
 		$this->_children[] = $item;
+		return $item;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function addFirstChild( $tag )
+	{
+		if ( $tag instanceof tgsfHtmlTag )
+		{
+			$item = clone $tag;
+		}
+		else
+		{
+			$item = new tgsfHtmlTag( (string)$tag );
+		}
+
+		$item->parent = $this;
+		array_unshift( $this->_children, $item );
+		
 		return $item;
 	}
 	//------------------------------------------------------------------------
@@ -204,6 +224,14 @@ class tgsfHtmlTag extends tgsfBase
 	}
 	//------------------------------------------------------------------------
 	/**
+	*
+	*/
+	public function cssClass( $class )
+	{
+		return $this->css_class( $class );
+	}
+	//------------------------------------------------------------------------
+	/**
 	* sets the ID attribute for the tag
 	* @param String The value of the ID to set on this tag
 	*/
@@ -246,7 +274,7 @@ class tgsfHtmlTag extends tgsfBase
 			{
 				$this->_ro_attributes[$name] =(array)$this->_ro_attributes[$name];
 			}
-		
+
 			if ( !in_array( $value, $this->_ro_attributes[$name] ) )
 			{
 				$this->_ro_attributes[$name][] = $value;
@@ -283,7 +311,7 @@ class tgsfHtmlTag extends tgsfBase
 	*/
 	public function &emptyMessage( $text  )
 	{
-		$this->empty_message = $text;	
+		$this->empty_message = $text;
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -355,13 +383,13 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			$content = $this->empty_message;
 		}
-	
+
 		// if an item is only content then we simply return the content.
 		if ( $htmlTag->contentOnly === true )
 		{
 			return $content;
 		}
-		
+
 		$atrString = '';
 		foreach ( $htmlTag->attributes as $key => $val )
 		{
@@ -373,7 +401,7 @@ class tgsfHtmlTag extends tgsfBase
 		}
 
 		$out = '';
-		
+
 		foreach( $htmlTag->_beforeTags as $tag )
 		{
 			$out .= $tag->render();
@@ -405,12 +433,12 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			$out .= '>';
 		}
-		
+
 		foreach( $htmlTag->_afterTags as $tag )
 		{
 			$out .= $tag->render();
 		}
-		
+
 		return $out;
 	}
 

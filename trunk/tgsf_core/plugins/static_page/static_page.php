@@ -8,25 +8,46 @@ for complete licensing information.
 
 // you must configure the plugin - example below:
 /*
-register_plugin( plugin( 'static_page/static_page', IS_CORE ), 'static_page' );
-add_action( 'static_page_init', 'config_static_page' );
+tgsfPlugin::loaderFactory()
+	->file( plugin( 'static_page/static_page', IS_CORE ) )
+	->name( 'static_page' )
+	->register();
+
+tgsfEventFactory::handler()
+	->event( 'static_page_init' )
+	->func( 'config_static_page' )
+	->attach();
+
 function config_static_page( $name )
 {
 	global $config;
 	$config['static_page_minRole'] = roleADMIN;
 	$config['static_page_view'] = 'page_editor';
-}*/
+}
+*/
 
-
-add_action( 'static_page_init', 'static_page_setup' );
+tgsfEventFactory::actionHandler()
+	->event( 'static_page_init' )
+	->func( 'static_page_setup' )
+	->attach();
+//------------------------------------------------------------------------
 function static_page_setup( $file )
 {
 	$class = new staticPage();
-	add_action( 'pre_404', array( &$class, 'pre404' ) );
+	tgsfEventFactory::actionHandler()
+		->event( 'pre_404' )
+		->func( 'pre_404' )
+		->object( $class )
+		->attach();
 }
-
-
-class staticPage
+//------------------------------------------------------------------------
+function staticPageGetSlug( $slug )
+{
+	$staticPage = new staticPage;
+	return $staticPage->model->fetch( $slug );
+}
+//------------------------------------------------------------------------
+class staticPage extends tgsfBase
 {
 	public $model;
 
@@ -56,14 +77,16 @@ class staticPage
 		}
 	}
 	//------------------------------------------------------------------------
-	function pre404( $slug )
+	function pre_404( $event )
 	{
+		$slug = $event->page;
+
 		if ( $slug == 'ajax/admin/rte' )
 		{
 			$this->adminAjax();
 			return;
 		}
-		
+
 		if ( $slug == 'admin/rte' )
 		{
 			$this->adminController();
@@ -71,7 +94,7 @@ class staticPage
 		}
 
 		$row = $this->model->fetch( $slug );
-		
+
 		if ( $row === false || $row->page_published == false )
 		{
 			// we have no page for this url, return and let the core handle the 404
@@ -107,7 +130,7 @@ class staticPage
 			// we display a 404 with an empty string to avoid stack recursion - display_404 calls the 404 action which we've hooked to get here.
 			display_404( '' );
 		}
-		
+
 		$form = load_cloned_object( path( 'plugins/static_page', IS_CORE ), 'form' );
 		AUTH()->minRole( roleADMIN );
 
@@ -142,12 +165,12 @@ class staticPage
 
 		$formHtml  = $form->render();
 		$formValid = $form->valid;
-		
+
 		$view = config( 'static_page_view' );
 		ob_start();
 		$this->outputJS( 'ajax/admin/rte' );
 		$js = ob_get_clean();
-		
+
 		if ( $view !== false )
 		{
 			include view( $view );
@@ -155,7 +178,7 @@ class staticPage
 
 	}
 	//------------------------------------------------------------------------
-	
+
 	public function outputJS( $ajaxController )
 	{
 		?>
@@ -205,7 +228,7 @@ class staticPage
 				}
 
 			});
-			
+
 			$( "input#_page_slug" ).change( function()
 			{
 				$("select#page_slug" ).attr( 'disabled', 'disabled' );

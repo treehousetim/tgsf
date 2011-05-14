@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2011 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -36,7 +36,7 @@ class tgsfFormField extends tgsfBase
 	{
 		$this->_type = $type;
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -47,16 +47,16 @@ class tgsfFormField extends tgsfBase
 		{
 			return $this->{'_'.$name};
 		}
-		
+
 		if ( isset( $this->{'_ro_'.$name} ) )
 		{
 			return $this->{'_ro_'.$name};
 		}
-	
+
 		throw new tgsfFormException( 'No field variable named "' . $name . '"' );
 
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Sets the error message(s) for the field.
@@ -69,7 +69,7 @@ class tgsfFormField extends tgsfBase
 			$this->_error = (array)$error[$this->_name];
 		}
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Sets the value for this field using the form's datasource
@@ -79,7 +79,7 @@ class tgsfFormField extends tgsfBase
 		if ( $this->_ro_valueSet === false && $this->form->ds !== null )
 		{
 			$this->_ro_valueSet = true;
-			
+
 			$this->_value = $this->form->ds->_( $this->_name );
 			if ( $this->_type === fftDropDown )
 			{
@@ -136,7 +136,7 @@ class tgsfFormField extends tgsfBase
 		{
 			$this->_template = load_template_library( $template );
 		}
-		
+
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -187,7 +187,7 @@ class tgsfFormField extends tgsfBase
 			$label->setAttributes( $this->_ro_labelAttributes );
 			$label->css_class( $this->_type );
 			$this->_ro_label =& $label;
-			
+
 			$label->_('')->content( $this->caption );
 			$label->addAttribute( 'for', $this->_name );
 
@@ -218,18 +218,18 @@ class tgsfFormField extends tgsfBase
 	public function getFieldTag()
 	{
 		$this->setValue();
-		
+
 		if ( $this->_ro_tag === null )
 		{
 			$tag = new tgsfHtmlTag( 'input' );
 			$this->_ro_tag =& $tag;
-					
+
 			switch ( $this->_type )
 			{
 			case fftText:
 				$tag->addAttribute( 'type', 'text', SINGLE_ATTR_ONLY );
 				break;
-			
+
 			case fftHidden:
 				$tag->addAttribute( 'type', 'hidden', SINGLE_ATTR_ONLY );
 				break;
@@ -293,30 +293,35 @@ class tgsfFormField extends tgsfBase
 					}
 				}
 				break;
-			
+
 			case fftButton:
 				$tag->changeTag( 'button' );
 				$tag->content( $this->_caption );
 				break;
-				
+
+			case fftSpan:
+				$tag->changeTag( 'span' );
+				$tag->content( $this->_caption );
+				break;
+
 			case fftStatic:
 				$tag->changeTag( 'p' );
 				$tag->content( $this->_value );
 				break;
 			}
-			
+
 			$this->_ro_fieldAttributes = array_merge( $this->_ro_fieldAttributes, $tag->attributes );
-			
+
 			$tag->setAttributes( $this->_ro_fieldAttributes );
-			
+
 			if ( ! $tag->hasAttribute( 'name'	) || $tag->name			== '' ) $tag->addAttribute( 'name', $this->_name );
 			if ( ! $tag->hasAttribute( 'id'		) || $tag->id			== '' ) $tag->id( $this->_name );
 			if ( ! $tag->hasAttribute( 'value'	) || $tag->value		== '' ) $tag->value( $this->value );
 			if ( ! $tag->hasAttribute( 'class'	) || $tag->class	== '' ) $tag->css_class( $this->_type );
-			
+
 			$this->form->onField( $this->_ro_tag );
 		}
-				
+
 		return $this->_ro_tag;
 	}
 	//------------------------------------------------------------------------

@@ -27,14 +27,14 @@ class tgsfValidateField extends tgsfBase
 			$ruleType->setField( $this );
 			return $ruleType;
 		}
-		
+
 		$className = 'tvr_' . $ruleType;
-		
+
 		if ( ! class_exists( $className ) )
 		{
 			throw new tgsfValidationException( 'Undefined validation rule type: ' . $ruleType );
 		}
-		
+
 		$rule = new $className( $this );
 		$this->_rules[] =& $rule;
 		return $rule;
@@ -55,7 +55,7 @@ class tgsfValidateField extends tgsfBase
 	public function &error_message( $msg )
 	{
 		$idx = count( $this->_rules ) -1;
-		
+
 		if ( $idx >= 0 && ! empty( $this->_rules[$idx] ) )
 		{
 			$this->_rules[$idx]->error_message( $msg );
@@ -75,7 +75,7 @@ class tgsfValidateField extends tgsfBase
 		$code = $formFind . '#' . $this->fieldName . '"' . " ).blur( function() {\n";
 		$code .= "\tvar errorMsg = '';\n";
 		$code .= "\tvar valid = true;\n";
-		
+
 		foreach( $this->_rules as &$rule )
 		{
 			 $code .= "\t" . $rule->getJs() . "\n";
@@ -92,6 +92,7 @@ class tgsfValidateField extends tgsfBase
 			if ( $rule->emptyValueValid === true )
 			{
 				$value = trim( $ds->_( $this->fieldName ) );
+
 				if ( $value == '' || empty( $value ) )
 				{
 					$rule->valid = true;
@@ -105,14 +106,14 @@ class tgsfValidateField extends tgsfBase
 			{
 				$rule->execute( $this->fieldName, $ds );
 			}
-			
+
 			if ( ! $rule->valid )
 			{
 				$errors[$this->fieldName][] = $rule->errorMessage;
 				$this->_ro_valid = false;
 			}
 		}
-		
+
 		return $this->_ro_valid;
 	}
 	//------------------------------------------------------------------------
@@ -172,6 +173,12 @@ class tgsfValidateField extends tgsfBase
 		return $this;
 	}
 	//------------------------------------------------------------------------
+	public function &clean_address()
+	{
+		$this->_( vt_clean_address );
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	public function &clean_question ()
 	{
 		$this->_( vt_clean_question );
@@ -202,6 +209,13 @@ class tgsfValidateField extends tgsfBase
 	public function &lte( $value )
 	{
 		$rule =& $this->_( vt_lte );
+		$rule->value = $value;
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &lte_float( $value )
+	{
+		$rule =& $this->_( vt_lte_float );
 		$rule->value = $value;
 		return $this;
 	}
@@ -283,6 +297,12 @@ class tgsfValidateField extends tgsfBase
 	public function &usa_state()
 	{
 		$this->_( vt_usa_state );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	public function &usa_canada_state()
+	{
+		$this->_( vt_usa_canada_state );
 		return $this;
 	}
 	//------------------------------------------------------------------------

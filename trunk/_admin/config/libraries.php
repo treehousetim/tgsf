@@ -6,22 +6,16 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-//load_library( 'example' );
-//load_library( 'example', IS_CORE_LIB )
-
-// what follows is simply an example.
 load_library( 'tgsfUserAuth', IS_CORE_LIB );
 
-/*
-$authModel = load_model( 'user' );
-$auth = AUTH( $authModel );
-$auth->loginUrl = URL( 'login' );*/
+$authModel = load_model( 'user_login', IS_CORE );
+AUTH( $authModel );
+AUTH()->loginUrl = URL( 'login' );
 
 
 load_library( 'tgsfFormat', IS_CORE_LIB );
 
 //add_action( 'AUTH_login_check', 'yourFunctionHere' );
-
 
 //------------------------------------------------------------------------
 load_library( 'tgsfCrypt', IS_CORE_LIB );

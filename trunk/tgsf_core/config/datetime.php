@@ -25,5 +25,9 @@ enum( 'DT_FORMAT_', array(
 		'UI_MED'	=> 'm/d/Y g:i:s A T',
 		'UI_LONG'   => 'D, m/d/Y g:i:s A T (P)',
 		'UI_DATE'   => 'm/d/Y',
-		'UI_TIME'   => 'g:i A'
+		'UI_DATE_DAY'=> 'D, m/d/Y',
+		'UI_TIME'   => 'g:i A',
+		'ACH_DATE'  => 'Ymd',
+		'ACH_DATE_SHORT'  => 'ymd',
+		'ACH_TIME'  => 'Hi'
 	));

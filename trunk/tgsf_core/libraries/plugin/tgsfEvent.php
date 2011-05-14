@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2011 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -33,13 +33,38 @@ class tgsfEventFactory
 	}
 	//------------------------------------------------------------------------
 	/**
+	* action event handler factory
+	*/
+	public static function actionHandler()
+	{
+		return tgsfEventFactory::handler( eventACTION );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function filterHandler()
+	{
+		return tgsfEventFactory::handler( eventFILTER );
+	}
+	//------------------------------------------------------------------------
+	/**
 	* event handler factory
 	*/
-	public static function &handler()
+	protected static function &handler( $type )
 	{
 		$instance = new tgsfHandler();
-		$instance->type( eventHANDLER );
-		$instance->ect( ectARRAY );
+		$instance->type( $type );
+
+		if ( $type == eventACTION )
+		{
+			$instance->ect( ectARRAY );
+		}
+		else
+		{
+			$instance->ect( ectSTRING );
+		}
+
 		return $instance;
 	}
 }
@@ -64,18 +89,15 @@ interface tgsfBaseEventHandler extends tgsfBaseEvent
 //------------------------------------------------------------------------
 // the standard event
 //------------------------------------------------------------------------
-class tgsfEvent extends tgsfBase
+class tgsfEvent extends tgsfDataSource
 {
-	public $type = eventUNKNOWN;
-	protected $_ro_ds;
-	protected $_ro_type;
+	protected $_ro_type = eventUNKNOWN;
 	protected $_ro_event;
 	protected $_ro_ect = ectSTRING;
 	//------------------------------------------------------------------------
 	public function __construct()
 	{
-		$this->_ro_ds = tgsfDataSource::factory();
-		$this->_ro_ds->setVar( 'event', $this );
+		//parent::__construct();
 	}
 	//------------------------------------------------------------------------
 	function &type( $type )
@@ -98,41 +120,56 @@ class tgsfEvent extends tgsfBase
 	*/
 	public function &ect( $type )
 	{
-		$this->_ro_ds->setVar( 'ect', $type );
+		$this->setVar( 'ect', $type );
 		$this->_ro_ect = $type;
 		return $this;
 	}
 	//------------------------------------------------------------------------
 	public function exec()
 	{
-		if ( $this->_ro_ect == ectARRAY )
+		$result = false;
+
+		try
 		{
-			return tPLUGIN()->ectArray( $this );
+			if ( $this->_ro_ect == ectARRAY )
+			{
+				$result = tgsfPlugin::getInstance()->ectArray( $this );
+			}
+			else
+			{
+				$result = tgsfPlugin::getInstance()->ectString( $this );
+			}
 		}
-		
-		return tPLUGIN()->ectString( $this );
+		catch( Exception $e )
+		{
+			throw $e;
+		}
+
+		return $result;
 	}
 }
 //------------------------------------------------------------------------
-class tgsfFilter  extends tgsfEvent implements tgsfBaseEvent
+class tgsfFilter extends tgsfEvent implements tgsfBaseEvent
 {
 	public function &content( $content )
 	{
-		$this->_ro_ds->setVar( 'content', $content );
+		$this->setVar( 'content', $content );
 		return $this;
 	}
 }
 //------------------------------------------------------------------------
-class tgsfAction  extends tgsfEvent implements tgsfBaseEvent {}
+class tgsfAction extends tgsfEvent implements tgsfBaseEvent {}
 //------------------------------------------------------------------------
 class tgsfHandler extends tgsfEvent implements tgsfBaseEventHandler
 {
+	protected $_ro_callbackType;
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
 	public function __construct()
 	{
+		$this->_ro_callbackType = cbtFUNCTION;
 		parent::__construct();
 		$this->level( 100 );
 	}
@@ -142,7 +179,7 @@ class tgsfHandler extends tgsfEvent implements tgsfBaseEventHandler
 	*/
 	public function &func( $name )
 	{
-		$this->_ro_ds->setVar( 'func', $name );
+		$this->setVar( 'func', $name );
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -151,52 +188,66 @@ class tgsfHandler extends tgsfEvent implements tgsfBaseEventHandler
 	*/
 	public function &object( &$object )
 	{
-		$this->_ro_ds->setVar( 'object', $object );
+		$this->_ro_callbackType = cbtOBJECT;
+		$this->setVar( 'object', $object );
 		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Sets the class to execute with a static method - also call func
+	* @param String The name of a class
+	*/
+	public function &static_class( $class )
+	{
+		$this->_ro_callbackType = cbtCLASS;
+		$this->setVar( 'class', $class );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Sets the level or order to execute this handler
+	* @param Int The level or order
 	*/
 	public function &level( $level )
 	{
-		$this->_ro_ds->setVar( 'level', $level );
+		$this->setVar( 'level', $level );
 		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Returns a handler that can be used with call_user_func
 	*/
 	public function handler()
 	{
-		if ( $this->_ro_ds->isEmpty( 'object' ) || $this->_ro_ds->isEmpty( 'func' ) )
+		switch ( $this->_ro_callbackType )
 		{
-			if ( $this->_ro_ds->isEmpty( 'func' ) )
-			{
-				throw new tgsfException( 'Event does not have a handler set up' );
-			}
-			else
-			{
-				return (string)$this->_ro_ds->func;
-			}
+		case cbtFUNCTION:
+			return (string)$this->func;
+			break;
+		case cbtOBJECT:
+			return array( $this->getVar( 'object' ), $this->func );
+			break;
+		case cbtCLASS:
+			return array( $this->getVar( 'class' ), $this->func );
+			break;
+		default:
+			throw new tgsfException( 'Event does not have a handler set up' );
 		}
-		return array( &$this->_ro_ds->object, $this->_ro_ds->func );
 	}
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Alias to attach
 	*/
 	public function exec()
 	{
-		return tPLUGIN()->addHandler( $this );
+		$this->attach();
 	}
 	//------------------------------------------------------------------------
 	/**
-	*
+	* Adds the handler to the core plugin system
 	*/
 	public function attach()
 	{
-		$this->exec();
+		return tgsfPlugin::getInstance()->addHandler( $this );
 	}
 }
-//tgsfEventFactory::handler()->func( 'name' )->object( $instance )->exec();

@@ -33,10 +33,9 @@ abstract class tgsfDbSearch extends tgsfGrid
 	//------------------------------------------------------------------------
 	public function &nextAnchorTag( $linkText = '&raquo; Next', $linkTitle = 'Next Page' )
 	{
-		$url = clone $this->_ro_url;
-		$this->_query->nextLinkUrlVars( $url );
-					
-		return $url->anchorTag()->addAttribute( 'title', 'Next Page' )->content( $linkTitle );
+		return $this->_query->getNextLinkUrl( $this->_ro_url->url, $this->_ro_url )
+			->anchorTag()->addAttribute( 'title', $linkTitle )
+			->content( $linkTitle );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -45,14 +44,9 @@ abstract class tgsfDbSearch extends tgsfGrid
 	*/
 	public function &prevAnchorTag( $linkText = 'Prev &laquo;', $linkTitle = 'Previous Page' )
 	{
-		$url = clone $this->_ro_url;
-		
-		if ( $this->_query->prevLinkUrlVars( $url ) === false )
-		{
-			
-		}
-					
-		return $url->anchorTag()->addAttribute( 'title', $linkTitle )->content( $linkTitle );
+		return $this->_query->getPrevLinkUrl( (string) $this->_ro_url )
+			->anchorTag()->addAttribute( 'title', $linkTitle )
+			->content( $linkTitle );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -65,7 +59,7 @@ abstract class tgsfDbSearch extends tgsfGrid
 		{
 			throw new tgsfException( 'Search queries must be an instance of tgsfPaginateQuery' );
 		}
-		
+
 		$this->_query = $pq;
 		$this->_query->exec();
 		$this->_rows = $this->_query->fetchAll();
@@ -80,7 +74,7 @@ abstract class tgsfDbSearch extends tgsfGrid
 	/**
 	* do now allow the render function to be used - we want better code readability
 	*/
-	public function render()
+	public function render( $format = grtHTML_TABLE, $csvIncludeHeader = false )
 	{
 		throw new tgsfException( 'Do not use render on search - use the renderGrid method.' );
 	}
