@@ -269,7 +269,7 @@ class tgsfDataSource extends tgsfBase
 	{
 		if ( $this->isEmpty( $field ) )
 		{
-			$this->setVar( $field, gmdate( $dateFormat ) );
+			$this->setVar( $field, date::UTCcurrentDatetime($dateFormat) );
 		}
 		return $this;
 	}

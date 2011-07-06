@@ -80,14 +80,6 @@ class model extends table
 	}
 	//------------------------------------------------------------------------
 	/**
-	* Returns the current date time for use with queries.
-	*/
-	public function cur_datetime()
-	{
-		return gmdate( DT_FORMAT_SQL );
-	}
-	//------------------------------------------------------------------------
-	/**
 	* Returns the date for the supplied timestamp for use with queries
 	*/
 	public function datetime( $ts )
