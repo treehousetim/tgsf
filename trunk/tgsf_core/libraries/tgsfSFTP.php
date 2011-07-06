@@ -8,7 +8,7 @@ for complete licensing information.
 
 // @Requires php_ssh.dll
 
-class tgsfSFTP extends tgsfBase
+class tgsfSFTP
 {
 	protected $_connection;
 	protected $_sftp;
@@ -32,7 +32,7 @@ class tgsfSFTP extends tgsfBase
 		$this->_pass		= $param['pass'];
 		$this->_fingerprint	= $param['fingerprint'];
 
-		$this->_connection = @ssh2_connect( $this->_server, $this->_port);
+		$this->_connection = ssh2_connect( $this->_server, $this->_port);
 
 		if ( $this->_connection === false )
 		{
