@@ -23,13 +23,5 @@ for complete licensing information.
 // all core tables will use the same prefix no matter what app is loaded
 define( 'CORE_TABLE_PREFIX' ,'tgsf_' );
 
-if ( current_url_starts_with( 'admin' ) )
-{
-	define( 'APP_FOLDER', '_admin/' );
-	define( 'APP_URL_FOLDER', 'admin/' );
-}
-else
-{
-	define( 'APP_FOLDER', 'application/' );
-	define( 'APP_URL_FOLDER', '' );
-}
+define( 'APP_FOLDER', 'application/' );
+define( 'APP_URL_FOLDER', '' );

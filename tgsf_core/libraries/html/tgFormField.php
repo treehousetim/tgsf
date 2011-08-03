@@ -87,7 +87,24 @@ class tgsfFormField extends tgsfBase
 			}
 		}
 	}
-
+	//------------------------------------------------------------------------
+	/**
+	* Sets the value for this field statically.  It will never be overridden by the datasource.
+	* @param The value to set.
+	*/
+	public function &staticValue( $value )
+	{
+		$this->_ro_valueSet = true;
+		
+		$this->_value = $value;
+		
+		if ( $this->_type === fftDropDown )
+		{
+			$this->_selected[] = $this->_value;
+		}
+		
+		return $this;
+	}
 	//------------------------------------------------------------------------
 	/**
 	* Alias to $this->name()

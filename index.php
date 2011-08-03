@@ -1,6 +1,6 @@
 <?php
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is copyright 2009-2011 by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -12,18 +12,14 @@ if ( get_magic_quotes_gpc() == 1 )
 	die( 'You must turn magic quotes off.<br><a href="http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc">Read More at http://us3.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc</a>' );
 }
 
-// remove for production
-if ( file_exists( 'sync-core.php' ) )
-{
-	include( 'sync-core.php' );
-}
-
 define( 'TGSF_CLI',			false							);
 define( 'BASEPATH',			dirname(  __FILE__ ) . '/'		);
 define( 'CORE_PATH',		BASEPATH . 'tgsf_core/'			);
 define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 
-ini_set( 'include_path', ini_get( 'include_path' )
+include( BASEPATH . 'sync-core.php' );
+
+ini_set('include_path', ini_get( 'include_path' )
 
 // zend framework support
 . PATH_SEPARATOR . CORE_PATH . '3rd_party'
@@ -58,11 +54,6 @@ try
 
 	// page is a global variable that is used in other places.
 	$page = tgsf_parse_url();
-
-	//------------------------------------------------------------------------
-	// make sure we've done an install and all updates needed to run core and /application
-	check_install();
-	check_update();
 
 	require resolve_controller( $page );
 

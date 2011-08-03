@@ -49,7 +49,12 @@ class tgsfIDD extends tgsfBase
 	function getNextID( $key, $defaultInitialValue = 1 )
 	{
 		$query = new query();
-		dbm()->beginTransaction();
+
+		if ( ! dbm()->inTransaction() )
+		{
+			dbm()->beginTransaction();
+		}
+		
 		$rows = $query
 				->select( 'idd_nextid' )
 				->from( $this->table )
@@ -82,7 +87,12 @@ class tgsfIDD extends tgsfBase
 				->bindValue( 'idd_nextid', $result+1, ptINT )
 				->exec();
 		}
-		dbm()->commit();
+
+		if ( ! dbm()->inTransaction() )
+		{
+			dbm()->commit();
+		}
+
 		return $result;
 	}
 

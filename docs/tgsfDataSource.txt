@@ -24,7 +24,7 @@ echo GET()->user_id;
 
 $data = array( 'name' => 'Bill', 'city' => 'Gotham' );
 
-$ds = tgsfDataSource::factory();
+$ds = dsFactory::ds();
 $ds->set( $data );
 
 echo $ds->_( 'name' );
@@ -41,7 +41,7 @@ More datasource options:
 {{{
 <?php
 
-$ds = tgsfDataSource::factory()
+$ds = dsFactory::ds()
     ->setVar( 'name', 'Bill' )
     ->setVar( 'city', 'Gotham' );
 

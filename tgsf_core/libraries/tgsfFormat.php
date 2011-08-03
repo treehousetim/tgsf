@@ -68,7 +68,7 @@ class tgsfFormat extends tgsfBase
 	{
 		if ( empty( $text ) )
 		{
-			$ts = time();
+			$ts = time::currentTs();
 		}
 		else
 		{
@@ -92,7 +92,7 @@ class tgsfFormat extends tgsfBase
 	{
 		if ( empty( $text ) )
 		{
-			$ts = time();
+			$ts = time::currentTs();
 		}
 		else
 		{

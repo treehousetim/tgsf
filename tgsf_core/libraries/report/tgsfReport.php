@@ -33,7 +33,7 @@ abstract class tgsfReport extends tgsfGrid
 			$this->_ro_reportAppName = REPORT_APP_NAME;
 		}
 
-		$this->_ro_reportDate = gmdate( DT_FORMAT_SQL );
+		$this->_ro_reportDate = date::UTCcurrentDatetime();
 		$this->css_class( 'report-grid' );
 		parent::__construct();
 		$this->_paramSetup();
@@ -138,6 +138,16 @@ abstract class tgsfReport extends tgsfGrid
 		{
 			$this->_setup();
 		}
+		
+		if ( empty( $this->_rows ) )
+		{
+			$this->_rows = $this->_loadRows();
+		}
+		
+		if ( $this->_rows instanceOf dbDataSource )
+		{
+			$this->_ro_echoRender = true;
+		}
 
 		if ( $this->hasAttribute( 'id' ) === false )
 		{
@@ -183,18 +193,22 @@ abstract class tgsfReport extends tgsfGrid
 					->addTag( 'th')
 						->setAttribute( 'width', '50%' )
 						->content( $this->_ro_reportDate )
-						->css_class( 'report-date' )
-						->parent
-					->parent
-				->parent
+						->css_class( 'report-date' );
 
-			->addTag( 'tbody' )
-				->addTag( 'tr' )
-					->addTag( 'td' )
-						->setAttribute( 'colspan', 2 )
-						->content( parent::render( $renderType ) );
-
-			return $div->render();
+			if ( $this->_ro_echoRender )
+			{
+				echo $div->render();
+				parent::render( $renderType );
+			}
+			else
+			{
+				$table->addTag( 'tbody' )
+					->addTag( 'tr' )
+						->addTag( 'td' )
+							->setAttribute( 'colspan', 2 )
+							->content( parent::render( $renderType ) );
+				return $div->render();
+			}
 		}
 		else
 		{

@@ -15,7 +15,6 @@ function tgsf_minify_bridge( $event )
 	if ( $page == '_minify' )
 	{
 		chdir( path( '3rd_party/min', IS_CORE_PATH ) );
-
 		/*
 		// this is a super simple minify controller
 		define('MINIFY_MIN_DIR', path( '3rd_party/min', IS_CORE_PATH ) );
@@ -35,7 +34,7 @@ function tgsf_minify_bridge( $event )
 		{
 			$_SERVER['HTTP_USER_AGENT'] = '';
 		}
-
+		//$min_serveOptions['debug'] = starts_with( GET()->g, 'js' ) && config( 'debug_mode' );
 		require path( '3rd_party/min', IS_CORE_PATH ) . 'index.php';
 		exit();
 	}

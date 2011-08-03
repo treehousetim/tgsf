@@ -14,6 +14,8 @@ enum( 'DT_TIME_', array(
 		'WEEK'   => 604800
 	));
 
+// DT_FORMAT_SQL, DT_FORMAT_SQL_DATE, DT_FORMAT_SQL_TIME, DT_FORMAT_SQL_START, DT_FORMAT_SQL_END, DT_FORMAT_UI_SHORT, DT_FORMAT_UI_MED, DT_FORMAT_UI_LONG
+// DT_FORMAT_UI_DATE, DT_FORMAT_UI_DATE_DAY, DT_FORMAT_UI_TIME, DT_FORMAT_ACH_DATE, DT_FORMAT_ACH_DATE_SHORT, DT_FORMAT_ACH_TIME
 /* Date formats */
 enum( 'DT_FORMAT_', array(
 		'SQL'       => 'Y-m-d H:i:s',
@@ -29,5 +31,6 @@ enum( 'DT_FORMAT_', array(
 		'UI_TIME'   => 'g:i A',
 		'ACH_DATE'  => 'Ymd',
 		'ACH_DATE_SHORT'  => 'ymd',
-		'ACH_TIME'  => 'Hi'
+		'ACH_TIME'  => 'Hi',
+		'TEXT_TIMESTAMP'	=> 'YmdHis'
 	));

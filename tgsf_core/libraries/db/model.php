@@ -79,6 +79,7 @@ class model extends table
 		         ->exec();
 	}
 	//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
 	/**
 	* Returns the date for the supplied timestamp for use with queries
 	*/

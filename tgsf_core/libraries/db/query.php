@@ -375,9 +375,10 @@ class query extends tgsfBase
 	* Adds static text to the where stack
 	* @param String The text to add
 	*/
-	public function staticWhere( $str )
+	public function &staticWhere( $str )
 	{
 		$this->_whereList[] = $str;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -806,7 +807,10 @@ class query extends tgsfBase
 	public function &prepare()
 	{
 		$this->_stmHandle = $this->_handle->prepare( $this->generate() );
-
+		if ( $this->_stmHandle === false )
+		{
+			throw new tgsfException( 'Unable to prepare query.' . get_dump( $this->_handle->errorInfo() ) );
+		}
 		return $this;
 	}
 	//------------------------------------------------------------------------

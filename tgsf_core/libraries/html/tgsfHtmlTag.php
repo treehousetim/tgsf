@@ -92,9 +92,10 @@ class tgsfHtmlTag extends tgsfBase
 	/**
 	* Allows a tag to be changed.
 	*/
-	public function changeTag( $tag )
+	public function &changeTag( $tag )
 	{
 		$this->_ro_tag = $tag;
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -324,6 +325,7 @@ class tgsfHtmlTag extends tgsfBase
 		{
 			unset( $this->_ro_attributes[$name] );
 		}
+
 		return $this;
 	}
 	//------------------------------------------------------------------------

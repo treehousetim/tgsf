@@ -22,7 +22,6 @@ define( 'APP_PATH', BASEPATH . APP_FOLDER );
 // datasources
 //------------------------------------------------------------------------
 load_library( 'tgsfUrl',			IS_CORE_LIB ); // the url function/Library
-load_library( 'tgsfRequest',		IS_CORE_LIB );
 load_library( 'tgsfPost',			IS_CORE_LIB );
 load_library( 'tgsfGet',			IS_CORE_LIB );
 

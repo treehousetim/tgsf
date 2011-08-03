@@ -97,3 +97,28 @@ Copied here for reference
    1. Security Questions and User Instructions: You may freely use, modify, and distribute the security questions and the user instructions without giving credit to this website.
    2. Website Content: the website content may be copied and distributed if the website URL is included.
    3. Website: the website in entirety, may not be copied or reproduced in any form."
+
+//------------------------------------------------------------------------
+
+excanvas.js which is
+
+// Copyright 2006 Google Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+
+//------------------------------------------------------------------------
+
+twillio 3rd party library
+
+Copyright (c) 2009-2010 Twilio, Inc.
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
