@@ -26,6 +26,9 @@ String.prototype.getFloat = function()
 {
 	return parseFloat( this.replace( /[^0-9.]/g, "" ) );
 }
+String.prototype.startsWith = function(str){
+    return (this.indexOf(str) === 0);
+}
 /* public domain disabled plugin for jquery */
 jQuery.fn.extend({
 filterDisabled : function(){ return this.filter(function(){return (typeof(this.disabled)!=undefined)})},

@@ -58,6 +58,11 @@ class tgsfUrl extends tgsfDataSource
 
 		parent::__construct( dsTypeAPP );
 	}
+	public function noTrailingSlash()
+	{
+		$this->_ro_addTrailingSlash = false;
+		return $this;
+	}
 	//------------------------------------------------------------------------
 	/**
 	* returns a string of the url variables (if any)

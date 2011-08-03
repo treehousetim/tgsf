@@ -116,7 +116,7 @@ function css_import( $cssFiles, $group = null )
 		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
 		$tag = new tgsfHtmlTag( 'style' );
 		$tag->type = 'text/css';
-		$tag->content( '@import url(' . trim( URL( '_minify' )->setVar( 'g', $group ), '/' ) . ');' );
+		$tag->content( '@import url(' . ltrim( URL( '_minify' )->setVar( 'g', $group ), '/' ) . ');' );
 		echo $tag;
 	}
 }
@@ -315,29 +315,51 @@ function alternate()
 * $menu['Click Here'] = URL( 'you_are_a_winner/view' );
 * @param Array The array of url objects
 */
-function urlMenu( $array, $subMenuCaptionElement = 'h2' )
+function urlMenu( $array, $subMenuCaptionElement = 'h2', $forceCurrent = '' )
 {
 	$ul = new tgsfHtmlTag( 'ul' );
 	$ul->css_class( 'url_menu' );
 	if ( is_array( $array ) )
 	{
+		$cnt = count( $array );
+		$icnt = 0;
+
 		foreach ( $array as $caption => $link )
 		{
+			$icnt++;
+			if ( $icnt == 1 )
+			{
+				$class = 'first';
+			}
+			elseif ( $icnt == $cnt )
+			{
+				$class = 'last';
+			}
+			else
+			{
+				$class = 'middle';
+			}
+
 			if ( is_array( $link ) )
 			{
 				$ul->addTag( 'li' )
 					->addTag( $subMenuCaptionElement )->content( $caption )->parent
-					->addTag( urlMenu( $link, $subMenuCaptionElement ) );
+					->addTag( urlMenu( $link, $subMenuCaptionElement, $forceCurrent ) );
 			}
 			else
 			{
+				if ( ( $link instanceOf tgsfUrl && $forceCurrent == $link->url ) || $link == $forceCurrent )
+				{
+					$class .= ' current';
+				}
+				
 				if ( $link instanceOf tgsfUrl )
 				{
-					$ul->_( 'li' )->content( $link->anchorTag( $caption ) );
+					$ul->_( 'li' )->content( $link->anchorTag( $caption )->cssClass( $class ) );
 				}
 				else
 				{
-					$ul->_( 'li' )->content( $link );
+					$ul->_( 'li' )->content( $link )->cssClass( $class );
 				}
 			}
 		}

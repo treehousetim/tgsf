@@ -50,6 +50,7 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	private		$_renderSetup			= false;
 	public		$timezone				= 'UTC';
 	protected	$_ro_renderFormat		= grtHTML_TABLE;
+	protected	$_ro_echoRender			= false;
 	//------------------------------------------------------------------------
 	public function __construct()
 	{
@@ -189,12 +190,25 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	*/
 	public function renderHeader()
 	{
+		if ( $this->_ro_echoRender )
+		{
+			echo parent::renderTagOnly();
+		}
+
 		if ( $this->renderHeaderRow === false )
 		{
 			return;
 		}
 
-		$tr = $this->_( 'thead' )->_( 'tr' )->css_class( 'header' );
+		if ( $this->_ro_echoRender )
+		{
+			$thead = tgsfHtmlTag::factory( 'thead' );
+		}
+		else
+		{
+			$thead = $this->_( 'thead' );
+		}
+		$tr = $thead->_( 'tr' )->css_class( 'header' );
 		$row = null;
 
 		foreach( $this->_colDefs as &$col )
@@ -204,6 +218,27 @@ abstract class tgsfGrid extends tgsfHtmlTag
 
 		$this->_onRow( $tr, $row );
 		$this->_ro_headerRow = clone $tr;
+		
+		if ( $this->_ro_echoRender )
+		{
+			if ( $this->_ro_renderFormat == grtCSV )
+			{
+				$tagChildren = $tr->child();
+				$fields = array();
+				foreach( $tagChildren as $subChild )
+				{
+					$fields[] = '"' . $subChild->unfilteredContent . '"';
+				}
+				if ( count( $fields ) )
+				{
+					echo implode( ',', $fields );
+				}
+			}
+			else
+			{
+				echo $thead->render();
+			}
+		}
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -215,11 +250,28 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		{
 			if ( $this->_footer instanceof tgsfHtmlTag )
 			{
-				$this->addTag( $this->_footer );
+				if ( $this->_ro_echoRender )
+				{
+					echo $this->_footer->render();
+				}
+				else
+				{
+					$this->addTag( $this->_footer );
+				}
 			}
 			else
 			{
-				$tr = $this->addTag( 'tfoot' )->_( 'tr' );
+				if ( $this->_ro_echoRender )
+				{
+					$footer = tgsfHtmlTag::factory( 'tfoot' );
+					$tr = $footer->addTag( 'tr' );
+				}
+				else
+				{
+					$tr = $this->addTag( 'tfoot' )
+						->addTag( 'tr' );
+				}
+				
 				$row = (object)$this->_footer;
 
 				foreach( $this->_colDefs as &$col )
@@ -228,6 +280,27 @@ abstract class tgsfGrid extends tgsfHtmlTag
 				}
 
 				$this->_onRow( $tr, $row );
+				
+				if ( $this->_ro_echoRender )
+				{
+					if ( $this->_ro_renderFormat == grtCSV )
+					{
+						$tagChildren = $tr->child();
+						$fields = array();
+						foreach( $tagChildren as $subChild )
+						{
+							$fields[] = '"' . $subChild->unfilteredContent . '"';
+						}
+						if ( count( $fields ) )
+						{
+							echo implode( ',', $fields );
+						}
+					}
+					else
+					{
+						echo $footer->render();
+					}
+				}
 			}
 		}
 	}
@@ -253,7 +326,16 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	*/
 	public function renderRows()
 	{
-		if ( count( $this->_rows ) > 0 )
+		if ( $this->_ro_echoRender )
+		{
+			while ( $this->_rows->fetch() )
+			{
+				$row = $this->_rows;
+				$this->_currentRow = $row;
+				$this->renderRow( $row );
+			}
+		}
+		elseif ( count( $this->_rows ) > 0 )
 		{
 			$rowCnt = count( $this->_rows );
 
@@ -275,7 +357,16 @@ abstract class tgsfGrid extends tgsfHtmlTag
 	//------------------------------------------------------------------------
 	public function renderRow( &$row )
 	{
-		$tr = $this->_( 'tr' )->css_class( 'grouplevel' . count( $this->_groups ) );
+		if ( $this->_ro_echoRender )
+		{
+			$tr = tgsfHtmlTag::factory( 'tr' );
+		}
+		else
+		{
+			$tr = $this->_( 'tr' );
+		}
+		
+		$tr->css_class( 'grouplevel' . count( $this->_groups ) );
 
 		foreach( $this->_colDefs as &$col )
 		{
@@ -288,23 +379,18 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		}
 
 		$this->_onRow( $tr, $row );
+
+		if ( $this->_ro_echoRender )
+		{
+			echo $tr->render();
+		}
 	}
+	//------------------------------------------------------------------------
 	public function preLoad()
 	{
 		if ( empty( $this->_rows ) )
 		{
 			$this->_rows = $this->_loadRows();
-		}
-	}
-	//------------------------------------------------------------------------
-	/**
-	*
-	*/
-	public function renderCSV()
-	{
-		if ( empty( $this->_rows ) )
-		{
-			//$this->_rows =
 		}
 	}
 	//------------------------------------------------------------------------
@@ -321,66 +407,70 @@ abstract class tgsfGrid extends tgsfHtmlTag
 			$this->_setup();
 		}
 
-/*
-		if ( $this->_ro_renderFormat == grtCSV )
-		{
-			return $this->renderCSV();
-		}*/
-
-
 		if ( empty( $this->_rows ) )
 		{
 			$this->_rows = $this->_loadRows();
 		}
+		
+		if ( $this->_rows instanceOf dbDataSource )
+		{
+			$this->_ro_echoRender = true;
+		}
 
-		if ( $this->_renderSetup === false )
+		if ( $this->_renderSetup === false || $this->_ro_echoRender )
 		{
 			$this->renderHeader();
 			$this->renderRows();
 			$this->renderFooter();
 			alternate(); // reset for next grid
 			$this->_renderSetup = true;
+
 		}
 
 		switch( $format )
 		{
 		case grtHTML_TABLE:
-			return parent::render();
+			if ( $this->_ro_echoRender == false )
+			{
+				return parent::render();
+			}
 			break;
 
 		case grtCSV:
+			/*
 			$lines = array();
 
-			$childCount = count( $this->_children );
+						$childCount = count( $this->_children );
 
-			for ( $ix = 0; $ix < $childCount; $ix++ )
-			{
-				if ( $csvIncludeHeader === true )
-				{
-					$child =& $this->_ro_headerRow;
-					$ix--;
-					$csvIncludeHeader = false;
-				}
-				else
-				{
-					$child =& $this->_children[$ix];
-				}
+						for ( $ix = 0; $ix < $childCount; $ix++ )
+						{
+							if ( $csvIncludeHeader === true )
+							{
+								$child =& $this->_ro_headerRow;
+								$ix--;
+								$csvIncludeHeader = false;
+							}
+							else
+							{
+								$child =& $this->_children[$ix];
+							}
 
-				if ( $child->tag == 'tr' )
-				{
-					$tagChildren = $child->child();
-					$fields = array();
-					foreach( $tagChildren as $subChild )
-					{
-						$fields[] = '"' . $subChild->unfilteredContent . '"';
-					}
-					if ( count( $fields ) )
-					{
-						$lines[] = implode( ',', $fields );
-					}
-				}
-			}
-			return implode( "\n", $lines );
+							if ( $child->tag == 'tr' )
+							{
+								$tagChildren = $child->child();
+								$fields = array();
+								foreach( $tagChildren as $subChild )
+								{
+									$fields[] = '"' . $subChild->unfilteredContent . '"';
+								}
+								if ( count( $fields ) )
+								{
+									$lines[] = implode( ',', $fields );
+								}
+							}
+						}
+						return implode( "\n", $lines );*/
+			
 		}
 	}
 	//------------------------------------------------------------------------

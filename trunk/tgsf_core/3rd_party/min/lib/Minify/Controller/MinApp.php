@@ -40,15 +40,7 @@ class Minify_Controller_MinApp extends Minify_Controller_Base {
                 $this->log("A group configuration for \"{$_GET['g']}\" was not set");
                 return $options;
             }
-            
-            $files = $cOptions['groups'][$_GET['g']];
-            // if $files is a single object, casting will break it
-            if (is_object($files)) {
-                $files = array($files);
-            } elseif (! is_array($files)) {
-                $files = (array)$files;
-            }
-            foreach ($files as $file) {
+            foreach ((array)$cOptions['groups'][$_GET['g']] as $file) {
                 if ($file instanceof Minify_Source) {
                     $sources[] = $file;
                     continue;

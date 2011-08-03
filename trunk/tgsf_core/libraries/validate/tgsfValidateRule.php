@@ -399,7 +399,7 @@ class tvr_future_date extends tvr_date
 		if ( $this->valid )
 		{
 			$date = strtotime( tz_gmdate_start( DT_FORMAT_SQL, tz_strtotime( $ds->{$fieldName}, $this->tz ), $this->tz ) );
-			$now  = strtotime( tz_gmdate_start( DT_FORMAT_SQL, time() + ( intval( $this->numDays ) * DT_TIME_DAY ), $this->tz ) );
+			$now  = strtotime( tz_gmdate_start( DT_FORMAT_SQL, time::currentTs() + ( intval( $this->numDays ) * DT_TIME_DAY ), $this->tz ) );
 			$this->valid = $date >= $now;
 		}
 

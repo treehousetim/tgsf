@@ -40,32 +40,19 @@ define( 'GET_DUMP_HTML', true );
 define( 'IMAGE_URL_ABSOLUTE', true );
 define( 'IMAGE_URL_RELATIVE', false );
 //------------------------------------------------------------------------
-function check_install()
-{
-	load_database_libraries();
-	if ( ! dbm()->setupExists() )
-	{
-		tgsfEventFactory::action()
-		->event( 'check_install_no_db' )
-		->exec();
-
-		show_error( 'Before loading or installing for the first time, you must configure a database connection.' );
-	}
-	
-	tgsfEventFactory::action()->event( 'check_install' )->exec();
-}
-//------------------------------------------------------------------------
-function check_update()
-{
-	tgsfEventFactory::action()->event( 'check_update' )->exec();
-}
-//------------------------------------------------------------------------
 function current_server_id()
 {
 	if ( TGSF_CLI )
 	{
 		return strtoupper( md5 ( __FILE__ . PHP_OS ) );
 	}
+
+	/*
+	this is case sensitive.  On Windows the CSS will be retrieved based on the actual
+	  directory name case-sensitive.  if the url is a different case than
+	  the file system then the CSS request will use a different server_id
+
+	*/
 
 	return strtoupper( md5( current_host() . current_base_url_path() ) );
 }
@@ -206,26 +193,6 @@ function &load_form( $name, $core = false )
 function &load_model( $name, $core = false )
 {
 	return load_cloned_object( path( 'models', $core ), $name );
-}
-//------------------------------------------------------------------------
-/**
-* The first time a model is loaded, this function will require_once on the model file.
-* It will take the return value from that required file and use it as an internal instance
-* of that model.
-* All return values from this function will be performed using object cloning.
-* if a model has already loaded, a new instance is returned and no further filesystem
-* access occurs.
-* Model files are required to return a new instance of the model
-* Models should not require constructor parameters as this loader will know nothing about that.
-* @param String The path and name of the model.  This is prefixed by the application's
-* model's path
-* @param Bool Is the model located in the core?  This would only be used for built in models
-* like might be used in a core library (like a user lib).
-* @see load_cloned_object
-*/
-function load_install_file( $name, $core = false )
-{
-	return require path( 'install', $core ) . $name . PHP;
 }
 //------------------------------------------------------------------------
 /**
@@ -437,11 +404,6 @@ function cli_controller( $name, $core = false )
 function controller( $name, $core = false )
 {
 	return path( 'controllers', $core ) . $name . PHP;
-}
-//------------------------------------------------------------------------
-function install_file( $name, $core = true )
-{
-	return path( 'install', $core ) . $name . PHP;
 }
 //------------------------------------------------------------------------
 function view( $name, $core = false )
@@ -1222,6 +1184,11 @@ function get_dump( &$var, $formatHTML = false )
 	return $prefix . ob_get_clean() . $postfix;
 }
 //------------------------------------------------------------------------
+function pre_dump( &$var )
+{
+	echo get_dump( $var, true );
+}
+//------------------------------------------------------------------------
 function rtrace($test)
 {
 	$btrace = array();
@@ -1315,7 +1282,10 @@ function tz_str_to_utc_ts( $text, $tz  )
  */
 function tz_strtotime( $text, $tz = 'UTC' )
 {
-	if ( empty( $text )  ) return time();
+	if ( empty( $text )  )
+	{
+		return time::currentTs();
+	}
 
 	$ts = strtotime( $text . ' ' . $tz );
 
@@ -1339,41 +1309,6 @@ function tz_date( $format, $ts, $tz = 'UTC' )
 	$date->setTimezone( $tz );
 
 	return $date->toString( $format );
-}
-//------------------------------------------------------------------------
-function tz_date_str( $time )
-{
-	return tz_date('Y-m-d', $time, TZ_DEFAULT );
-}
-//------------------------------------------------------------------------
-/*
- * Return the current unix timestamp for our default time zone (Central)
- * @return Str The current timestamp for Central time zone
- */
-function tz_default_time()
-{
-	date_default_timezone_set(TZ_DEFAULT);
-
-	$result = time();
-
-	date_default_timezone_set('UTC');
-
-	return $result;
-}
-//------------------------------------------------------------------------
-/*
- * Return the current date for our default time zone (Central)
- * @return Str The formatted date string for Central time zone
- */
-function tz_default_date( $format = DT_FORMAT_SQL_DATE )
-{
-	date_default_timezone_set(TZ_DEFAULT);
-
-	$result = date( $format, time() );
-
-	date_default_timezone_set('UTC');
-
-	return $result;
 }
 //------------------------------------------------------------------------
 /*
@@ -1411,9 +1346,4 @@ function tz_gmdate_end( $format, $ts, $tz )
 {
 	$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_END, $ts, $tz ), $tz );
 	return gmdate( $format, $ts );
-}
-//------------------------------------------------------------------------
-function coreTable( $name )
-{
-	return CORE_TABLE_PREFIX . $name;
 }

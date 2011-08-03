@@ -8,7 +8,7 @@ for complete licensing information.
 
 // defines in tgsf_core/config/constants.php
 
-function &AUTH( $model = null, $autoStart = false )
+function &AUTH( $model = null )
 {
 	if ( TGSF_CLI === true )
 	{
@@ -16,7 +16,7 @@ function &AUTH( $model = null, $autoStart = false )
 	}
 	else
 	{
-		return tgsfUserAuth::get_instance( $model, $autoStart );
+		return tgsfUserAuth::get_instance( $model );
 	}
 }
 //------------------------------------------------------------------------
@@ -30,14 +30,6 @@ function AUTH_is_configured()
 	{
 		return tgsfUserAuth::$configured;
 	}
-}
-interface tgsfUserAuthModel
-{
-	public function getForAuth( $id );
-	public function login( $ds );
-	public function getAuthRecordId( $row );
-	public function getLoginTimeZone( $row );
-	public function getAuthRole( $row );
 }
 //------------------------------------------------------------------------
 class tgsfUserAuth extends tgsfBase
@@ -56,21 +48,9 @@ class tgsfUserAuth extends tgsfBase
 	* user's login record if so.
 	* it is also protected as we will be using the get_instance method to instantiate
 	*/
-	protected function __construct( $model, $autoStart = false )
+	protected function __construct( $model )
 	{
 		$this->model = $model;
-		self::$configured = true;
-		if ( $autoStart )
-		{
-			$this->startSession();
-		}
-	}
-	//------------------------------------------------------------------------
-	/**
-	*
-	*/
-	public function startSession()
-	{
 		SESSION()->start();
 		$this->_ro_loggedIn = ! empty( $_SESSION['loggedin'] ) && $_SESSION['loggedin'] === true;
 
@@ -120,6 +100,7 @@ class tgsfUserAuth extends tgsfBase
 		$this->logout();
 		return false;
 	}
+
 	//------------------------------------------------------------------------
 	/*
 	 * Return the logged in users time zone
@@ -129,6 +110,7 @@ class tgsfUserAuth extends tgsfBase
 		if ( ! $this->loggedIn ) return TZ_DEFAULT;
 		return $this->model->getLoginTimeZone( $this->_ro_user );
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Returns the logged in user's id
@@ -241,7 +223,7 @@ class tgsfUserAuth extends tgsfBase
 	/**
 	* Static function that returns the singleton instance of this class.
 	*/
-	public static function &get_instance( $model, $autoStart )
+	public static function &get_instance( $model )
 	{
 		if ( self::$_instance === null )
 		{
@@ -286,6 +268,7 @@ class tgsfUserAuthCLI extends tgsfUserAuth
 	{
 		return TZ_DEFAULT;
 	}
+
 	//------------------------------------------------------------------------
 	/**
 	* Returns the logged in user's id

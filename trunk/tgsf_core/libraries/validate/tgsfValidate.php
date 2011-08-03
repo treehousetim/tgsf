@@ -162,4 +162,21 @@ class tgsfValidate extends tgsfBase
 		}
 		return $this->_ro_valid;
 	}
+	//------------------------------------------------------------------------
+	/**
+	* Gets all the errors currently on the validator
+	* @param String The glue that will be used for implode() on the errors, defaults to PHP_EOL
+	*/
+	public function getConcatAllErrors( $glue = ', ' )
+	{
+		// create a buffer array to add in the field names
+		$allErrors = array();
+		
+		foreach ( $this->_ro_errors as $fieldName => $errorList )
+		{
+			$allErrors[] = $fieldName . ': ' . implode( ' and ', $errorList );
+		}
+		
+		return implode( $glue, $allErrors );
+	}
 }

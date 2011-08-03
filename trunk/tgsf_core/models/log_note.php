@@ -80,7 +80,7 @@ class logNoteModel extends tgsfBase
 	*/
 	public function insert( $ds )
 	{
-		$ds->setVar( 'log_note_datetime', gmdate( DT_FORMAT_SQL ) );
+		$ds->setVar( 'log_note_datetime', date::UTCcurrentDatetime() );
 		$ds->setVar( 'log_note_user_id', 0 );
 
 		if ( function_exists( 'AUTH_is_configured' ) && AUTH_is_configured() && AUTH()->loggedIn )

@@ -312,7 +312,7 @@ You must use `->pt( param_type )` in conjunction with autoBind.
 *Example*
 {{{
 <?php
-$ds = tgsfDataSource::factory()
+$ds = dsFactory::ds()
     ->setVar( 'field1', 'example' )
     ->setVar( 'field2', 123 );
 
@@ -333,7 +333,7 @@ pt is used in conjunction with auto-binding datasources to queries.  If you are 
 *Example*
 {{{
 <?php
-$ds = tgsfDataSource::factory()
+$ds = dsFactory::ds()
     ->setVar( 'field1', 'example' )
     ->setVar( 'field2', 123 );
 

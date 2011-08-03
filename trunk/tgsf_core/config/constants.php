@@ -6,7 +6,6 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 // registry context defines
-// used in versioning too
 enum( 'context', 
 	array(
 		'CORE'	=> 'tgsf_core',
@@ -14,19 +13,6 @@ enum( 'context',
 		'APP'	=> 'single_app'
 		)
 	);
-enum( 'rt',
-	array(
-		'STATIC'		=> 'static',
-		'TEXT'			=> 'text',
-		'TEXTAREA'		=> 'textarea',
-		'CHECKBOX'		=> 'checkbox',
-		'DROPDOWN'		=> 'dropdown',
-		'SERIALIZED'	=> 'serialized',
-		'HIDDEN'		=> 'hidden'
-		));
-//------------------------------------------------------------------------
-// attempt to be unique enough to not be a value stored in the reg table
-define( 'regNOT_EXISTS', 'reg-not-exists-tgsfAEPIO90' );
 //------------------------------------------------------------------------
 // plugin event types
 enum( 'event', 
@@ -55,8 +41,7 @@ enum( 'dsType',
 		// database
 		'DB',
 		
-		// get, post, request for http handling
-		'REQUEST',
+		// get & post for http handling
 		'POST',
 		'GET',
 		

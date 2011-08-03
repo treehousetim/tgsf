@@ -18,7 +18,7 @@ class formTop extends tgsfFormTemplate
 		$tag->css_class( $field->name . '_field' );
 		$tag->addTag( $field->tag );
 
-		if ( $field->desc != '' )
+		if ( trim( $field->desc ) != '' )
 		{
 			$tag->addTag( 'p' )->content( $field->desc )->id( $field->name . '_desc' );
 		}

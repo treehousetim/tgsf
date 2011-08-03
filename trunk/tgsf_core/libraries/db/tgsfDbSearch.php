@@ -44,7 +44,7 @@ abstract class tgsfDbSearch extends tgsfGrid
 	*/
 	public function &prevAnchorTag( $linkText = 'Prev &laquo;', $linkTitle = 'Previous Page' )
 	{
-		return $this->_query->getPrevLinkUrl( (string) $this->_ro_url )
+		return $this->_query->getPrevLinkUrl( $this->_ro_url->url, $this->_ro_url )
 			->anchorTag()->addAttribute( 'title', $linkTitle )
 			->content( $linkTitle );
 	}

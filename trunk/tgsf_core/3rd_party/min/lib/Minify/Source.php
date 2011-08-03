@@ -36,11 +36,6 @@ class Minify_Source {
     public $filepath = null;
     
     /**
-     * @var string HTTP Content Type (Minify requires one of the constants Minify::TYPE_*)
-     */
-    public $contentType = null;
-    
-    /**
      * Create a Minify_Source
      * 
      * In the $spec array(), you can either provide a 'filepath' to an existing
@@ -59,17 +54,6 @@ class Minify_Source {
             if (0 === strpos($spec['filepath'], '//')) {
                 $spec['filepath'] = $_SERVER['DOCUMENT_ROOT'] . substr($spec['filepath'], 1);
             }
-            $segments = explode('.', $spec['filepath']);
-            $ext = strtolower(array_pop($segments));
-            switch ($ext) {
-            case 'js'   : $this->contentType = 'application/x-javascript';
-                          break;
-            case 'css'  : $this->contentType = 'text/css';
-                          break;
-            case 'htm'  : // fallthrough
-            case 'html' : $this->contentType = 'text/html';
-                          break;
-            }
             $this->filepath = $spec['filepath'];
             $this->_id = $spec['filepath'];
             $this->lastModified = filemtime($spec['filepath'])
@@ -85,9 +69,6 @@ class Minify_Source {
             $this->lastModified = isset($spec['lastModified'])
                 ? $spec['lastModified']
                 : time();
-        }
-        if (isset($spec['contentType'])) {
-            $this->contentType = $spec['contentType'];
         }
         if (isset($spec['minifier'])) {
             $this->minifier = $spec['minifier'];
@@ -162,7 +143,7 @@ class Minify_Source {
     }
     
     /**
-     * Get content type from a group of sources
+     * Guess content type from the first filename extension available
      * 
      * This is called if the user doesn't pass in a 'contentType' options  
      * 
@@ -172,9 +153,18 @@ class Minify_Source {
      */
     public static function getContentType($sources)
     {
+        $exts = array(
+            'css' => Minify::TYPE_CSS
+            ,'js' => Minify::TYPE_JS
+            ,'html' => Minify::TYPE_HTML
+        );
         foreach ($sources as $source) {
-            if ($source->contentType !== null) {
-                return $source->contentType;
+            if (null !== $source->filepath) {
+                $segments = explode('.', $source->filepath);
+                $ext = array_pop($segments);
+                if (isset($exts[$ext])) {
+                    return $exts[$ext];
+                }
             }
         }
         return 'text/plain';

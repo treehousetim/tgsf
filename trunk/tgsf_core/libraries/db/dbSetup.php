@@ -188,18 +188,13 @@ class dbSetup extends tgsfBase
 	*/
 	public function beginTransaction()
 	{
-		if ( $this->allowNestedTransactions === false )
+		if ( $this->inTransaction() )
 		{
-			if ( $this->_transactionLevel == 0 )
-			{
-				$this->handle()->beginTransaction();
-			}
+			throw new tgsfDbException( 'Nested Transactions Are Not Allowed (begin trans)' );
 		}
-		else
-		{
-			$this->handle()->exec( $this->_savepoint() );
-		}
-		$this->_transactionLevel++;
+		
+		$this->_transactionLevel = $this->_transactionLevel +1;
+		$this->handle()->beginTransaction();
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -207,24 +202,14 @@ class dbSetup extends tgsfBase
 	*/
 	public function commit()
 	{
-		if ( $this->_transactionLevel < 1 )
+		if ( ! $this->inTransaction() )
 		{
-			throw new tgsfDbException( 'Unable to commit - no active transaction' );
+			$this->_transactionLevel = $this->_transactionLevel -1;
+			throw new tgsfDbException( 'Unable to commit - no active transaction: ' .$this->_transactionLevel );
 		}
 
-		$this->_transactionLevel--;
-
-		if ( $this->allowNestedTransactions === false )
-		{
-			if ( $this->_transactionLevel == 0 )
-			{
-				$this->handle()->commit();
-			}
-		}
-		else
-		{
-			$this->handle()->exec( 'RELEASE ' . $this->_savepoint() );
-		}
+		$this->_transactionLevel = $this->_transactionLevel -1;
+		$this->handle()->commit();
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -233,14 +218,7 @@ class dbSetup extends tgsfBase
 	*/
 	public function inTransaction( )
 	{
-		if ($this->_transactionLevel < 1 )
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+		return $this->_transactionLevel == 1;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -249,37 +227,14 @@ class dbSetup extends tgsfBase
 	*/
 	public function rollBack( $exception = null )
 	{
-		if ( $this->_transactionLevel < 1 )
+		if ( ! $this->inTransaction() )
 		{
-			throw new tgsfDbException( 'Unable to rollback - no active transaction' );
+			$this->_transactionLevel = $this->_transactionLevel -1;
+			throw new tgsfDbException( 'Unable to rollback - no active transaction: ' . ($this->_transactionLevel+1) );
 		}
 
-		$this->_transactionLevel--;
-
-		if ( $this->allowNestedTransactions === false )
-		{
-			if ( $this->_transactionLevel == 0 )
-			{
-				$this->handle()->rollBack();
-			}
-			else
-			{
-				if ( $exception === null )
-				{
-					$ex = tgsfDbException( 'Unable to rollback nested transactions.' );
-				}
-				else
-				{
-					$ex = tgsfDbException( 'Unable to rollback nested transactions - ' . $exception->getMessage() );
-				}
-
-				throw $ex;
-			}
-		}
-		else
-		{
-			$this->handle()->exec( 'ROLLBACK TO ' . $this->_savepoint() );
-		}
+		$this->_transactionLevel = $this->_transactionLevel -1;
+		$this->handle()->rollBack();
 	}
 	//------------------------------------------------------------------------
 	public function lastInsertId()

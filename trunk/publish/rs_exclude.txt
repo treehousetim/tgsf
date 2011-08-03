@@ -14,3 +14,4 @@ rx_sync_include.txt
 /application/assets/images/static
 /info.php
 /demo.sh
+/faq

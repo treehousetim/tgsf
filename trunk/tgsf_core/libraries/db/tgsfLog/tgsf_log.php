@@ -99,7 +99,9 @@ class tgsfLog extends tgsfBase
 		$message .= $error;
 		if ( is_null( $ds ) === false )
 		{
-			$message .= get_dump( $ds->dataObject() );
+			$dd = $ds->dataObject();
+
+			$message .= get_dump( $dd );
 		}
 
 		$this->log( $message, 'query' );

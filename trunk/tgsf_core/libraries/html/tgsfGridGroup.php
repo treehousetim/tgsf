@@ -9,7 +9,7 @@ for complete licensing information.
 
 /**
 * Sample usage in a grid setup
-* addGroup()->watchField( 'account_login_id' )->header( 'login_last_name', ', ', 'login_first_name' )->footer( 'Total:', '{sum:field', '' );
+* addGroup()->breakField( 'account_login_id' )->header( 'login_last_name', ', ', 'login_first_name' )->footer( 'Total:', '{sum:field', '' );
 */
 
 
