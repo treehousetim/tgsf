@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is Copyright (C) by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -166,15 +166,23 @@ class tgsfValidate extends tgsfBase
 	/**
 	* Gets all the errors currently on the validator
 	* @param String The glue that will be used for implode() on the errors, defaults to PHP_EOL
+	* @param Array an array of alternate field names to use.  $array['oldName'] = 'newName'; can be used, for example, to provide friendly names for fields instead of datasource field names
 	*/
-	public function getConcatAllErrors( $glue = ', ' )
+	public function getConcatAllErrors( $glue = ', ', $altFieldNames )
 	{
 		// create a buffer array to add in the field names
 		$allErrors = array();
-		
+
 		foreach ( $this->_ro_errors as $fieldName => $errorList )
 		{
-			$allErrors[] = $fieldName . ': ' . implode( ' and ', $errorList );
+			$_fieldName = $fieldName;
+
+			if ( $altFieldNames != null && array_key_exists( $fieldName, $altFieldNames ) )
+			{
+				$_fieldName = $altFieldNames[$fieldName];
+			}
+
+			$allErrors[] = $_fieldName . ': ' . implode( ' and ', $errorList );
 		}
 		
 		return implode( $glue, $allErrors );

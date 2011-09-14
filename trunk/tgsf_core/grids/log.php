@@ -1,5 +1,5 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
-/* This code is copyright 2009 by Mass Metal LLC.  ALL RIGHTS RESERVED. */
+/* This code is Copyright (C) by Mass Metal LLC.  ALL RIGHTS RESERVED. */
 
 class logListGrid extends tgsfGrid
 {

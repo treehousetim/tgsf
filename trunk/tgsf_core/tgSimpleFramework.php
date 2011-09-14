@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2011 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is Copyright (C) by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -955,6 +955,22 @@ function general_log( $message, $file = 'general_log.txt' )
 //------------------------------------------------------------------------
 // utility functions
 //------------------------------------------------------------------------
+function remote_addr_clean()
+{
+	if ( TGSF_CLI )
+	{
+		return '127.0.0.1';
+	}
+	elseif ( array_key_exists( 'REMOTE_ADDR', $_SERVER ) )
+	{
+		return $_SERVER['REMOTE_ADDR'];
+	}
+	else
+	{
+		return 'N/A';
+	}
+}
+//------------------------------------------------------------------------
 /**
 *
 */
@@ -1217,7 +1233,7 @@ function rtrace($test)
 
 	return $btrace;
 }
-
+//------------------------------------------------------------------------
 function rdebug( $var, $stackTrace = false )
 {
 	ob_start();
