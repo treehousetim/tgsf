@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is Copyright (C) by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -228,7 +228,9 @@ class tvr_clean_address extends tgsfValidateRule
 	public function execute( $fieldName, $ds )
 	{
 		// dash must be last in this expression
-		$this->valid = preg_match('/^[A-Z0-9@#*(),.:& -]+$/i', $ds->_( $fieldName ) );
+		// first character is a slash - it's escaped so it looks like \/
+		// this is to support addresses like 912 1/2 - i.e. apartments above a store
+		$this->valid = preg_match('/^[\/A-Z0-9@#*(),.:& -]+$/i', $ds->_( $fieldName ) );
 		return $this->valid;
 	}
 }

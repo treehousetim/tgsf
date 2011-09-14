@@ -1,13 +1,22 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is Copyright (C) by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license
 for complete licensing information.
 */
 
-// defines in tgsf_core/config/constants.php
+// an interface for the model
+interface tgsfAuthModel
+{
+	public function getForAuth( $record_id );
+	public function login( tgsfDataSource $ds );
+	public function getAuthRecordId( tgsfDataSource $row );
+	public function getLoginTimeZone( tgsfDataSource $row );
+	public function getAuthRole( tgsfDataSource $row );
+}
 
+//------------------------------------------------------------------------
 function &AUTH( $model = null )
 {
 	if ( TGSF_CLI === true )
@@ -86,6 +95,7 @@ class tgsfUserAuth extends tgsfBase
 		{
 			$this->_ro_user = $row;
 			$_SESSION['loggedin'] = true;
+			$this->_ro_loggedIn = true;
 			$_SESSION['record_id'] = $this->model->getAuthRecordId( $row );
 			$this->_ro_user	= $this->model->getForAuth( $_SESSION['record_id'] );
 
@@ -93,7 +103,9 @@ class tgsfUserAuth extends tgsfBase
 				->event( 'AUTH_logged_in' )
 				->setVar( 'scope', $this )
 				->exec();
-				
+
+			$this->_ro_user	= $this->model->getForAuth( $this->model->getAuthRecordId( $row ) );
+
 			return true;
 		}
 
@@ -133,6 +145,7 @@ class tgsfUserAuth extends tgsfBase
 	public function logout()
 	{
 		$_SESSION['loggedin'] = false;
+		$this->_ro_loggedIn = false;
 		if ( ! empty( $_SESSION['record_id'] ) )
 		{
 			unset( $_SESSION['record_id'] );
@@ -160,6 +173,24 @@ class tgsfUserAuth extends tgsfBase
 		}
 
 		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function getRole()
+	{
+		tgsfEventFactory::action()
+			->event( 'AUTH_get_role' )
+			->setVar( 'scope', $this )
+			->exec();
+
+		if ( $this->loggedIn === true )
+		{
+			return $this->model->getAuthRole( $this->_ro_user );
+		}
+		
+		return false;
 	}
 	//------------------------------------------------------------------------
 	/**

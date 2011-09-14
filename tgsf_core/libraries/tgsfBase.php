@@ -1,6 +1,6 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
 /*
-This code is copyright 2009-2010 by TMLA INC.  ALL RIGHTS RESERVED.
+This code is Copyright (C) by TMLA INC.  ALL RIGHTS RESERVED.
 Please view license.txt in /tgsf_core/legal/license.txt or
 http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
@@ -11,8 +11,6 @@ for complete licensing information.
 * To avoid exceptions from being thrown, you need to override these functions in your extending class, or
 * declare all variables you'll be using in the class definition.
 */
-//include  CORE_PATH . 'libraries/tgsfMemory.php';
-
 abstract class tgsfBase
 {
 	public function __get( $name )

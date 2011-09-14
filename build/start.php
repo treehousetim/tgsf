@@ -19,15 +19,17 @@ $versionFile = '../tgsf_core/config/version.php';
 
 include $versionFile;
 
-$build++;
+$release++;
 
 $out = "<?php\n";
 $out .= '$major = ' . $major . ";" . PHP_EOL;
 $out .= '$minor = ' . $minor . ";" . PHP_EOL;
-$out .= '$build = ' . $build . ";" . PHP_EOL . PHP_EOL;
-$out .= '$versionString = "{$major}.{$minor}.{$build}";' . PHP_EOL;
+$out .= '$build = ' . $build . ";" . PHP_EOL;
+$out .= '$release = ' . $release . ";" . PHP_EOL . PHP_EOL;
+
+$out .= '$versionString = "{$major}.{$minor}.{$build}-]r{$release}";' . PHP_EOL;
 $out .= "define( 'TGSF_VERSION', \$versionString );" . PHP_EOL;
-$out .= "define( 'TGSF_VERSION_INT', \$major . \$minor . \$build );" . PHP_EOL;
+$out .= "define( 'TGSF_VERSION_INT', \$major . \$minor . \$build . \$release );" . PHP_EOL;
 
 file_put_contents( $versionFile, $out );
 include $versionFile;
@@ -86,47 +88,4 @@ function createZip( $zipName, $folderToZip )
 	//@unlink( $zipName . '.tar.gz' );
 	system( "zip -r9 -q {$zipName}.zip {$folderToZip}" );
 	//system( "tar -pczf {$zipName}.tar.gz {$folderToZip}" );
-}
-//------------------------------------------------------------------------
-// this function comes from the PHP manual notes
-// from this url: http://php.net/manual/en/function.rmdir.php
-// it is included here based on the fact that manual notes
-// become the property of the PHP Documentation Group
-// and that the documentation is covered under the following license
-// Creative Commons Attribution 3.0 License
-// this note serves as the attribution needed for inclusion
-// 3RD PARTY LICENSE: Creative Commons Attribution 3.0 License
-function remove_dir( $path )
-{
-	// this function is toxic since it has great power.
-	// i'm not using it right now and instead manually removing the folders after running this process.
-	return;
-	if ( ! file_exists( $path ) )
-	{
-		return;
-	}
-	
-	$f1 = glob( $path . "/*" );
-	$f2 = glob( $path . "/.*" );
-	$files = array_merge( $f1, $f2 );
-	
-	foreach( $files as $file )
-	{
-		echo $file . "\n\n";
-		if ( basename( $file ) == '.' || basename( $file ) == '..' )
-		{
-			continue;
-		}
-		
-		if ( is_dir( $file ) )
-		{
-			echo $file . "\n\n";
-			remove_dir( $file );
-		}
-		else
-		{
-			unlink( $file );
-		}
-	}
-	rmdir( $path );
 }
