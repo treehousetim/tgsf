@@ -149,7 +149,7 @@ class date extends tgsfBase
 	static public function jsDateObject( $date )
 	{
 		$dt = new DateTime( $date );
-		return 'new Date( ' . $dt->format( 'Y, n-1, j, g, i, s' ) . ')';
+		return 'new Date( ' . $dt->format( 'Y, n-1, j, G, i, s' ) . ')';
 	}
 	//------------------------------------------------------------------------
 	static public function compare( $date1, $date2, $operator )
