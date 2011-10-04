@@ -24,6 +24,7 @@ include view( 'header' );
 <p>You can visit our <a href="http://code.google.com/p/tgsf/">Google Code</a> project page</a> for more information</p>
 <br>
 <p>There are some simple <?= URL( 'examples' )->anchorTag( 'examples.' ); ?></p>
+<p>There is some <a href="http://code.google.com/p/tgsf/wiki/HomePage?tm=6">lame documentation</a></p>
 <br>
 <p>You should not put your content directly in controllers like we've done with our sample home page.  Please use views instead of putting HTML output directly in your controller.  You'll be happier, we'll be happier, and everyone else will be happier and will give you a hearty thump on the back and congratulate you.</p>
 <br>
