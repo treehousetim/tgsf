@@ -1,5 +1,5 @@
 <?php defined( 'BASEPATH' ) or die( 'Restricted' );
-/* This code is Copyright (C) by Mass Metal LLC.  ALL RIGHTS RESERVED. */
+/* This code is Copyright (C) by TMLA INC ALL RIGHTS RESERVED. */
 
 class logModel extends tgsfBase
 {
