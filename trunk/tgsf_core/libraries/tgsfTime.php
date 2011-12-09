@@ -16,14 +16,11 @@ class time extends tgsfBase
 	*/
 	static public function currentTs()
 	{
-// Do NOT Merge this Code - for DEMO only - to get a custom date set $GLOBALS['customTs'] to mktime(...);
-
 		if ( $GLOBALS['customTs'] != null )
 		{
 			return $GLOBALS['customTs'];
 		}
 
-//end.
 		$ts = time();
 
 		return $ts;

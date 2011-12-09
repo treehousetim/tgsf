@@ -7,6 +7,7 @@ for complete licensing information.
 */
 
 // registers the static page plugin
+/*
 tgsfPlugin::loaderFactory()
 	->file( plugin( 'static_page/static_page', IS_CORE ) )
 	->name( 'static_page' )
@@ -16,6 +17,7 @@ tgsfEventFactory::actionHandler()
 	->event( 'static_page_init' )
 	->func( 'config_static_page' )
 	->attach();
+*/
 
 function config_static_page( $name )
 {

@@ -6,13 +6,80 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-class date extends tgsfBase
+class date
 {
+	//------------------------------------------------------------------------
+	/**
+	* Either returns the logged in user's timezone or the value of TZ_DEFAULT
+	*/
+	static public function getTimezone()
+	{
+		return function_exists( 'AUTH' )?AUTH()->getLoginTimeZone():TZ_DEFAULT;
+	}
+	//------------------------------------------------------------------------
+	/*
+	 * Convert a date string for a specific timezone into a timestamp
+	 * @param Str The date string
+	 * @param Str The timezone of the date string
+	 * @return Int The timestamp result
+	 */
+	function tz_strtotime( $text, $tz = 'UTC' )
+	{
+		if ( empty( $text )  )
+		{
+			return time::currentTs();
+		}
+
+		$ts = strtotime( $text . ' ' . $tz );
+
+		return $ts;
+	}
+
+	//------------------------------------------------------------------------
+	/*
+	* $ts is expected to be a time stamp.  You can pass a string, but the string
+	* must already be in UTC - the timezone here is only used for output
+	* not for translating a passed $ts string
+	*/
+	function tz_gmdate_start( $format, $ts, $tz )
+	{
+		$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_START, $ts, $tz ), $tz );
+		return gmdate( $format, $ts );
+	}
+	//------------------------------------------------------------------------
+	/*
+	* $ts is expected to be a time stamp.  You can pass a string, but the string
+	* must already be in UTC - the timezone here is only used for output
+	* not for translating a passed $ts string
+	*/
+	function tz_gmdate_end( $format, $ts, $tz )
+	{
+		$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_END, $ts, $tz ), $tz );
+		return gmdate( $format, $ts );
+	}
+	
+	
+	/**
+	* wraps the getdate php function and honors the supplied timezone
+	* sets the php default timezone to UTC when done
+	*/
+	static public function getdate( $ts, $tz = TZ_DEFAULT )
+	{
+		$ts = is_int( $ts )?$ts : strtotime($ts);
+
+		date_default_timezone_set( $tz );
+
+		$result = getdate( $timestamp );
+
+		date_default_timezone_set('UTC');
+
+		return $result;
+	}
 	//------------------------------------------------------------------------
 	/**
 	*
 	*/
-	public function getDayForDate( $date, $tz = TZ_DEFAULT  )
+	static public function getDayForDate( $date, $tz = TZ_DEFAULT  )
 	{
 		$dt = new DateTime( $date, new DateTimeZone( $tz ) );
 		return $dt->format( 'd' );
@@ -39,8 +106,7 @@ class date extends tgsfBase
 	*/
 	static public function currentDatetime( $format = DT_FORMAT_SQL, $tz = TZ_DEFAULT )
 	{
-		$dt = new DateTime( tz_date(DT_FORMAT_SQL, time::currentTs(), $tz), new DateTimeZone( $tz ) );
-		return $dt->format( $format );
+		return date::convertTz( '@' . time::currentTs(), 'UTC', $tz, $format );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -59,6 +125,18 @@ class date extends tgsfBase
 	static public function currentDateForTime( $tod, $format = DT_FORMAT_SQL, $tz = TZ_DEFAULT )
 	{
 		$dt = new DateTime( date::currentDate(DT_FORMAT_SQL_DATE, 'UTC') . ' ' . $tod, new DateTimeZone( $tz ) );
+		return $dt->format( $format );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	static public function tzDate( $ts, $format = DT_FORMAT_SQL, $tz = 'UTC' )
+	{
+		$tzo = new DateTimeZone( $tz );
+		$ts = is_int( $ts )?$ts : strtotime($ts);
+		$dt = new DateTime( '@' . $ts, $tzo );
+		$dt->setTimezone( $tzo );
 		return $dt->format( $format );
 	}
 	//------------------------------------------------------------------------
@@ -96,7 +174,7 @@ class date extends tgsfBase
 	/**
 	* Adds x days to the supplied date - if you only pass a date it simply adds 1 day
 	* @param String The date to add days to
-	* @param Int The number of days to add (no default, othersiwe it is not obvious what is happening)
+	* @param Int The number of days to add (no default, otherwise it is not obvious what is happening)
 	* @param String The date format - defaults to DT_FORMAT_SQL_DATE
 	* @param String The timezone - defaults to TZ_DEFAULT
 	*/
@@ -136,14 +214,14 @@ class date extends tgsfBase
 		return $time;
 	}
 	//------------------------------------------------------------------------
-	static public function currentMonthBeg()
+	static public function currentMonthBegin()
 	{
-		return gmdate( DT_FORMAT_SQL, tz_strtotime( gmdate( 'Y-m-1 00:00:00', time::currentTs() ), TZ_DEFAULT ) );
+		return gmdate( DT_FORMAT_SQL, date::tz_strtotime( gmdate( 'Y-m-1 00:00:00', time::currentTs() ), TZ_DEFAULT ) );
 	}
 	//------------------------------------------------------------------------
 	static public function currentMonthEnd()
 	{
-		return gmdate( DT_FORMAT_SQL, tz_strtotime( gmdate( 'Y-m-t 23:59:59', time::currentTs() ), TZ_DEFAULT ) );
+		return gmdate( DT_FORMAT_SQL, date::tz_strtotime( gmdate( 'Y-m-t 23:59:59', time::currentTs() ), TZ_DEFAULT ) );
 	}
 	//------------------------------------------------------------------------
 	static public function jsDateObject( $date )

@@ -11,6 +11,8 @@ for complete licensing information.
 
 // what follows is simply an example.
 load_library( 'tgsfUserAuth', IS_CORE_LIB );
+load_library( 'tgsfTime', IS_CORE_LIB );
+load_library( 'tgsfDate', IS_CORE_LIB );
 
 /*
 $authModel = load_model( 'user' );

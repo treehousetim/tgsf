@@ -427,6 +427,11 @@ function image( $file, $core = false )
 	return $root . $file;
 }
 //------------------------------------------------------------------------
+function imageUrl( $file, $absolute = false, $core = false )
+{
+	return image_url( $file, $absolute, $core );
+}
+//------------------------------------------------------------------------
 function image_url( $file, $absolute = false, $core = false )
 {
 	$loc = url_path( 'assets/images', $core );
@@ -493,7 +498,7 @@ function tgsf_parse_url()
 
     if ( $page == '' )
 	{
-	    $page = 'home';
+	    $page = 'index';
 	}
 
 	return $page;
@@ -1273,93 +1278,4 @@ function memory_stats()
 		fb( number_format(memory_get_usage()), 'Mem Usage', FirePHP::INFO );
 		fb( number_format(memory_get_peak_usage()), 'Mem Usage (Peak)', FirePHP::INFO );
 	}
-}
-//------------------------------------------------------------------------
-function getTimezone()
-{
-	return function_exists( 'AUTH' )?AUTH()->getLoginTimeZone():TZ_DEFAULT;
-}
-//------------------------------------------------------------------------
-function tz_convert_string_to_utc( $text, $tz = 'UTC' )
-{
-	return tz_strtotime( $text, $tz );
-}
-//------------------------------------------------------------------------
-function tz_str_to_utc_ts( $text, $tz  )
-{
-	return tz_strtotime( $text, $tz );
-}
-//------------------------------------------------------------------------
-/*
- * Convert a date string for a specific timezone into a timestamp
- * @param Str The date string
- * @param Str The timezone of the date string
- * @return Int The timestamp result
- */
-function tz_strtotime( $text, $tz = 'UTC' )
-{
-	if ( empty( $text )  )
-	{
-		return time::currentTs();
-	}
-
-	$ts = strtotime( $text . ' ' . $tz );
-
-	return $ts;
-}
-//------------------------------------------------------------------------
-/*
- * DEPENDENCY: Zend_Date
- * Convert a timestamp into a date string with a specific timezone
- * @param Str The date format to return
- * @param Int The timestamp to offset and stringify
- * @param Str The timezone to use for the return date string
- * @return Str The formatted date string for specified timezone
- */
-function tz_date( $format, $ts, $tz = 'UTC' )
-{
-	// force ts to be a timestamp (integer) - if not an int we force a strtotime
-	$ts = is_int( $ts )?$ts : strtotime($ts);
-
-	$date = new Zend_Date( $ts, Zend_Date::TIMESTAMP );
-	$date->setTimezone( $tz );
-
-	return $date->toString( $format );
-}
-//------------------------------------------------------------------------
-/*
- * Return the result of getdate for our default time zone (Central)
- * @return array The date parts as returned by getdate
- */
-function tz_default_getdate( $timestamp )
-{
-	date_default_timezone_set(TZ_DEFAULT);
-
-	$result = getdate($timestamp);
-
-	date_default_timezone_set('UTC');
-
-	return $result;
-}
-//------------------------------------------------------------------------
-/*
-* $ts is expected to be a time stamp.  You can pass a string, but the string
-* must already be in UTC - the timezone here is only used for output
-* not for translating a passed $ts string
-*/
-function tz_gmdate_start( $format, $ts, $tz )
-{
-	$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_START, $ts, $tz ), $tz );
-	return gmdate( $format, $ts );
-}
-//------------------------------------------------------------------------
-/*
-* $ts is expected to be a time stamp.  You can pass a string, but the string
-* must already be in UTC - the timezone here is only used for output
-* not for translating a passed $ts string
-*/
-function tz_gmdate_end( $format, $ts, $tz )
-{
-	$ts = tz_strtotime( tz_date( DT_FORMAT_SQL_END, $ts, $tz ), $tz );
-	return gmdate( $format, $ts );
 }
