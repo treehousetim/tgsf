@@ -22,6 +22,6 @@ if ( $exception !== null && config( 'debug_mode' ) === true )
 //------------------------------------------------------------------------
 
 $isError = true;
-include view( 'header' );
+include view( 'template/header' );
 include view( 'error' );
-include view( 'footer' );
+include view( 'template/footer' );

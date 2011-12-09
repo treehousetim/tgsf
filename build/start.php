@@ -27,7 +27,7 @@ $out .= '$minor = ' . $minor . ";" . PHP_EOL;
 $out .= '$build = ' . $build . ";" . PHP_EOL;
 $out .= '$release = ' . $release . ";" . PHP_EOL . PHP_EOL;
 
-$out .= '$versionString = "{$major}.{$minor}.{$build}-]r{$release}";' . PHP_EOL;
+$out .= '$versionString = "{$major}.{$minor}.{$build}-r{$release}";' . PHP_EOL;
 $out .= "define( 'TGSF_VERSION', \$versionString );" . PHP_EOL;
 $out .= "define( 'TGSF_VERSION_INT', \$major . \$minor . \$build . \$release );" . PHP_EOL;
 
@@ -44,10 +44,9 @@ runRsync( $fullFolder, 'rs_exclude_full.txt' );
 createZip( $fullFolder, $fullFolder );
 
 
-echo "\n" . 'Uploading to Google Code';
-
-uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass, 'Featured' );
-uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass, 'Featured' );
+//echo "\n" . 'Uploading to Google Code';
+//uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass, 'Featured' );
+//uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass, 'Featured' );
 
 
 //------------------------------------------------------------------------
@@ -70,6 +69,7 @@ function uploadToGoogleCode( $summary, $project, $file, $user, $pass, $labels = 
 //------------------------------------------------------------------------
 function runRsync( $dest, $exclude )
 {
+	$c - '';
 	echo "Running RSync\n";
 	$exclude= "--exclude-from=" . $exclude;
 	$pg = "--no-p --no-g";

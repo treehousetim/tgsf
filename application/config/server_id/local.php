@@ -6,13 +6,7 @@ http://tgWebSolutions.com/opensource/tgsf/license.txt
 for complete licensing information.
 */
 
-load_library( 'tgsfVersion', IS_CORE );
+// local config - most setups will use this file.
 
-$blocks[] = load_install_file( 'all', IS_CORE );
-$blocks[] = load_install_file( 'all' );
-
-
-$windowTitle = 'tgsf Installer';
-include view( 'header' );
-include view( 'install/index' );
-include view( 'footer' );
+//load_database_libraries();
+//dbm()->useSetup( new dbSetup( 'user', 'password', 'db-name' ) );

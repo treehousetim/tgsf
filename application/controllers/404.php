@@ -4,7 +4,7 @@ header( 'HTTP/1.0 404 Not Found' );
 
 $windowTitle = 'An Error has occured.';
 $title = $windowTitle;
-include view( 'header' );
+include view( 'template/header' );
 
 ?>
 
@@ -14,4 +14,4 @@ include view( 'header' );
 <br><br><br>
 
 <?
-include view( 'footer' );
+include view( 'template/footer' );
