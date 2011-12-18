@@ -85,10 +85,12 @@ class tgsfDataSource extends tgsfBase
 			throw new tgsfException( 'Datasource must be either an array or an object.' );
 		}
 
+		$src = (array)$source;
+
 		// cast all objects to array here - as long as we don't have funky property names
 		// this should work fine.  that's why there is the warning in the doc block
-		$this->_ro_dataPresent	= count( (array) $source ) > 0;
-		$this->_data = (array) $source; // this should convert objects into an array.
+		$this->_ro_dataPresent = count( $src ) > 0;
+		$this->_data = $src; // this should convert objects into an array.
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -97,6 +99,25 @@ class tgsfDataSource extends tgsfBase
 	public function __clone()
 	{
 		$this->_type = dsTypeAPP;
+		// hack?  it works.  it's necessary.  leave it.
+		$this->_data = unserialize( serialize( $this->_data ) );
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function identicalTo( $ds2, $fieldsToCompare )
+	{
+		foreach ( $fieldsToCompare as $fieldName )
+		{
+			if ( ! $this->exists( $fieldName ) || ! $ds2->exists( $fieldName )
+				|| $this->{$fieldName} != $ds2->{$fieldName} )
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -156,6 +177,17 @@ class tgsfDataSource extends tgsfBase
 
 		$this->_set( array_merge( $this->_data, (array)$source ) );
 		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function setDefault( $var, $value )
+	{
+		if ( $this->exists( $var ) == false )
+		{
+			$this->setVar( $var, $value );
+		}
 	}
 	//------------------------------------------------------------------------
 	/**

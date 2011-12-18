@@ -62,3 +62,29 @@ query::factory()
     ->where( 'user.id=:user_id' )
     ->bindValue( 'user_id', 122, ptINT )
     ->debug();
+
+class example
+{
+	public function fetchAll( $enabledOnly = true )
+	{
+	    return query::factory()
+	        ->select( '*' )
+	        ->from( 'user' )
+			->filter( array( $this, 'filterEnabled' ), $enabledOnly )
+			->debug()
+	        //->exec()
+			//->fetchAll()
+			;
+	}
+	
+	public function filterEnabled( $q, $enabledOnly )
+	{
+		if ( $enabledOnly )
+		{
+			$q->where( 'user_enabled = true' );
+		}
+	}
+}
+$e = new example();
+$e->fetchAll();
+$e->fetchAll( false );
