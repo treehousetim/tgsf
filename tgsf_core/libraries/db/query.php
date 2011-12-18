@@ -410,7 +410,7 @@ class query extends tgsfBase
 	/**
 	* Adds an AND condition for a like - only if the datasource contains a non-empty value for $name
 	*/
-	public function where_like( $name, $ds, $valuePrefix = '%', $valuePostfix = '%', $booleanOp = 'AND ' )
+	public function &where_like( $name, $ds, $valuePrefix = '%', $valuePostfix = '%', $booleanOp = 'AND ' )
 	{
 		if ( $ds->{$name} != '' )
 		{
@@ -419,14 +419,40 @@ class query extends tgsfBase
 
 			$this->bindValue( $name, $val, ptSTR );
 		}
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	/**
 	* Adds an OR condition for a like - only if the datasource contains a non-empty value for $name
 	*/
-	public function or_where_like( $name, $ds, $valuePrefix = '%', $valuePostfix = '%' )
+	public function &or_where_like( $name, $ds, $valuePrefix = '%', $valuePostfix = '%' )
 	{
 		$this->where_like( $name, $ds, $valuePrefix, $valuePostfix, 'OR ' );
+		return $this;
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Creates a where clause for a value list using IN ( :param1, :param2 )
+	* And binds the values from the array to the query, this requires that the type is known
+	* @param String The field name
+	* @param Array The list of values
+	* @param Define, The Param Type (ptSTR, ptINT, etc)
+	*/
+	public function &where_in_array( $fieldName, $array, $paramType )
+	{
+		if ( ! count( $array ) )
+		{
+			return $this;
+		}
+		for ($ix=0; $ix < count($array); $ix++)
+		{
+			$out[] = ':' . $fieldName . ($ix+1);
+			$this->bindValue( $fieldName . ($ix+1), $paramType );
+		}
+
+		$this->where( $fieldName . ' IN (' . implode( ',', $out ) . ')' );
+
+		return $this;
 	}
 	// end of where public methods
 	//------------------------------------------------------------------------

@@ -8,7 +8,7 @@ for complete licensing information.
 
 $windowTitle = 'Examples';
 
-include view( 'header' );
+include view( 'template/header' );
 ?>
 <body style="margin: 1em;">
 <h2 style="font-size: 2em;">tgsf v<?=TGSF_VERSION; ?> - Examples</h2>
@@ -20,4 +20,4 @@ $menu['tgsfHtmlTag'] = URL( 'examples/tgsfHtmlTag' );
 
 echo urlMenu( $menu );
 
-include view( 'footer' );
+include view( 'template/footer' );
