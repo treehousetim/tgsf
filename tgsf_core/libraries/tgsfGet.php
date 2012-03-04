@@ -28,14 +28,15 @@ class tgsfGet extends tgsfDataSource
 	public function __construct()
 	{
 		parent::__construct( dsTypeGET );
-		
+
 		if ( isset( $_GET ) && count( $_GET ) > 0 )
 		{
 			$this->_ro_dataPresent = true;
+
 			$this->_set( $_GET );
 		}
 	}
-	
+
 	//------------------------------------------------------------------------
 	/**
 	* Static function that returns the singleton instance of this class.

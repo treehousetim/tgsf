@@ -13,6 +13,7 @@ function &FORMAT()
 class tgsfFormat extends tgsfBase
 {
 	private static	$_instance			= null;
+	protected $listCache				= array();
 
 	//------------------------------------------------------------------------
 	/**
@@ -50,7 +51,27 @@ class tgsfFormat extends tgsfBase
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
+	public function translateListEntry( $listName, $entryValue )
+	{
+		if ( array_key_exists( $listName, $this->listCache ) == false )
+		{
+			if ( config( $listName ) == '' )
+			{
+				load_config( 'lists/' . $listName );
+				$this->listCache[$listName] = config( $listName );
+			}
+		}
+		
+		if ( ! is_array( $this->listCache[$listName] ) )
+		{
+			throw new tgsfException( 'Lists must be arrays when translating list entries.' );
+		}
 
+		$list =& $this->listCache[$listName];
+
+		return $list[$entryValue];
+	}
+	//------------------------------------------------------------------------
 	public function usa_phone( $text, $formatWithParens = false )
 	{
 		$pattern = '\\1-\\2-\\3';
@@ -177,5 +198,13 @@ class tgsfFormat extends tgsfBase
 	public function boolToTF( $value )
 	{
 		return (bool)$value?'True':'False';
+	}
+	//------------------------------------------------------------------------
+	public function boolCheck( $value )
+	{
+		$trueImg = tgsfHtmlTag::factory( 'img' )->setAttribute( 'src', image_url( 'elegant/checkmark.png' ) )->cssClass( 'bool-y' )->renderTagOnly();
+		$falseImg = tgsfHtmlTag::factory( 'img' )->setAttribute( 'src', image_url( 'elegant/x.png' ) )->cssClass( 'bool-n' )->renderTagOnly();
+
+		return ($value)? $trueImg:$falseImg;
 	}
 }

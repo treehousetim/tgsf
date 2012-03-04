@@ -86,6 +86,13 @@ class formTop extends tgsfFormTemplate
 	//------------------------------------------------------------------------
 	public function checkbox( &$field, &$container )
 	{
+		// this is to make it so that checkboxes always exist in the POST datasource
+		$hidden = $container->_( 'input' );
+		$hidden->setAttribute( 'type', 'hidden' );
+		$hidden->value( '0' );
+		$hidden->setAttribute( 'name', $field->name );
+		$hidden->setAttribute( 'id', $field->name . '_default' );
+		
 		$this->_caption( $field, $container );
 		$this->_wrapField( $field, $container );
 	}

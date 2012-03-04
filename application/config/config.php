@@ -32,8 +32,16 @@ $config['content-type'] = 'text/html; charset=utf-8';
 
 $config['server_id'] = current_server_id();
 
-load_config( 'server_id/local' );
+switch ( $config['server_id'] )
+{
+case '2FE2E706A46369037D7F84A40E30A7AC':
+	load_config( 'server_id/example' );
+	break;
 
+default:
+	echo $config['server_id'] . ' is not registered.';
+	exit();
+}
 
 load_config( 'datetime' );
 load_config( 'constants' );

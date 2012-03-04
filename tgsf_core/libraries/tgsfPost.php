@@ -50,7 +50,7 @@ class tgsfPost extends tgsfDataSource
 	*/
 	public function &reset()
 	{
-		if ( $this->_type == dsTypePOST )
+		if ( TGSF_CLI === false && $this->_type == dsTypePOST )
 		{
 			throw new tgsfException( 'Resetting a POST datasource is disallowed.' );
 		}
@@ -63,7 +63,7 @@ class tgsfPost extends tgsfDataSource
 	*/
 	public function &setVar( $varName, $varValue )
 	{
-		if ( $this->_type == dsTypePOST )
+		if ( TGSF_CLI === false && $this->_type == dsTypePOST )
 		{
 			throw new tgsfException( 'You may not use setVar on POST datasources - Maybe you could use the remap function instead.' );
 		}
@@ -73,7 +73,7 @@ class tgsfPost extends tgsfDataSource
 	//------------------------------------------------------------------------
 	public function &set( $source, $merge = false )
 	{
-		if ( $this->_type == dsTypePOST )
+		if ( TGSF_CLI === false && $this->_type == dsTypePOST )
 		{
 			throw new tgsfException( 'You may not use set on POST datasources.' );
 		}

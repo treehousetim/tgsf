@@ -213,10 +213,13 @@ class tvr_numeric extends tgsfValidateRule
 class tvr_clean extends tgsfValidateRule
 {
 	public $emptyValueValid = true;
-	public $errorMessage = ' may only contain: A-Z, 0-9, dashes, underscores and periods.';
+	public $errorMessage = ' may only contain: A-Z, 0-9, dashes, underscores, slashes and periods.';
 	public function execute( $fieldName, $ds )
 	{
-		$this->valid = preg_match( '/^[0-9a-z.,_\-\' ]+$/i', $ds->_( $fieldName ) );
+		$this->valid = preg_match( '|^[0-9a-z\+.,_\\\\/\-\' ]+$|i', $ds->_( $fieldName ) );
+		$this->valid = $this->valid && strpos( $ds->_( $fieldName ), '../' ) === false;
+		$this->valid = $this->valid && strpos( $ds->_( $fieldName ), 'etc/passwd' ) === false;
+		$this->valid = $this->valid && strpos( $ds->_( $fieldName ), 'boot.ini' ) === false;
 		return $this->valid;
 	}
 }
@@ -352,7 +355,7 @@ class tvr_date extends tgsfValidateRule
 	public function execute( $fieldName, $ds )
 	{
 		$value = trim( $ds->_( $fieldName ) );
-
+		
 		if ( $value == '' )
 		{
 			$this->valid = true;
@@ -527,18 +530,16 @@ class tvr_usa_zipcode extends tgsfValidateRule
 class tvr_bank_routing extends tgsfValidateRule
 {
 	public $emptyValueValid = true;
-	public $errorMessage = ' must be a valid 9-digit routing number';
+	public $errorMessage = ' must be a valid 9-digit routing number without spaces';
 	public function execute( $fieldName, $ds )
 	{
 		/*
 			Routing Number: (http://en.wikipedia.org/wiki/Routing_number#Number_format_and_standards)
-				Strip spaces for numbers such as "12 3456789"
 				The first two digits of the nine digit ABA number must be in the ranges 00 through 12, 21 through 32, 61 through 72, or 80.
 				The entire number must pass checksum calc: (3 * (d1 + d4 + d7) + 7 * (d2 + d5 + d8) + d3 + d6 + d9 ) % 10 == 0
 		*/
 
 		$value = $ds->_( $fieldName );
-		$value = str_replace( ' ', '', $value );
 
 		if ( preg_match( '/^[0-9]+$/i', $value ) && strlen($value) == 9 )
 		{

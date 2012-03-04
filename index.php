@@ -17,8 +17,6 @@ define( 'BASEPATH',			dirname(  __FILE__ ) . '/'		);
 define( 'CORE_PATH',		BASEPATH . 'tgsf_core/'			);
 define( 'CORE_ASSET_PATH',	BASEPATH . 'tgsf_core_assets/'	);
 
-include( BASEPATH . 'sync-core.php' );
-
 ini_set('include_path', ini_get( 'include_path' )
 
 // zend framework support

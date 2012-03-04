@@ -162,7 +162,7 @@ class tgsfGridCol extends tgsfHtmlTag
 				$cell->content( $fieldPart, APPEND_CONTENT );
 			}
 		}
-		
+
 		if ( $this->_ro_url instanceof tgsfUrl )
 		{
 			foreach( $this->_ro_urlVars as $fieldName => $urlVar )

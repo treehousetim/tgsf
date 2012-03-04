@@ -81,12 +81,12 @@ class dbManager extends tgsfBase
 	*/
 	private function _unsetSetup()
 	{
-		foreach ( $this->_setup as &$setup )
+		foreach ( $this->_setup as $setup )
 		{
 			$setup->disconnect();
 		}
 
-		unset( $this->_setup );
+		$this->_setup = null;
 		$this->_setup = array();
 	}
 

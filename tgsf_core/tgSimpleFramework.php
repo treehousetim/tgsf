@@ -127,6 +127,22 @@ function url_path( $folder, $core = false )
 	return current_base_url() . relative_path( $folder, $core );
 }
 //------------------------------------------------------------------------
+function removeBasePath( $path )
+{
+	if ( starts_with( $path, BASEPATH ) )
+	{
+		return substr( $path, strlen( BASEPATH ) );
+	}
+
+	return $path;
+}
+//------------------------------------------------------------------------
+function basepathToUrl( $path )
+{
+	$path = removeBasePath( $path );
+	return current_base_url() . $path;
+}
+//------------------------------------------------------------------------
 function can_plugin()
 {
 	return function_exists( 'do_filter' );
@@ -147,6 +163,17 @@ function load_search( $name, $core = false )
 function load_report( $name, $core = false )
 {
 	load_library( 'report/tgsfReport', IS_CORE_LIB );
+	return load_cloned_object( path( 'reports', $core ), $name );
+}
+//------------------------------------------------------------------------
+function load_new_report( $name, $core = false )
+{
+	load_library( 'report/report', IS_CORE_LIB );
+	load_library( 'report/reportCol', IS_CORE_LIB );
+	load_library( 'report/reportFactory', IS_CORE_LIB );
+	load_library( 'report/reportOutputHtml', IS_CORE_LIB );
+	load_library( 'report/reportOutputCsv', IS_CORE_LIB );
+
 	return load_cloned_object( path( 'reports', $core ), $name );
 }
 //------------------------------------------------------------------------
@@ -550,26 +577,15 @@ function tgsf_parse_url_vars( $varPieces )
 			// we don't overwrite existing get vars though
 			if ( ! isset( $_GET[$name] ) )
 			{
-				$_GET[$name] =& $val;
+				$_GET[$name] = $val;
 			}
 
-			/*
-			// also set $_GET using an underscore prefix
-						// this provides an additional attempt in case the first one fails
-						// but also provides a way for someone to use _vars for their
-						// application in case they decide to use that as a naming convention
-						if ( ! isset( $_GET['_' . $name] ) )
-						{
-							$_GET['_' . $name] =& $val;
-						}*/
-
-
-			$vars[$name] =& $val;
+			$vars[$name] = $val;
 			$ix++;
 			unset( $val );
 		}
 
-		$_GET['__tgsf_vars'] =& $vars;
+		$_GET['__tgsf_vars'] = $vars;
 
 		// throw error only while in debug mode - i.e. only for dev setups
 		if ( config( 'debug_mode' ) && $pieceCnt % 2 != 0 )

@@ -595,6 +595,36 @@ abstract class tgsfGrid extends tgsfHtmlTag
 		}
 	}
 	//------------------------------------------------------------------------
+	public function boolNY( $col, $cell, $row, $cellType )
+	{
+		if ( $cellType == ROW_NORMAL )
+		{
+			$cell->content( FORMAT()->boolToYN( ! $row->{$col->fieldName} ) );
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function boolX( $col, $cell, $row, $cellType )
+	{
+		if ( $cellType == ROW_NORMAL )
+		{
+			$cell->content( ($row->{$col->fieldName})? 'X':'' );
+		}
+	}
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function boolCheck( $col, $cell, $row, $cellType )
+	{
+		if ( $cellType == ROW_NORMAL )
+		{
+			$cell->content( FORMAT()->boolCheck( $row->{$col->fieldName} ) );
+		}
+	}
+	//------------------------------------------------------------------------
 	/**
 	*
 	*/
