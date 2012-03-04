@@ -100,6 +100,24 @@ class date
 	}
 	//------------------------------------------------------------------------
 	/**
+	* Returns true if the two dates are on the same date of the year.
+	* @param String date1
+	* @param String date2
+	*/
+	static public function sameDate( $date1, $date2 )
+	{
+		// build DateTime objects
+		$d1 = new DateTime( $date1, new DateTimeZone( TZ_DEFAULT ) );
+		$d2 = new DateTime( $date2, new DateTimeZone( TZ_DEFAULT ) );
+
+		// set to 0 time
+		$d1->setTime( 0, 0, 0 );
+		$d2->setTime( 0, 0, 0 );
+
+		return $d1 == $d2;
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Returns the current datetime, format defaults to date and time
 	* @param String The format to use for returning
 	* @param String The timezone string

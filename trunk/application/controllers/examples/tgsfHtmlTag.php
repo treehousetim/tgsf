@@ -10,7 +10,7 @@ for complete licensing information.
 $windowTitle = 'tgsfHtmlTag Examples';
 $extraCss[] = css_path() . 'examples.css';
 
-include view( 'header' );
+include view( 'template/header' );
 
 $anchor = new tgsfHtmlTag( 'a' );
 $anchor->addAttribute( 'href', 'http://www.example.com/' );
@@ -79,4 +79,4 @@ $tag = tgsfHtmlTag::factory( 'div' )
 
 echo $tag->content( 'uppercase text' );
 
-include view( 'footer' );
+include view( 'template/footer' );

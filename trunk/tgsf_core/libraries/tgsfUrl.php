@@ -39,7 +39,15 @@ class tgsfUrl extends tgsfDataSource
 	{
 		$this->set( tgsfUrl::$staticVars );
 
-		$this->isLocal();
+		if ( starts_with( $url, 'http' ) )
+		{
+			$this->notLocal();
+		}
+		else
+		{
+			$this->isLocal();
+		}
+
 		$this->_ro_ignoreApp = starts_with( $url, '/' );
 
 		$url = trim( $url, "\t\n\r /\\" ); // remove leading/trailing whitespace and slashes( back and forward)

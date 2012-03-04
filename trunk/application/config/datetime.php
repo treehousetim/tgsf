@@ -15,14 +15,6 @@ date_default_timezone_set( 'UTC' );
 // this is for mysql
 //query::factory()->static_query( 'SET time_zone = "+0:00";' )->exec();
 
-//------------------------------------------------------------------------
-
-// if you load the ZendFramework in tgsf_core/3rd_party/Zend use this
-
-require_once( 'Zend/Date.php' );
-Zend_Date::setOptions( array( 'format_type' => 'php' ) );
-Zend_Locale::disableCache( true );
-
 
 //------------------------------------------------------------------------
 

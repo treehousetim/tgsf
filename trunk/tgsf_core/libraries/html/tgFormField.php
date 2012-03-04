@@ -102,7 +102,7 @@ class tgsfFormField extends tgsfBase
 		{
 			$this->_selected[] = $this->_value;
 		}
-		
+
 		return $this;
 	}
 	//------------------------------------------------------------------------
@@ -244,7 +244,10 @@ class tgsfFormField extends tgsfBase
 			switch ( $this->_type )
 			{
 			case fftText:
-				$tag->addAttribute( 'type', 'text', SINGLE_ATTR_ONLY );
+				if ( ! $tag->hasAttribute( 'type' ) && ! array_key_exists( 'type', $this->_ro_fieldAttributes ) )
+				{
+					$tag->addAttribute( 'type', 'text', SINGLE_ATTR_ONLY );
+				}
 				break;
 
 			case fftHidden:

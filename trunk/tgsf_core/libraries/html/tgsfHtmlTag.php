@@ -399,6 +399,9 @@ class tgsfHtmlTag extends tgsfBase
 			{
 				$val = implode( ' ', $val );
 			}
+
+			$val = htmlspecialchars( $val );
+
 			$atrString .= " $key=\"$val\"";
 		}
 

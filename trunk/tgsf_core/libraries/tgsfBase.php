@@ -11,6 +11,8 @@ for complete licensing information.
 * To avoid exceptions from being thrown, you need to override these functions in your extending class, or
 * declare all variables you'll be using in the class definition.
 */
+//include  CORE_PATH . 'libraries/tgsfMemory.php';
+
 abstract class tgsfBase
 {
 	public function __get( $name )

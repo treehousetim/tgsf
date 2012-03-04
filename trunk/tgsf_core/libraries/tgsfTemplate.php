@@ -26,7 +26,15 @@ function js( $jsFiles, $group = null )
 			{
 				throw new tgsfException( 'File Does Not Exist when trying to create a script tag: ' . $jsFile );
 			}
-			$groupFiles[] = "'{$jsFile}'";
+
+			if ( config( 'debug_mode' ) === true )
+			{
+				echo "\t" . '<script type="text/javascript" src="' . basepathToUrl( $jsFile ) . '"></script>' . PHP_EOL;
+			}
+			else
+			{
+				$groupFiles[] = "'{$jsFile}'";
+			}
 		}
 	}
 
@@ -44,7 +52,7 @@ function js( $jsFiles, $group = null )
 
 		file_put_contents( path( 'assets/minify_groups', IS_CORE_PATH ) . $group . PHP, $content );
 
-		echo "\t" . '<script type="text/javascript" src="' . $url = URL( '_minify' )->setVar( 'g', $group ) . '"></script>' . "\n";
+		echo "\t" . '<script type="text/javascript" src="' . $url = URL( '_minify' )->setVar( 'g', $group ) . '"></script>' . PHP_EOL;
 
 	}
 }
@@ -78,6 +86,8 @@ function css( $file, $local = true )
 */
 function css_import( $cssFiles, $group = null )
 {
+	echo PHP_EOL;
+
 	$group = APP_URL_FOLDER . $group;
 	$cssFiles = (array)$cssFiles;
 	$group = str_replace( '/', '_', $group );
@@ -99,7 +109,18 @@ function css_import( $cssFiles, $group = null )
 			{
 				throw new tgsfException( 'File Does Not Exist when trying to create an imported CSS tag: ' . $cssFile );
 			}
-			$groupFiles[] = "'{$cssFile}'";
+
+			if ( config( 'debug_mode' ) === true )
+			{
+				$tag = new tgsfHtmlTag( 'style' );
+				$tag->type = 'text/css';
+				$tag->content( '@import url(' . basepathToUrl( $cssFile ) . ');' );
+				echo "\t" . $tag . PHP_EOL;
+			}
+			else
+			{
+				$groupFiles[] = "'{$cssFile}'";
+			}
 		}
 	}
 
@@ -117,7 +138,7 @@ function css_import( $cssFiles, $group = null )
 		$tag = new tgsfHtmlTag( 'style' );
 		$tag->type = 'text/css';
 		$tag->content( '@import url(' . ltrim( URL( '_minify' )->setVar( 'g', $group ), '/' ) . ');' );
-		echo $tag;
+		echo $tag . PHP_EOL;
 	}
 }
 //------------------------------------------------------------------------
@@ -284,7 +305,6 @@ function getArrayFirstLastCssClass( $current, $count, $middleClass = '', $firstC
 function alternate()
 {
 	static $current = 0;
-	static $cnt = 0;
 	static $items = array();
 
 	$args = func_get_args();
@@ -293,7 +313,48 @@ function alternate()
 	if ( ! ( $items === $args ) || $argCnt == 0 )
 	{
 		$current = 0;
-		$cnt = $argCnt;
+		$items = $args;
+	}
+	else
+	{
+		$current++;
+	}
+
+	return $argCnt>0?$args[$current % $argCnt]:'';
+}
+//------------------------------------------------------------------------
+/**
+* Alternate with a namespace
+* The first argument is a namespace to enable multiple calls in a single loop
+* Call with a set of arguments and this function will return them based on a modulus of the quantity of invocations
+* in other words, each time you call this function it will return the next item in the list of parameters.
+* to reset, call with a namespace and different arguments
+*/
+function alternateNs()
+{
+	$args = func_get_args();
+	$ns = array_shift( $args );
+	$argCnt = count($args);
+
+	if ( empty( $ns ) )
+	{
+		throw new tgsfException( 'alternateNs called without a namespace' );
+	}
+
+	static $cache = array();
+
+	if ( empty( $cache[$ns] ) )
+	{
+		$cache[$ns]['current'] = 0;
+		$cache[$ns]['items'] = array();
+	}
+
+	$items =& $cache[$ns]['items'];
+	$current =& $cache[$ns]['current'];
+
+	if ( ! ( $items === $args ) || $argCnt == 0 )
+	{
+		$current = 0;
 		$items = $args;
 	}
 	else

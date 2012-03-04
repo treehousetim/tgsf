@@ -447,7 +447,7 @@ class query extends tgsfBase
 		for ($ix=0; $ix < count($array); $ix++)
 		{
 			$out[] = ':' . $fieldName . ($ix+1);
-			$this->bindValue( $fieldName . ($ix+1), $paramType );
+			$this->bindValue( $fieldName . ($ix+1), $array[$ix], $paramType );
 		}
 
 		$this->where( $fieldName . ' IN (' . implode( ',', $out ) . ')' );

@@ -14,6 +14,7 @@
 // $gcUser and $gcPass
 
 include './developer.php';
+exec( '../publish/prepare.sh' );
 
 $versionFile = '../tgsf_core/config/version.php';
 
@@ -34,6 +35,8 @@ $out .= "define( 'TGSF_VERSION_INT', \$major . \$minor . \$build . \$release );"
 file_put_contents( $versionFile, $out );
 include $versionFile;
 
+echo 'Building tgsf version: ' . $versionString;
+
 $coreFolder = 'tgsf-core-' . $versionString;
 $fullFolder = 'tgsf-' . $versionString;
 
@@ -43,11 +46,9 @@ createZip( $coreFolder, $coreFolder );
 runRsync( $fullFolder, 'rs_exclude_full.txt' );
 createZip( $fullFolder, $fullFolder );
 
-
 //echo "\n" . 'Uploading to Google Code';
 //uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass, 'Featured' );
 //uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass, 'Featured' );
-
 
 //------------------------------------------------------------------------
 // utility functions below
@@ -58,9 +59,9 @@ function uploadToGoogleCode( $summary, $project, $file, $user, $pass, $labels = 
 	{
 		$labels = '--labels="' . $labels . '" ';
 	}
-	
+
 	echo "\n";
-	
+
 	$cmd = './gc_upload.py --summary="' . $summary . '"' . " --project=tgsf --user={$user} --password={$pass} {$labels }\"{$file}\"";
 	$ecmd = './gc_upload.py --summary="' . $summary . '"' . " --project=tgsf --user={$user} --password=xxx {$labels }\"{$file}\"";
 	echo $ecmd . "\n";
@@ -69,7 +70,7 @@ function uploadToGoogleCode( $summary, $project, $file, $user, $pass, $labels = 
 //------------------------------------------------------------------------
 function runRsync( $dest, $exclude )
 {
-	$c - '';
+	$c = '';
 	echo "Running RSync\n";
 	$exclude= "--exclude-from=" . $exclude;
 	$pg = "--no-p --no-g";
