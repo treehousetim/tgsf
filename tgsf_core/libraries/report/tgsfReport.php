@@ -138,16 +138,6 @@ abstract class tgsfReport extends tgsfGrid
 		{
 			$this->_setup();
 		}
-		
-		if ( empty( $this->_rows ) )
-		{
-			$this->_rows = $this->_loadRows();
-		}
-		
-		if ( $this->_rows instanceOf dbDataSource )
-		{
-			$this->_ro_echoRender = true;
-		}
 
 		if ( $this->hasAttribute( 'id' ) === false )
 		{
@@ -193,22 +183,23 @@ abstract class tgsfReport extends tgsfGrid
 					->addTag( 'th')
 						->setAttribute( 'width', '50%' )
 						->content( $this->_ro_reportDate )
-						->css_class( 'report-date' );
+						->css_class( 'report-date' )
+						->parent
+					->parent
+				->parent
 
-			if ( $this->_ro_echoRender )
-			{
-				echo $div->render();
-				parent::render( $renderType );
-			}
-			else
-			{
-				$table->addTag( 'tbody' )
-					->addTag( 'tr' )
-						->addTag( 'td' )
-							->setAttribute( 'colspan', 2 )
-							->content( parent::render( $renderType ) );
-				return $div->render();
-			}
+			->addTag( 'tbody' )
+				->addTag( 'tr' )
+					->addTag( 'td' )
+						->setAttribute( 'colspan', 2 )
+						->content( parent::render( $renderType ) );
+
+			$result = $div->render();
+
+			$this->deep_free();
+
+			return $result;
+
 		}
 		else
 		{

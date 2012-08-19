@@ -203,3 +203,24 @@ jQuery.cookie = function(name, value, options) {
         return cookieValue;
     }
 };
+//------------------------------------------------------------------------
+// from stackoverflow:
+// http://stackoverflow.com/a/1830844/608781
+function isNumber(n)
+{
+	return !isNaN(parseFloat(n)) && isFinite(n);
+}
+//------------------------------------------------------------------------
+function isInt(n)
+{
+	var isNumber = isNumber(n);
+	if ( isNumber )
+	{
+		if ( parseInt( n ) == parseFloat(n) )
+		{
+			return true;
+		}
+	}
+
+	return false;
+}

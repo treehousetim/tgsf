@@ -61,7 +61,7 @@ class tgsfFormat extends tgsfBase
 				$this->listCache[$listName] = config( $listName );
 			}
 		}
-		
+
 		if ( ! is_array( $this->listCache[$listName] ) )
 		{
 			throw new tgsfException( 'Lists must be arrays when translating list entries.' );
@@ -69,6 +69,10 @@ class tgsfFormat extends tgsfBase
 
 		$list =& $this->listCache[$listName];
 
+		if ( array_key_exists( $entryValue, $list ) == false )
+		{
+			throw new tgsfException( 'No Entry found in list: ' . $listName . ' for value: ' . $entryValue );
+		}
 		return $list[$entryValue];
 	}
 	//------------------------------------------------------------------------
@@ -174,14 +178,20 @@ class tgsfFormat extends tgsfBase
 	*/
 	public function obfuscate( $data, $len = 4, $chr = '*' )
 	{
-		$repeat = strlen($data) - (int)$len;
+		$repeat = strlen( trim( $data ) ) - (int)$len;
 
 		if ( $repeat < 1 )
 		{
 			$repeat = ceil( strlen($data) / 2 );
 		}
 
-		return str_repeat( $chr, $repeat ) . substr( $data, $repeat );
+		$stars = $repeat;
+		if ( $stars > 3 )
+		{
+			$stars = 3;
+		}
+
+		return str_repeat( $chr, $stars ) . substr( $data, $repeat );
 	}
 	//------------------------------------------------------------------------
 	/**
@@ -206,5 +216,22 @@ class tgsfFormat extends tgsfBase
 		$falseImg = tgsfHtmlTag::factory( 'img' )->setAttribute( 'src', image_url( 'elegant/x.png' ) )->cssClass( 'bool-n' )->renderTagOnly();
 
 		return ($value)? $trueImg:$falseImg;
+	}
+	//------------------------------------------------------------------------
+	public function numbers_only( $value )
+	{
+		return preg_replace( '/[^\d]/', '', $value );
+	}
+	//------------------------------------------------------------------------
+	public function slugToCssClasses( $slug )
+	{
+		$pieces = explode( '/', $slug );
+
+		foreach( $pieces as $piece )
+		{
+			$out[] = $piece;
+		}
+		
+		return implode( '-', $out ) . ' ' . implode( ' ', $out );
 	}
 }

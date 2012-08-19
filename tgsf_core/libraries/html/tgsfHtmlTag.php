@@ -37,6 +37,18 @@ class tgsfHtmlTag extends tgsfBase
 		$this->_ro_tag = $tag;
 		$this->_ro_contentOnly = $tag == NON_TAG_NODE;
 	}
+
+	public function deep_free()
+	{
+//		echo 'deep_free' . PHP_EOL;
+
+		foreach( $this->_children as $child )
+		{
+			$child->deep_free();
+		}
+		$this->_children = array();
+	}
+
 	//------------------------------------------------------------------------
 	public static function factory( $tag )
 	{
@@ -82,6 +94,18 @@ class tgsfHtmlTag extends tgsfBase
 	public function __set( $name, $value )
 	{
 		$this->setAttribute( $name, $value );
+	}
+	//------------------------------------------------------------------------
+	public function __call( $name, $value )
+	{
+		if ( $value == null )
+		{
+			throw new tgsfException( 'A value is required when calling ' . $name . ' on URL()' );
+		}
+
+		$this->setAttribute( $name, $value );
+
+		return $this;
 	}
 	//------------------------------------------------------------------------
 	public function __toString()
@@ -145,7 +169,7 @@ class tgsfHtmlTag extends tgsfBase
 
 		$item->parent = $this;
 		array_unshift( $this->_children, $item );
-		
+
 		return $item;
 	}
 	//------------------------------------------------------------------------
@@ -462,7 +486,11 @@ class tgsfHtmlTag extends tgsfBase
 
 			$this->_ro_content .= $this->_renderItem( $item );
 		}
-		return $this->_renderItem( $this );
+		$result = $this->_renderItem( $this );
+
+		$this->deep_free();
+
+		return $result;
 	}
 	//------------------------------------------------------------------------
 	public function renderTagOnly()

@@ -192,7 +192,7 @@ class dbSetup extends tgsfBase
 		{
 			throw new tgsfDbException( 'Nested Transactions Are Not Allowed (begin trans)' );
 		}
-		
+
 		$this->_transactionLevel = $this->_transactionLevel +1;
 		$this->handle()->beginTransaction();
 	}
@@ -257,5 +257,11 @@ class dbSetup extends tgsfBase
 	{
 		$this->connected = false;
 		$this->_ro_handle = null;
+	}
+
+	//
+	public function database()
+	{
+		return $this->_database;
 	}
 }

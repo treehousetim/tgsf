@@ -177,7 +177,7 @@ class tgsfPaginateQuery extends query
 	{
 		if ( $this->countQuery instanceOf query )
 		{
-			$this->_ro_totalResults = $this->countQuery->debug()->exec()->fetchColumn( 0 );
+			$this->_ro_totalResults = $this->countQuery->exec()->fetchColumn( 0 );
 		}
 		else
 		{

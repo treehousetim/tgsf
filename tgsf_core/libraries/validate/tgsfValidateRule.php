@@ -343,7 +343,8 @@ class tvr_email extends tgsfValidateRule
 	public $errorMessage = ' must be a valid email address';
 	public function execute( $fieldName, $ds )
 	{
-		$this->valid = preg_match( '/^.+@.+$/i', $ds->_( $fieldName ) );
+		
+		$this->valid = preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i', $ds->_( $fieldName ) );
 		return $this->valid;
 	}
 }

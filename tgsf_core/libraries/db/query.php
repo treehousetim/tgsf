@@ -610,6 +610,15 @@ class query extends tgsfBase
 		$this->_joinList[] = new queryJoin( $type, $table, $clause );
 		return $this;
 	}
+
+	//------------------------------------------------------------------------
+	/**
+	*  shortcut to inner join for above join method
+	*/
+	public function &inner_join( $table, $clause )
+	{
+		return $this->join( $table, $clause, 'INNER JOIN' );
+	}
 	//------------------------------------------------------------------------
 	/**
 	*
@@ -870,7 +879,7 @@ class query extends tgsfBase
 
 		if ( $this->_type == qtINSERT )
 		{
-			$this->_ro_lastInsertId = dbm()->lastInsertId();
+			$this->_ro_lastInsertId = $this->_handle->lastInsertId();
 		}
 		return $this;
 	}
@@ -896,7 +905,7 @@ class query extends tgsfBase
 		    'log_params' => serialize( $this->_params )
 		) );
 
-		$q = new query();
+		$q = new query( LOGGER()->dbSetupName );
 
 		$q->insert_into( 'db_log' )
 		  ->pt( ptSTR )
@@ -1063,6 +1072,7 @@ class query extends tgsfBase
 	public function &fetch_ds( $cursor_orientation = PDO::FETCH_ORI_NEXT, $offset = 0 )
 	{
 		$ds = new dbDataSource();
+		$ds->strict();
 		$ds->setTables( $this->_tableList );
 		$result = $this->fetch( PDO::FETCH_ASSOC, $cursor_orientation, $offset );
 		if ( $result === false )

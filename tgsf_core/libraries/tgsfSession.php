@@ -82,7 +82,7 @@ class tgsfSession extends tgsfBase
 			ini_set( 'session.cache_limiter',			config( 'session/cache_limiter'		) );
 			ini_set( 'session.cookie_httponly', 		config( 'session/httponly'			) );
 			ini_set( 'session.hash_function',			config( 'session/hash_function'		) );
-
+			ini_set( 'session.cookie_secure',			config( 'session/cookie_secure'		) );
 			session_start();
 			$this->_ro_started = true;
 		}
@@ -104,7 +104,8 @@ class tgsfSession extends tgsfBase
 			}
 			session_destroy();
 
-			$this->start(); // restart the session.
+			$_SESSION['tgsf-last-access'] = time();
+			return $this;
 		}
 
 		$_SESSION['tgsf-last-access'] = time();

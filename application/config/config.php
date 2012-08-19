@@ -13,6 +13,15 @@ $config['get_string']		= '/_/';
 $config['get_separator']	= '/';
 $config['get_equals']		= '/';
 
+if ( array_key_exists( 'SERVER_NAME', $_SERVER ) )
+{
+	$config['current_http_host'] = $_SERVER['SERVER_NAME'];
+}
+else
+{
+	$config['current_http_host'] = 'localhost';
+}
+
 //------------------------------------------------------------------------
 
 $config['maintenanceMode'] = false;
@@ -30,18 +39,7 @@ $config['doctype'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional/
 
 $config['content-type'] = 'text/html; charset=utf-8';
 
-$config['server_id'] = current_server_id();
-
-switch ( $config['server_id'] )
-{
-case '2FE2E706A46369037D7F84A40E30A7AC':
-	load_config( 'server_id/example' );
-	break;
-
-default:
-	echo $config['server_id'] . ' is not registered.';
-	exit();
-}
+load_config( 'server_id/local' );
 
 load_config( 'datetime' );
 load_config( 'constants' );

@@ -21,8 +21,9 @@
 		    	classLoading  : "jqvm-loading",
 		    	cache         : true
 		    };
-		
-		$("[node]").live( 'click', function()
+
+		$(document).on( 'click', '[node]', null,
+		function()
 		{
 			if ( ! $( this ).attr( "href" ) ) return;
 		

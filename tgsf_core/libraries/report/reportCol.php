@@ -298,7 +298,7 @@ class cdUrl extends colDecorator
 	{
 		foreach( $this->_ro_urlVars as $fieldName => $urlVar )
 		{
-			$this->_ro_url->setVar( $urlVar, $row->[$fieldName] );
+			$this->_ro_url->setVar( $urlVar, $row->{$fieldName} );
 		}
 		if ( $this->_ro_outputType == rotHTML )
 		{

@@ -70,7 +70,7 @@ class tgsfGet extends tgsfDataSource
 	*/
 	public function &setVar( $varName, $varValue )
 	{
-		if ( $this->_type == dsTypeGET )
+		if ( TGSF_CLI === false && $this->_type == dsTypeGET )
 		{
 			throw new tgsfException( 'You may not use setVar on GET datasources - Maybe you could use the remap function instead.' );
 		}
@@ -80,7 +80,7 @@ class tgsfGet extends tgsfDataSource
 	//------------------------------------------------------------------------
 	public function &set( $source, $merge = false )
 	{
-		if ( $this->_type == dsTypeGET )
+		if ( TGSF_CLI === false && $this->_type == dsTypeGET )
 		{
 			throw new tgsfException( 'You may not use set on GET datasources.' );
 		}

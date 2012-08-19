@@ -29,7 +29,7 @@ function js( $jsFiles, $group = null )
 
 			if ( config( 'debug_mode' ) === true )
 			{
-				echo "\t" . '<script type="text/javascript" src="' . basepathToUrl( $jsFile ) . '"></script>' . PHP_EOL;
+				echo "\t" . '<script type="text/javascript" src="' . basepathToUrl( $jsFile ) . '?' . time() . '"></script>' . PHP_EOL;
 			}
 			else
 			{
@@ -114,7 +114,7 @@ function css_import( $cssFiles, $group = null )
 			{
 				$tag = new tgsfHtmlTag( 'style' );
 				$tag->type = 'text/css';
-				$tag->content( '@import url(' . basepathToUrl( $cssFile ) . ');' );
+				$tag->content( '@import url(' . basepathToUrl( $cssFile ) . '?' . time() . ');' );
 				echo "\t" . $tag . PHP_EOL;
 			}
 			else
@@ -532,3 +532,7 @@ function underscore_to_spaces( $text, $fromChars = array( '_', '-' ) )
 	return ucwords( toSpaces( $text, $fromChars ) );
 }
 //------------------------------------------------------------------------
+function imageTag( $url )
+{
+	return tgsfHtmlTag::factory( 'img' )->setAttribute( 'src', image_url( $url ) );
+}

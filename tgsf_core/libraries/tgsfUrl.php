@@ -66,6 +66,7 @@ class tgsfUrl extends tgsfDataSource
 
 		parent::__construct( dsTypeAPP );
 	}
+	//------------------------------------------------------------------------
 	public function noTrailingSlash()
 	{
 		$this->_ro_addTrailingSlash = false;
@@ -78,6 +79,7 @@ class tgsfUrl extends tgsfDataSource
 	protected function getUrlVars()
 	{
 		$varArray = $this->dataArray();
+
 		if ( count( $varArray ) < 1 )
 		{
 			return '';

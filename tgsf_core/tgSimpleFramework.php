@@ -222,6 +222,17 @@ function &load_model( $name, $core = false )
 	return load_cloned_object( path( 'models', $core ), $name );
 }
 //------------------------------------------------------------------------
+function &load_view_model( $name, $core = false )
+{
+	return load_cloned_object( path( 'view_models', $core ), $name );
+}
+//------------------------------------------------------------------------
+function &load_controller_model( $name, $core = false )
+{
+	load_library( 'tgsfCm', true );
+	return load_cloned_object( path( 'controller_models', $core ), $name );
+}
+//------------------------------------------------------------------------
 /**
 * Works like models and forms.  Used for grids (html tables)
 * @param String The path and name of the model.  This is prefixed by the application's
@@ -265,6 +276,11 @@ function &load_cloned_object( $path, $name )
 	return $returnObj;
 }
 //------------------------------------------------------------------------
+function config_file_exists( $name, $core )
+{
+	return file_exists( path( 'config', $core ) . $name . PHP );
+}
+//------------------------------------------------------------------------
 function load_config( $name, $core=false )
 {
 	global $config;
@@ -278,6 +294,11 @@ function load_config( $name, $core=false )
 		tgsfEventFactory::action()
 		->event( ($core?'core-':'') . 'config' . $name )
 		->exec();
+	}
+
+	if ( ! config_file_exists( $name, $core ) )
+	{
+		throw new tgsfException( 'Unable to load config file: ' . $name );
 	}
 
 	require_once path( 'config', $core ) . $name . PHP;
@@ -328,7 +349,7 @@ function maintenance_mode_check()
 function force_no_www( $checkFor = true )
 {
 	global $config;
-	if ( starts_with( $_SERVER['HTTP_HOST'], 'www.' ) )
+	if ( starts_with( current_http_host(), 'www.' ) )
 	{
 		$config['host_www'] = false;
 		URL( $_SERVER['REQUEST_URI'] )->permRedirect();
@@ -588,6 +609,7 @@ function tgsf_parse_url_vars( $varPieces )
 		$_GET['__tgsf_vars'] = $vars;
 
 		// throw error only while in debug mode - i.e. only for dev setups
+		// the idea being that once in production, we don't want to be bothered by lots of random potential error logs
 		if ( config( 'debug_mode' ) && $pieceCnt % 2 != 0 )
 		{
 			throw new tgsfException( 'Count of variables is not even - pass variables using name/value pairs' );
@@ -640,6 +662,14 @@ function resolve_controller( $page )
 			->event( 'pre_resolve_controller' )
 			->content( $page )
 			->exec();
+	if ( config_file_exists( 'routes', false ) )
+	{
+		load_config( 'routes' );
+		$routes = config( 'routes' );
+
+		if ( array_key_exists( $page, (array)$routes ) )
+		$page = $routes[$page];
+	}
 
 	if ( controller_exists( $page ) )
 	{
@@ -714,7 +744,8 @@ function resolve_cli_controller( $name )
 				}
 				else
 				{
-					show_error( 'Missing CLI Controller' );
+					echo 'CLI Controller not found.' . PHP_EOL;
+					$out = false;
 				}
 			}
 		}
@@ -1294,4 +1325,19 @@ function memory_stats()
 		fb( number_format(memory_get_usage()), 'Mem Usage', FirePHP::INFO );
 		fb( number_format(memory_get_peak_usage()), 'Mem Usage (Peak)', FirePHP::INFO );
 	}
+}
+//------------------------------------------------------------------------
+function requestIsAjax()
+{
+	if ( array_key_exists( 'HTTP_X_REQUESTED_WITH', $_SERVER ) )
+	{
+		return strtolower( $_SERVER['HTTP_X_REQUESTED_WITH'] ) == 'xmlhttprequest';
+	}
+	return false;
+	
+}
+//------------------------------------------------------------------------
+function console_log( $label, $var )
+{
+	echo 'console.log( "' . $label . ' = ' . addslashes( $var ) . '" );' . PHP_EOL;
 }

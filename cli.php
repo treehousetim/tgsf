@@ -51,7 +51,11 @@ try
 
 	$page = CLI()->controller;
 
-	require resolve_cli_controller( $page );
+	$controller = resolve_cli_controller( $page );
+	if ( $controller !== false )
+	{
+		require $controller;
+	}
 }
 catch ( Exception $e )
 {

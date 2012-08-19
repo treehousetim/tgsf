@@ -7,9 +7,9 @@ for complete licensing information.
 */
 
 // see table.sql for a table create ddl statement
-function &LOGGER( $tableName = null )
+function &LOGGER( $dbSetupName = null, $tableName = null )
 {
-	return tgsfLog::get_instance( $tableName );
+	return tgsfLog::get_instance( $dbSetupName, $tableName );
 }
 //------------------------------------------------------------------------
 class tgsfLog extends tgsfBase
@@ -18,11 +18,17 @@ class tgsfLog extends tgsfBase
 	private static	$_instance		= null;
 	protected		$_ro_user_id	= null;
 	public 			$tableName		= 'tgsf_log';
+	public          $dbSetupName    = '';
 
-	protected function __construct( $tableName = null )
+	protected function __construct( $dbSetupName = null, $tableName = null )
 // public
 	{
 //		parent::__construct();
+
+		if ( ! is_null( $dbSetupName ) )
+		{
+			$this->dbSetupName = $dbSetupName;
+		}
 
 		if ( ! is_null( $tableName ) )
 		{
@@ -44,12 +50,12 @@ class tgsfLog extends tgsfBase
 	/**
 	* Static function that returns the singleton instance of this class.
 	*/
-	public static function &get_instance( $tableName )
+	public static function &get_instance( $dbSetupName, $tableName )
 	{
 		if ( self::$_instance === null )
 		{
 			$c = __CLASS__;
-			self::$_instance = new $c( $tableName );
+			self::$_instance = new $c( $dbSetupName, $tableName );
 		}
 
 		return self::$_instance;
@@ -173,7 +179,7 @@ class tgsfLog extends tgsfBase
 
 			try
 			{
-				$q = new query();
+				$q = new query($this->dbSetupName);
 
 				$q->insert_into( $this->tableName );
 				$q->pt( ptSTR )->insert_fields( array(
@@ -198,6 +204,10 @@ class tgsfLog extends tgsfBase
 			}
 			catch ( Exception $e )
 			{
+				if ( TGSF_CLI )
+				{
+					echo $e->get_message();
+				}
 				log_exception( $e, true );
 				log_error( $message );
 			}

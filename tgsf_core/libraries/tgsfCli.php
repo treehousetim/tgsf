@@ -124,7 +124,7 @@ class tgsfCli extends tgsfDataSource
 		}
 
 		$count = 0;
-		$command = 'ps -af | grep controller=' . $controller;
+		$command = 'ps ax | grep -e --controller=' . $controller;
 
 		$lines = array();
 		exec( $command, $lines );

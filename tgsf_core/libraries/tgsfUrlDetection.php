@@ -40,7 +40,7 @@ function current_protocol()
 //------------------------------------------------------------------------
 function current_has_www()
 {
-	list( $host ) = explode( ':', $_SERVER['HTTP_HOST'] );
+	list( $host ) = explode( ':', current_http_host() );
 	return starts_with( $host, 'www.' );
 }
 //------------------------------------------------------------------------
@@ -51,7 +51,7 @@ function current_has_ssl()
 //------------------------------------------------------------------------
 function current_domain()
 {
-	list( $host ) = explode( ':', $_SERVER['HTTP_HOST'] );
+	list( $host ) = explode( ':', current_http_host() );
 
 	if ( current_has_www() )
 	{
@@ -82,7 +82,7 @@ function current_port()
 
 	if ( ! isset( $_SERVER['SERVER_PORT'] ) )
 	{
-		list( $host, $port ) = explode( ':', $_SERVER['HTTP_HOST'] );
+		list( $host, $port ) = explode( ':', current_http_host() );
 		$port = trim( $port );
 	}
 	else
@@ -118,4 +118,16 @@ function current_https_url()
 	current_port() .
 	$_SERVER['REQUEST_URI'];
 	
+}
+//------------------------------------------------------------------------
+function current_http_host()
+{
+	return config( 'current_http_host' );
+
+	if ( ! array_key_exists( 'SERVER_NAME', $_SERVER ) )
+	{
+		return '';
+	}
+
+	return $_SERVER['SERVER_NAME'];
 }
