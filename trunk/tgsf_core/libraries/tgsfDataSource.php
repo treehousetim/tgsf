@@ -91,6 +91,12 @@ class tgsfDataSource extends tgsfBase
 		$this->_data = (array)$source; // this should convert objects into an array.
 	}
 	//------------------------------------------------------------------------
+	public function __call( $name, $value )
+	{
+		$this->setVar( $name, $value[0] );
+		return $this;
+	}
+	//------------------------------------------------------------------------
 	/**
 	* If we clone a datasource, we convert its type into an application datasource.
 	*/

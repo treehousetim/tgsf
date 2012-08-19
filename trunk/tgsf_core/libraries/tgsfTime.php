@@ -25,4 +25,9 @@ class time extends tgsfBase
 
 		return $ts;
 	}
+	//------------------------------------------------------------------------
+	static public function currentMicro( $asFloat )
+	{
+		return microtime( $asFloat );
+	}
 }

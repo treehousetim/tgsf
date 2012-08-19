@@ -163,6 +163,15 @@ class dbManager extends tgsfBase
 
 		return $this->_setup[$which];
 	}
+
+	//------------------------------------------------------------------------
+	/**
+	*
+	*/
+	public function &getSetup( $which = 'default' )
+	{
+		return $this->_setup[$which];
+	}
 	//------------------------------------------------------------------------
 	/**
 	*

@@ -1,5 +1,9 @@
 <?php
 
+// emulate tgsf cli object for command line options.
+// duplicated here to keep this file stand alone
+$CLI = parseArgv();
+
 // this file uses the information found in the /tgsf_core/config/version.php file
 // to automatically increment the build number
 // then it creates 2 zip files:
@@ -20,35 +24,41 @@ $versionFile = '../tgsf_core/config/version.php';
 
 include $versionFile;
 
-$release++;
+if ( $CLI->increment )
+{
+	$build++;
+}
 
 $out = "<?php\n";
 $out .= '$major = ' . $major . ";" . PHP_EOL;
 $out .= '$minor = ' . $minor . ";" . PHP_EOL;
-$out .= '$build = ' . $build . ";" . PHP_EOL;
-$out .= '$release = ' . $release . ";" . PHP_EOL . PHP_EOL;
+$out .= '$build = ' . $build . ";" . PHP_EOL . PHP_EOL;
 
-$out .= '$versionString = "{$major}.{$minor}.{$build}-r{$release}";' . PHP_EOL;
+$out .= '$versionString = "{$major}.{$minor}.{$build}";' . PHP_EOL;
 $out .= "define( 'TGSF_VERSION', \$versionString );" . PHP_EOL;
-$out .= "define( 'TGSF_VERSION_INT', \$major . \$minor . \$build . \$release );" . PHP_EOL;
+$out .= "define( 'TGSF_VERSION_INT', \$major . \$minor . \$build );" . PHP_EOL;
 
 file_put_contents( $versionFile, $out );
-include $versionFile;
+$versionString = "{$major}.{$minor}.{$build}";
 
-echo 'Building tgsf version: ' . $versionString;
+echo 'Building tgsf version: ' . $versionString . PHP_EOL;
 
 $coreFolder = 'tgsf-core-' . $versionString;
 $fullFolder = 'tgsf-' . $versionString;
 
 runRsync( $coreFolder, 'rs_exclude_core.txt' );
-createZip( $coreFolder, $coreFolder );
-
 runRsync( $fullFolder, 'rs_exclude_full.txt' );
-createZip( $fullFolder, $fullFolder );
 
-//echo "\n" . 'Uploading to Google Code';
-//uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass, 'Featured' );
-//uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass, 'Featured' );
+
+if ( $CLI->upload )
+{
+	createZip( $coreFolder, $coreFolder );
+	createZip( $fullFolder, $fullFolder );
+
+	echo "\n" . 'Uploading to Google Code';
+	uploadToGoogleCode( 'ZIP - Core Files - Use for Upgrading', 'tgsf', $coreFolder . '.zip', $gcUser, $gcPass, 'Featured' );
+	uploadToGoogleCode( 'ZIP - Full Framework', 'tgsf', $fullFolder . '.zip', $gcUser, $gcPass, 'Featured' );
+}
 
 //------------------------------------------------------------------------
 // utility functions below
@@ -74,7 +84,7 @@ function runRsync( $dest, $exclude )
 	echo "Running RSync\n";
 	$exclude= "--exclude-from=" . $exclude;
 	$pg = "--no-p --no-g";
-	$rsync_options = "-Pa";
+	$rsync_options = "-Pa --delete";
 	$rsync_local_path = "../";
 	$rsync_local_dest = "./" . $dest;
 
@@ -89,4 +99,66 @@ function createZip( $zipName, $folderToZip )
 	//@unlink( $zipName . '.tar.gz' );
 	system( "zip -r9 -q {$zipName}.zip {$folderToZip}" );
 	//system( "tar -pczf {$zipName}.tar.gz {$folderToZip}" );
+}
+//------------------------------------------------------------------------
+function parseArgv()
+{
+	$out = array( 'upload' => 0, 'increment' => 0 );
+	global $argv;
+	$tmpArgv = $argv;
+
+	// remove script name
+	array_shift( $tmpArgv );
+
+	$unnamed = array();
+
+	foreach( $tmpArgv as $arg )
+	{
+		if ( substr( $arg, 0, 2 ) == '--' )
+		{
+			$eqPos = strpos( $arg, '=' );
+
+			if ( $eqPos === false )
+			{
+				$key   = substr( $arg, 2 );
+				
+				$value = 1;
+				if ( array_key_exists( $key, $out ) )
+				{
+					$value = $out[$key];
+				}
+
+				$out[$key] = $value;
+			}
+			else
+			{
+				$key = substr( $arg, 2, $eqPos-2 );
+				$out[$key] = substr( $arg, $eqPos + 1 );
+			}
+		}
+		elseif ( substr( $arg, 0, 1 ) == '-' )
+		{
+			if (substr( $arg, 2, 1 ) == '=' )
+			{
+				$key = substr( $arg, 1, 1 );
+				$out[$key] = substr( $arg, 3 );
+			}
+			else
+			{
+				$chars = str_split( substr( $arg, 1 ) );
+				foreach( $chars as $char )
+				{
+					$key = $char;
+					$value = 1;
+					if ( array_key_exists( $key, $out ) )
+					{
+						$value = $out[$key];
+					}
+
+					$out[$key] = $value;
+				}
+			}
+		}
+	}
+	return (object)$out;
 }

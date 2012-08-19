@@ -236,7 +236,9 @@ abstract class tgsfForm extends tgsfHtmlTag
 		}
 
 	 	$html = parent::render();
-		$this->_children = array();
+		//$this->_children = array();
+		$this->deep_free();
+
 		$this->_ro_content = '';
 		//$html .= $this->renderJsValidation();
 		return $html;

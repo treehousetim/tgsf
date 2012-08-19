@@ -263,7 +263,7 @@ class XMPPHP_XMLStream {
 			$ns_tags = array($xpath);
 		}
 		foreach($ns_tags as $ns_tag) {
-			list($l, $r) = split("}", $ns_tag);
+			list($l, $r) = explode("}", $ns_tag);
 			if ($r != null) {
 				$xpart = array(substr($l, 1), $r);
 			} else {
@@ -378,6 +378,10 @@ class XMPPHP_XMLStream {
 	private function __process($maximum=5) {
 		
 		$remaining = $maximum;
+		if ( ! $this->socket )
+		{
+			return;
+		}
 		
 		do {
 			$starttime = (microtime(true) * 1000000);
@@ -394,6 +398,7 @@ class XMPPHP_XMLStream {
 				$usecs = $remaining % 1000000;
 				$secs = floor(($remaining - $usecs) / 1000000);
 			}
+
 			$updated = @stream_select($read, $write, $except, $secs, $usecs);
 			if ($updated === false) {
 				$this->log->log("Error on stream_select()",  XMPPHP_Log::LEVEL_VERBOSE);				

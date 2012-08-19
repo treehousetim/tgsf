@@ -18,6 +18,7 @@ $menu['query'] = URL( 'examples/query' );
 $menu['urls'] = URL( 'examples/url' );
 $menu['tgsfHtmlTag'] = URL( 'examples/tgsfHtmlTag' );
 
+echo URL( 'test' );
 echo urlMenu( $menu );
 
 include view( 'template/footer' );

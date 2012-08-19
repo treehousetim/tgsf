@@ -12,6 +12,8 @@ $extraCss[] = css_path() . 'examples.css';
 
 include view( 'template/header' );
 
+echo '<br />' . PHP_EOL . PHP_EOL;
+
 $anchor = new tgsfHtmlTag( 'a' );
 $anchor->addAttribute( 'href', 'http://www.example.com/' );
 $anchor->content( 'Click Here - Example 1' );
@@ -39,12 +41,11 @@ for ( $row = 1; $row < 11; $row++ )
 			->content( $row . ', ' . $col );
 	}
 }
-
+echo '<br />' . PHP_EOL . PHP_EOL;
 echo $table;
-
-echo '<br />';
+echo '<br />' . PHP_EOL . PHP_EOL;
 echo tgsfHtmlTag::factory( 'span' )
-	->addAttribute( 'title', 'My Title' )
+	->title( 'My Title' )
 	->content( 'In a span' );
 
 echo '<br />';
@@ -58,19 +59,19 @@ $a->onClick = "alert( 'Clicked!' );";
 echo $a;
 echo '<br />';
 echo tgsfHtmlTag::factory( 'div' )
-	->cssClass( 'example-divs' )
+	->class( 'example-divs' )
 	->addTag( 'p' )
 		->content( 'This is paragraph Text' )
-		->cssClass( 'example-paragraphs' )
+		->class( 'example-paragraphs' )
 	->parent;
 
 echo '<br />';
 $p = tgsfHtmlTag::factory( 'p' )
 	->content( 'This is paragraph Text' )
-	->cssClass( 'example-paragraphs' );
+	->class( 'example-paragraphs' );
 
 echo tgsfHtmlTag::factory( 'div' )
-	->cssClass( 'example-divs' )
+	->class( 'example-divs' )
 	->addTag( $p )->parent;
 
 echo '<br />';
@@ -78,5 +79,13 @@ $tag = tgsfHtmlTag::factory( 'div' )
 	->contentFilter( 'strtoupper' );
 
 echo $tag->content( 'uppercase text' );
+
+echo tgsfHtmlTag::factory( 'span' )
+	->class( 'jq-popup' )
+	->title( 'My Title' )
+	->rel( 'special' )
+	->addAttribute( 'with-dash', 123 )
+	->with_underscore( 456 )
+	->content( 'In a span' );
 
 include view( 'template/footer' );

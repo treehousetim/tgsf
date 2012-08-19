@@ -48,7 +48,7 @@ try
 	// load the core libraries and whatnot
 	include CORE_PATH . 'core-loader.php';
 
-	content_buffer();
+//	content_buffer();
 
 	// page is a global variable that is used in other places.
 	$page = tgsf_parse_url();
@@ -60,7 +60,7 @@ try
 		memory_stats();
 	}
 
-	end_buffer();
+//	end_buffer();
 }
 catch ( Exception $e )
 {

@@ -172,6 +172,19 @@ class date
 	}
 	//------------------------------------------------------------------------
 	/**
+	* returns the current date offset by the seconds
+	* @param int The number of seconds to offset
+	* @param string The operator either + or -
+	* @param String The format to use for returning
+	* @param String The timezone string - defaults to TZ_DEFAULT
+	*/
+	static public function currentDateOffsetSeconds( $seconds, $operator = '+', $format = DT_FORMAT_SQL, $tz = TZ_DEFAULT )
+	{
+		$dt = new DateTime( date::currentDate( DT_FORMAT_SQL ) . ' ' . $operator . $seconds . ' seconds', new DateTimeZone( $tz ) );
+		return $dt->format( $format );
+	}
+	//------------------------------------------------------------------------
+	/**
 	* Returns the current date, format defaults to date only
 	* @param String The format to use for returning
 	*/
@@ -200,6 +213,19 @@ class date
 	static public function addDays( $date, $days, $format = DT_FORMAT_SQL_DATE, $tz = TZ_DEFAULT )
 	{
 		$dt = new DateTime(  $date . ' +' . $days . ' days', new DateTimeZone( $tz ) );
+		return $dt->format( $format );
+	}
+	//------------------------------------------------------------------------
+	/**
+	* Adds x seconds to the supplied datetime string
+	* @param String The date to add days to
+	* @param Int The number of seconds to add (no default, otherwise it is not obvious what is happening)
+	* @param String The date format - defaults to DT_FORMAT_SQL_DATE
+	* @param String The timezone - defaults to TZ_DEFAULT
+	*/
+	static public function addSeconds( $date, $seconds, $format = DT_FORMAT_SQL_DATE, $tz = TZ_DEFAULT )
+	{
+		$dt = new DateTime(  $date . ' +' . $seconds . ' seconds', new DateTimeZone( $tz ) );
 		return $dt->format( $format );
 	}
 	//------------------------------------------------------------------------
@@ -275,7 +301,7 @@ class date
 	{
 		$dt1 = new DateTime( $date1 );
 		$dt2 = new DateTime( $date2 );
-		
+
 		switch ( $operator )
 		{
 		case '=':
@@ -304,6 +330,43 @@ class date
 
 		default:
 			throw new tgsfException( 'Illegal Compare operator in tgsfDate - ' . $operator );
+		}
+	}
+	//------------------------------------------------------------------------
+	static public function diff( $date1, $date2 = null )
+	{
+		if ( $date2 == null )
+		{
+			$date2 = date::currentDatetime();
+		}
+		$out = dsFactory::ds();
+
+		$date1 = new DateTime( $date1 );
+		$date2 = new DateTime( $date2 );
+
+		$val = $date1->format( 'U' ) - $date2->format( 'U' );
+		$out->setVar( 'days', (int)( $val / 86400 ) );
+		$val = $val - ( $out->days * 86400 );
+
+		$out->setVar( 'hours', (int)( $val/3600 ) );
+		$val = $val - ( $out->hours * 3600 );
+
+		$out->setVar( 'minutes', (int)( $val/60 ) );
+		$val = $val - ( $out->minutes * 60 );
+
+		$out->setVar( 'seconds', $val );
+		return $out;
+	}
+	//------------------------------------------------------------------------
+	static public function formatTimeString( $str )
+	{
+		if ( strpos( $str, ':' ) === false )
+		{
+			return trim( chunk_split( $str, 2, ':' ), ":\n\r" );
+		}
+		else
+		{
+			return $str;
 		}
 	}
 }

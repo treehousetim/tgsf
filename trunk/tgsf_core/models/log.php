@@ -19,7 +19,7 @@ class logModel extends tgsfBase
 	{
 		if ( is_null( $query ) || $query instanceOf query == false )
 		{
-			$query = query::factory();
+			$query = query::factory(LOGGER()->dbSetupName);
 		}
 
 		return $query
@@ -36,7 +36,7 @@ class logModel extends tgsfBase
 	*/
 	public function getFetchAllQuery()
 	{
-		$q = new tgsfPaginateQuery();
+		$q = new tgsfPaginateQuery(LOGGER()->dbSetupName);
 		$q	->select()
 			->from( $this->tableName )
 			->order_by( 'log_datetime desc' );
@@ -50,7 +50,7 @@ class logModel extends tgsfBase
 	*/
 	public function updateSeverity( $ds )
 	{
-		query::factory()
+		query::factory(LOGGER()->dbSetupName)
 			->update( $this->tableName )
 			->set( 'log_severity' )
 			->bindValue( 'log_severity', $ds->log_severity, ptSTR )

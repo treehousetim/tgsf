@@ -29,7 +29,7 @@ class logNoteModel extends tgsfBase
 	{
 		if ( is_null( $query ) || $query instanceOf query == false )
 		{
-			$query = query::factory();
+			$query = query::factory(LOGGER()->dbSetupName);
 		}
 
 		return $query
@@ -48,7 +48,7 @@ class logNoteModel extends tgsfBase
 	{
 		if ( is_null( $query ) || $query instanceOf query == false )
 		{
-			$query = query::factory();
+			$query = query::factory(LOGGER()->dbSetupName);
 		}
 
 		return $query
@@ -66,7 +66,7 @@ class logNoteModel extends tgsfBase
 	*/
 	public function getFetchAllQuery()
 	{
-		$q = new tgsfPaginateQuery();
+		$q = new tgsfPaginateQuery(LOGGER()->dbSetupName);
 		$q	->select()
 			->from( $this->_tableName )
 			->order_by( 'log_datetime desc' );
@@ -88,7 +88,7 @@ class logNoteModel extends tgsfBase
 			$ds->setVar( 'log_note_user_id', AUTH()->getLoginId() );
 		}
 
-		return query::factory()
+		return query::factory(LOGGER()->dbSetupName)
 			->insert_into( $this->_tableName )
 			->pt( ptSTR )
 				->insert_fields( 'log_note_content'	)

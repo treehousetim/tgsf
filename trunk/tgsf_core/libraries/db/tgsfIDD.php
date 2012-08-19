@@ -50,47 +50,61 @@ class tgsfIDD extends tgsfBase
 	{
 		$query = new query();
 
-		if ( ! dbm()->inTransaction() )
+		$doCommit = false;
+		try
 		{
-			dbm()->beginTransaction();
-		}
+			if ( ! dbm()->inTransaction() )
+			{
+				$doCommit = true;
+				dbm()->beginTransaction();
+			}
 		
-		$rows = $query
-				->select( 'idd_nextid' )
-				->from( $this->table )
-				->where( 'idd_id=:idd_id')
-				->bindValue( 'idd_id', $key, ptINT )
-				->exec()
-				->fetchAll();
+			$rows = $query
+					->select( 'idd_nextid' )
+					->from( $this->table )
+					->where( 'idd_id=:idd_id')
+					->bindValue( 'idd_id', $key, ptINT )
+					->exec()
+					->fetchAll();
 
-		if ( count( $rows ) )
-		{
-			$query->reset();
-			$result = $rows[0]->idd_nextid;
+			if ( count( $rows ) )
+			{
+				$query->reset();
+				$result = $rows[0]->idd_nextid;
 
-			$query
-				->update( $this->table )
-				->setLiteral( 'idd_nextid=idd_nextid+1' )
-				->where( 'idd_id=:idd_id' )
-				->bindValue( 'idd_id', $key, ptSTR )
-				->exec();
+				$query
+					->update( $this->table )
+					->setLiteral( 'idd_nextid=idd_nextid+1' )
+					->where( 'idd_id=:idd_id' )
+					->bindValue( 'idd_id', $key, ptSTR )
+					->exec();
+			}
+			else
+			{
+				$result = $defaultInitialValue;
+				$query->reset();
+
+				$query
+					->insert_into( $this->table )
+					->insert_fields( 'idd_id', 'idd_nextid' )
+					->bindValue( 'idd_id', $key, ptSTR )
+					->bindValue( 'idd_nextid', $result+1, ptINT )
+					->exec();
+			}
+
+			if ( $doCommit )
+			{
+				dbm()->commit();
+			}
 		}
-		else
+		catch( Exception $e )
 		{
-			$result = $defaultInitialValue;
-			$query->reset();
+			if ( $doCommit )
+			{
+				dbm()->rollback();
+			}
 
-			$query
-				->insert_into( $this->table )
-				->insert_fields( 'idd_id', 'idd_nextid' )
-				->bindValue( 'idd_id', $key, ptSTR )
-				->bindValue( 'idd_nextid', $result+1, ptINT )
-				->exec();
-		}
-
-		if ( ! dbm()->inTransaction() )
-		{
-			dbm()->commit();
+			LOGGER()->exception( $e );
 		}
 
 		return $result;
